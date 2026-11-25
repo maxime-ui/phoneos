@@ -2907,8 +2907,8 @@ OS.registerApp({
         fight: {
           name: ["Éclaireur des ombres", "Garde renégat", "Traqueur des runes", "Sentinelle corrompue"][index % 4] + " · " + (index + 1),
           type,
-          hp: 6500 + index * 1900,
-          atk: 850 + index * 115,
+          hp: 3000 + index * 650,
+          atk: 420 + index * 35,
           reward: 5 + index * 2,
           intro: "La route est barrée. Une escarmouche vous attend avant de poursuivre."
         }
