@@ -1,4 +1,7 @@
 /* Point d'entrée PhoneOS */
 "use strict";
 
-document.addEventListener("DOMContentLoaded", () => OS.init());
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.classList.toggle("cb", !!OS.store.get("colorblind", false));
+  OS.init();
+});

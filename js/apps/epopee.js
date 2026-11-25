@@ -1,18 +1,6 @@
 /* App : Épopée — gacha + combat au tour par tour (personnages fictifs) */
 "use strict";
 
-OS.registerApp({
-  id: "epopee",
-  name: "Épopée",
-  icon: "⚔️",
-  color: "#6b4f9e",
-  render(body) {
-    body.classList.add("padend");
-    const app = this;
-    app.onClose = () => clearTyping();
-
-    /* ---------- Données ---------- */
-
     const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" }, 4: { label: "SS", color: "#ff8c5a" } };
     const CARD = { R: { label: "Brut", color: "#c34a2f", mult: 1.5 }, B: { label: "Arcane", color: "#3b6bd4", mult: 1.0 }, V: { label: "Rapide", color: "#3ba75c", mult: 0.8 } };
     const TIER = {
@@ -105,28 +93,6 @@ OS.registerApp({
       takumi: ["Écailles d'épaule", "PV max +12 %", { hp: 12 }],
       graal: ["Héritière des braises", "dégâts +15 %", { dmg: 15 }],
     };
-
-    function unitFx(u) {
-      const fx = {};
-      const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
-      const passive = PASSIVE_INFO[u.id];
-      if (passive) Object.keys(passive[2]).forEach((k) => add(k, passive[2][k]));
-      const evo = (save.evo && save.evo[u.id]) || 0;
-      if (evo >= 1) add("jaugeInit", 10);
-      if (evo >= 2) {
-        add("dmg", 8);
-        const e2 = EVO2[u.cls];
-        if (e2) Object.keys(e2.fx).forEach((k) => add(k, e2.fx[k]));
-      }
-      if (evo >= 3) {
-        [EVO3, EVO3B].forEach((tbl) => {
-          const t = tbl[u.cls];
-          if (t) Object.keys(t.fx).forEach((k) => add(k, t.fx[k]));
-        });
-      }
-      return fx;
-    }
-
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
       "Assassin": { desc: "Traque l'attaquant le plus dangereux, critiques fréquents" },
@@ -137,7 +103,6 @@ OS.registerApp({
       "Muraille": { desc: "Bastion : subit 10 % de dégâts en moins" },
       "Invocateur": { desc: "Rituel : appelle une ombre qui frappe une seconde fois" },
     };
-
     const UNITS = [
       /* --- SSR (5 %) --- */
       { id: "gauvin", name: "Sir Gauvin", r: 3, cls: "Chevalier", atk: 1900, hp: 11500, cards: ["R", "B", "B"] },
@@ -263,7 +228,6 @@ OS.registerApp({
       /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
       { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2400, hp: 13000, cards: ["R", "R", "R"] },
     ];
-
     const CLASS_BONUS = {
       Chevalier: "Encaisse : ripostes subies réduites de 25 %",
       Berserker: "Enragé : +20 % dégâts sous 50 % PV",
@@ -275,7 +239,6 @@ OS.registerApp({
       "Défenseur": "Rempart : dégâts subis par toute l'équipe réduits de 10 % tant qu'il est debout",
       "Tueur": "Tueur de géants : +30 % de dégâts, mais attire les ripostes en priorité",
     };
-
     const SKILL_INFO = {
       gauvin: ["Serment d'acier", "renvoie 30 % des dégâts de la riposte qu'il subit"],
       aldric: ["Bannière de Hautefeuille", "+10 % d'ATK pour toute l'équipe tant qu'il est debout"],
@@ -302,6 +265,80 @@ OS.registerApp({
       graal: ["Héritage des braises", "+8 %/tour, renvoie 35 % des ripostes et soigne 15 % des dégâts infligés"],
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
+    const RELICS = {
+      arme: { name: "Lame du Raid", effect: "ATK +8 % pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
+      armure: { name: "Écaille du Dragon", effect: "PV +8 % pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
+      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ +15 %", cost: { couronne: 12, sceau: 5 } },
+    };
+/* ---------- Calculs d'unité partagés (snapshot = {owned, evo, relics}) ---------- */
+
+function coreFx(u, sv) {
+  const fx = {};
+  const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
+  const passive = PASSIVE_INFO[u.id];
+  if (passive) Object.keys(passive[2]).forEach((k) => add(k, passive[2][k]));
+  const evo = (sv.evo && sv.evo[u.id]) || 0;
+  if (evo >= 1) add("jaugeInit", 10);
+  if (evo >= 2) {
+    add("dmg", 8);
+    const e2 = EVO2[u.cls];
+    if (e2) Object.keys(e2.fx).forEach((k) => add(k, e2.fx[k]));
+  }
+  if (evo >= 3) {
+    [EVO3, EVO3B].forEach((tbl) => {
+      const t = tbl[u.cls];
+      if (t) Object.keys(t.fx).forEach((k) => add(k, t.fx[k]));
+    });
+  }
+  return fx;
+}
+
+function corePower(u, sv) {
+  const count = (sv.owned && sv.owned[u.id]) || 1;
+  const mult = 1 + 0.08 * Math.min(count - 1, 12);
+  const evo = (sv.evo && sv.evo[u.id]) || 0;
+  const em = 1 + 0.10 * evo;
+  const relics = sv.relics || {};
+  const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (relics.armure ? 1.08 : 1);
+  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (relics.arme ? 1.08 : 1)), hp: Math.round(u.hp * mult * em * hpFx) };
+}
+
+function evoSkillLabelsOf(u, evo) {
+  const out = [];
+  if (evo >= 1) out.push("Éveil I ✦ Jauge de départ +10 %");
+  if (evo >= 2) {
+    out.push("Éveil II ✦ Dégâts +8 %");
+    if (EVO2[u.cls]) out.push("Talent ✦ " + EVO2[u.cls].label);
+  }
+  if (evo >= 3) {
+    if (EVO3[u.cls]) out.push("Éveil III ✦ " + EVO3[u.cls].label);
+    if (EVO3B[u.cls]) out.push("Talent ✦ " + EVO3B[u.cls].label);
+  }
+  return out;
+}
+
+/* ---------- Données partagées (consommées par l'app Personnages) ---------- */
+OS.epopeeData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, byId, coreFx, corePower, evoSkillLabelsOf };
+
+
+OS.registerApp({
+  id: "epopee",
+  name: "Épopée",
+  icon: "⚔️",
+  color: "#6b4f9e",
+  render(body) {
+    body.classList.add("padend");
+    const app = this;
+    app.onClose = () => clearTyping();
+
+    /* ---------- Données ---------- */
+
+
+    function unitFx(u) { return coreFx(u, save); }
+
+
+
+
 
     function gainLoot(gains) {
       return Object.keys(gains).filter((k) => gains[k] > 0).map((k) => {
@@ -310,21 +347,8 @@ OS.registerApp({
       }).join(", ");
     }
 
-    const RELICS = {
-      arme: { name: "Lame du Raid", effect: "ATK +8 % pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
-      armure: { name: "Écaille du Dragon", effect: "PV +8 % pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
-      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ +15 %", cost: { couronne: 12, sceau: 5 } },
-    };
 
-    function unitPower(u) {
-      const count = save.owned[u.id] || 1;
-      const mult = 1 + 0.08 * Math.min(count - 1, 12);
-      const evo = save.evo[u.id] || 0;
-      const em = 1 + 0.10 * evo;
-      const relics = save.relics || {};
-      const hpFx = (1 + ((unitFx(u).hp || 0) / 100)) * (relics.armure ? 1.08 : 1);
-      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (relics.arme ? 1.08 : 1)), hp: Math.round(u.hp * mult * em * hpFx) };
-    }
+    function unitPower(u) { return corePower(u, save); }
 
     let infiniteBest = OS.store.get("infinite-best", 0);
 
@@ -661,19 +685,7 @@ OS.registerApp({
       return b;
     }
 
-    function evoSkillLabels(u, evo) {
-      const lines = [];
-      if (evo >= 1) lines.push("Éveil I ✦ Jauge de départ +10 %");
-      if (evo >= 2) {
-        lines.push("Éveil II ✦ Dégâts +8 %");
-        if (EVO2[u.cls]) lines.push("Talent ✦ " + EVO2[u.cls].label);
-      }
-      if (evo >= 3) {
-        if (EVO3[u.cls]) lines.push("Éveil III ✦ " + EVO3[u.cls].label);
-        if (EVO3B[u.cls]) lines.push("Talent ✦ " + EVO3B[u.cls].label);
-      }
-      return lines;
-    }
+    function evoSkillLabels(u, evo) { return evoSkillLabelsOf(u, evo); }
 
     function unitCard(u) {
       const p = unitPower(u);
@@ -910,13 +922,15 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Tous les héros du jeu — les non possédés sont grisés";
+      hint.textContent = "Tous les héros du jeu — les non possédés sont grisés (touchez un héros pour sa fiche)";
       content.appendChild(hint);
       const grid = document.createElement("div");
       grid.className = "roster col-grid";
       UNITS.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
         if (save.owned[u.id]) {
-          grid.appendChild(unitCard(u));
+          const card = unitCard(u);
+          card.addEventListener("click", () => OS.heroes.open(u.id));
+          grid.appendChild(card);
           return;
         }
         const c = document.createElement("div");
@@ -926,6 +940,7 @@ OS.registerApp({
           '<div class="unit-name">' + u.name + "</div>" +
           '<div class="unit-cls">Non invoqué…</div>' +
           '<div class="unit-stats">ATK ??? · PV ???</div>';
+        c.addEventListener("click", () => OS.heroes.open(u.id));
         grid.appendChild(c);
       });
       content.appendChild(grid);
@@ -1921,7 +1936,13 @@ OS.registerApp({
     }
 
     function typeCurrentLine(el, text) {
-      const speed = Math.max(0.5, Number(OS.store.get("game-speed", 1)) || 1);
+      const storyRaw = OS.store.get("story-speed", null);
+      const raw = storyRaw === null || storyRaw === "instant" ? OS.store.get("game-speed", 1) : storyRaw;
+      if (storyRaw === "instant") {
+        el.textContent = text;
+        return;
+      }
+      const speed = Math.max(0.5, Number(raw) || 1);
       let pos = Math.min(2, text.length);
       el.textContent = text.slice(0, pos);
       typeTimer = setInterval(() => {

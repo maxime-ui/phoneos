@@ -8,7 +8,7 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
-const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/epopee.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
+const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/epopee.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 
 // Seed save Épopée : toutes les unités SAUF le Graal + équipe avec Soigneur (doit précéder tous les scripts)
 const unitsBlock = fs.readFileSync(path.join(root, "js/apps/epopee.js"), "utf8").match(/UNITS\s*=\s*\[([\s\S]*?)\n    \];/)[1];
@@ -65,7 +65,7 @@ setTimeout(() => {
 
   // Ouvrir chaque app
   const apps = Object.keys(window.eval("OS").APPS);
-  check("3 apps enregistrées (Épopée, Réglages, Trophées)", apps.length === 3);
+  check("4 apps enregistrées (Épopée, Personnages, Réglages, Trophées)", apps.length === 4);
   apps.forEach((id) => {
     window.eval("OS").openApp(id);
     check("app ouverte : " + id, !$("#layer-app").classList.contains("hidden") && $("#app-body").children.length > 0);
@@ -140,6 +140,33 @@ setTimeout(() => {
   check("récompense 25 % réclamable", !!claim);
   if (claim) claim.click();
   check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:epopee")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:epopee")).collected.includes(25));
+
+  // App Personnages : navigation Collection -> fiche détaillée -> retour
+  const colCard = [...document.querySelectorAll(".col-grid .unit-card")].find((c) => !c.classList.contains("locked") && c.textContent.includes("Morgane"));
+  check("carte Collection cliquable", !!colCard);
+  if (colCard) colCard.click();
+  check("clic Collection -> app Personnages ouverte", Object.keys(window.eval("OS").APPS).includes("heroes") && $("#app-body").querySelectorAll(".sheet-panel").length === 1);
+  check("fiche Morgane : doublons, passif et compétence", $("#app-body").textContent.includes("Doublons") && $("#app-body").textContent.includes("Passif :") && $("#app-body").textContent.includes("Compétence :"));
+  const backBtn = document.querySelector(".sheet-actions .pull-btn");
+  check("bouton retour présent", !!backBtn);
+  if (backBtn) backBtn.click();
+  check("retour -> liste complète de " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
+  window.eval("OS").heroes.open("graal");
+  check("fiche Graal non invoqué : indice Enfer+", $("#app-body").querySelectorAll(".sheet-panel").length === 1 && $("#app-body").textContent.includes("Dragon des cendres") && $("#app-body").textContent.includes("Enfer+") && !$("#app-body").textContent.includes("Doublons"));
+
+  // Réglages bonus : mode daltonien + vitesse des dialogues
+  window.eval("OS").openApp("settings");
+  const cbInput = [...document.querySelectorAll(".switch input")].find((inp) => inp.closest(".row, .set-row, div") && inp.closest(".row, .set-row, div").textContent.includes("Mode daltonien"));
+  check("toggle Mode daltonien présent", !!cbInput);
+  if (cbInput) cbInput.click();
+  check("mode daltonien : body.cb appliqué", document.body.classList.contains("cb"));
+  check("mode daltonien persisté", window.localStorage.getItem("phoneos:colorblind") === "true");
+  const speedBtns = [...document.querySelectorAll(".seg-row button, button")].filter((b) => b.textContent === "Instantané" || b.textContent === "Rapide");
+  const instantBtn = speedBtns.find((b) => b.textContent === "Instantané");
+  check("rangée vitesse des dialogues présente", speedBtns.length >= 2);
+  if (instantBtn) instantBtn.click();
+  check("vitesse des dialogues persistée (instant)", window.localStorage.getItem("phoneos:story-speed") === JSON.stringify("instant"));
+  window.eval("OS").openApp("epopee");
 
   // Portail de classe : coût 5 ◆ + pity persistée
   const summonTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");

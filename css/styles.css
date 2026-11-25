@@ -1073,3 +1073,41 @@ button { font-family: inherit; }
   background: #3a2f14; border: 1px solid #e3b23c; color: #ffd970;
   border-radius: 999px; padding: 2px 9px; font-size: 10.5px;
 }
+
+/* ---------- App Personnages (fiches détaillées) ---------- */
+.sheet-panel { padding: 12px; cursor: default; display: block; }
+.sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sheet-name { font-size: 15px; }
+.sheet-line {
+  background: rgba(255,255,255,.04); border: 1px solid #2a3145; border-radius: 8px;
+  padding: 7px 9px; margin-top: 7px; font-size: 12px; color: #dfe4ef; line-height: 1.45;
+}
+.sheet-line small { color: #aab2c6; }
+.sheet-line b { color: #fff; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.tag-chip {
+  border-radius: 999px; padding: 2px 9px; font-size: 10.5px; color: #0d1119; font-weight: 700;
+}
+.sheet-actions { margin-top: 10px; }
+.sheet-actions .pull-btn { width: 100%; }
+body.cb .sheet-line { border-style: dashed; }
+
+/* ---------- Mode daltonien ---------- */
+body.cb .unit-card { position: relative; }
+body.cb .unit-card::before {
+  position: absolute; top: 8px; right: 8px; font-size: 9.5px; font-weight: 700;
+  padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff;
+  border: 1px solid #fff;
+}
+body.cb .unit-card.r1::before { content: "R"; border-color: #9aa3b5; }
+body.cb .unit-card.r2::before { content: "SR"; border-color: #4f9eff; }
+body.cb .unit-card.r3::before { content: "SSR"; border-color: #e3b23c; }
+body.cb .unit-card { border-left-style: double; border-left-width: 6px; }
+body.cb .unit-card.locked { border-left-style: solid; border-left-width: 3px; }
+body.cb .hand-card { border-style: dashed; }
+body.cb .hand-card.type-R b::before { content: "▲ "; color: #ffd2c7; }
+body.cb .hand-card.type-B b::before { content: "● "; color: #cfe4ff; }
+body.cb .hand-card.type-V b::before { content: "■ "; color: #d2f5dd; }
+body.cb .hp-track { background: #10141f; border: 1px solid #3a4358; }
+body.cb .hp-fill { border-right: 2px solid #fff; }
+body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }

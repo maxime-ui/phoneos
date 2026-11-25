@@ -89,12 +89,34 @@ OS.registerApp({
       });
       rowS.appendChild(seg);
       game.appendChild(rowS);
+
+      const storySpeed = OS.store.get("story-speed", null);
+      const rowT = row("Vitesse des dialogues", "frappe du Mode Histoire, indépendante du jeu");
+      const segT = document.createElement("div");
+      segT.className = "seg-row";
+      [["instant", "Instantané"], [0.5, "Lent"], [1, "Normal"], [2, "Rapide"]].forEach(([v, lbl]) => {
+        const b = document.createElement("button");
+        b.textContent = lbl;
+        if (storySpeed === v) b.classList.add("active");
+        b.addEventListener("click", () => {
+          OS.store.set("story-speed", v);
+          OS.sfx.play("ui");
+          renderAll();
+        });
+        segT.appendChild(b);
+      });
+      rowT.appendChild(segT);
+      game.appendChild(rowT);
       game.appendChild(toggle("Son du jeu", "Effets sonores et musique chiptune", !OS.store.get("sound-muted", false), (v) => {
         OS.sfx.setMuted(!v);
         OS.sfx.play("ui");
       }));
       game.appendChild(toggle("Notifications système", "Bannières, trophées, évènements", OS.store.get("notifications", true), (v) => {
         OS.store.set("notifications", v);
+      }));
+      game.appendChild(toggle("Mode daltonien", "Repères visuels en plus des couleurs (raretés, cartes, PV)", OS.store.get("colorblind", false), (v) => {
+        OS.store.set("colorblind", v);
+        document.body.classList.toggle("cb", !!v);
       }));
 
       const sound = group("Son");
