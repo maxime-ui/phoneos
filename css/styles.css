@@ -639,3 +639,17 @@ body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }
 .rb-name { flex: 1; }
 .rb-score { color: #3bd4c4; font-weight: 700; }
 body.cb .rb-score { color: #0fb3a3; }
+
+/* Astéria 2.0 — posture break */
+.break-gauge .hp-label { color: #d7b86a; }
+.break-gauge .hp-track { background: rgba(215,184,106,.13); }
+.break-gauge .hp-fill { background: linear-gradient(90deg, #a87935, #f1d27b); }
+.battle-break-alert {
+  padding: 8px 11px;
+  border: 1px solid rgba(215,184,106,.45);
+  border-radius: 8px;
+  background: rgba(135,99,35,.16);
+  color: #f0d58b;
+  font-size: 12px;
+  font-weight: 700;
+}
