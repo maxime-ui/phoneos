@@ -33,6 +33,11 @@ OS.registerApp({
       const panel = document.createElement("div");
       panel.className = "sheet-panel unit-card r" + u.r;
 
+      const portrait = document.createElement("div");
+      portrait.className = "sheet-portrait";
+      portrait.innerHTML = D.heroPortraitMarkup(id);
+      panel.appendChild(portrait);
+
       const head = document.createElement("div");
       head.className = "sheet-head";
       head.innerHTML =
@@ -145,6 +150,7 @@ OS.registerApp({
         const card = document.createElement("div");
         card.className = "unit-card r" + u.r + (owned ? "" : " locked");
         card.innerHTML =
+          '<div class="unit-portrait">' + D.heroPortraitMarkup(u.id) + '</div>' +
           '<div class="unit-name">' + u.name + " " + "★".repeat(sv.evo[u.id] || 0) + "</div>" +
           '<span class="unit-cls">' + u.cls + " · " + (D.RARITY[u.r] ? D.RARITY[u.r].label : "R") + "</span>";
         card.addEventListener("click", () => {
