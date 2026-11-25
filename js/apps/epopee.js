@@ -22,19 +22,60 @@ OS.registerApp({
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
 
     const UNITS = [
+      /* --- SSR (5 %) --- */
       { id: "gauvin", name: "Sir Gauvin", r: 3, cls: "Chevalier", atk: 1900, hp: 11500, cards: ["R", "B", "B"] },
       { id: "morgane", name: "Morgane", r: 3, cls: "Mage", atk: 1750, hp: 9800, cards: ["B", "B", "R"] },
       { id: "kaelith", name: "Kaelith", r: 3, cls: "Archer", atk: 1850, hp: 9200, cards: ["V", "R", "B"] },
+      { id: "aldric", name: "Aldric de Hautefeuille", r: 3, cls: "Chevalier", atk: 1950, hp: 12000, cards: ["R", "R", "B"] },
+      { id: "seraphine", name: "Séraphine", r: 3, cls: "Mage", atk: 1800, hp: 9500, cards: ["B", "V", "B"] },
+      { id: "draven", name: "Draven", r: 3, cls: "Berserker", atk: 2000, hp: 9000, cards: ["R", "R", "V"] },
+      /* --- SR (20 %) --- */
       { id: "elise", name: "Dame Elise", r: 2, cls: "Chevalier", atk: 1450, hp: 9500, cards: ["R", "B", "V"] },
       { id: "orwen", name: "Orwen", r: 2, cls: "Berserker", atk: 1700, hp: 8500, cards: ["R", "R", "V"] },
       { id: "lia", name: "Lia", r: 2, cls: "Mage", atk: 1350, hp: 8800, cards: ["B", "V", "B"] },
       { id: "farid", name: "Farid", r: 2, cls: "Rôdeur", atk: 1500, hp: 8300, cards: ["V", "R", "V"] },
+      { id: "rowena", name: "Rowena", r: 2, cls: "Mage", atk: 1400, hp: 9200, cards: ["B", "V", "R"] },
+      { id: "cassius", name: "Cassius", r: 2, cls: "Chevalier", atk: 1500, hp: 9800, cards: ["B", "R", "B"] },
+      { id: "morwenna", name: "Morwenna", r: 2, cls: "Rôdeur", atk: 1600, hp: 8600, cards: ["V", "V", "R"] },
+      { id: "thibault", name: "Thibault", r: 2, cls: "Chevalier", atk: 1380, hp: 10200, cards: ["R", "B", "V"] },
+      { id: "isolde", name: "Isolde", r: 2, cls: "Archer", atk: 1550, hp: 8400, cards: ["V", "R", "R"] },
+      { id: "kaeren", name: "Kaeren", r: 2, cls: "Rôdeur", atk: 1480, hp: 8900, cards: ["B", "V", "V"] },
+      { id: "bellamy", name: "Bellamy", r: 2, cls: "Berserker", atk: 1650, hp: 8300, cards: ["R", "V", "R"] },
+      { id: "odric", name: "Odric", r: 2, cls: "Chevalier", atk: 1520, hp: 9400, cards: ["B", "R", "V"] },
+      /* --- R (75 %) --- */
       { id: "bron", name: "Bron", r: 1, cls: "Berserker", atk: 1100, hp: 7000, cards: ["R", "R", "V"] },
       { id: "tilia", name: "Tilia", r: 1, cls: "Mage", atk: 950, hp: 7500, cards: ["B", "B", "V"] },
       { id: "nerys", name: "Nerys", r: 1, cls: "Chevalier", atk: 1000, hp: 8200, cards: ["B", "R", "V"] },
       { id: "joach", name: "Joach", r: 1, cls: "Archer", atk: 1050, hp: 6800, cards: ["V", "R", "R"] },
       { id: "sylphe", name: "Sylphe", r: 1, cls: "Rôdeur", atk: 980, hp: 7200, cards: ["V", "V", "B"] },
+      { id: "perrin", name: "Perrin", r: 1, cls: "Chevalier", atk: 1020, hp: 8400, cards: ["B", "R", "V"] },
+      { id: "maud", name: "Maud", r: 1, cls: "Mage", atk: 960, hp: 7600, cards: ["B", "B", "V"] },
+      { id: "hugo", name: "Hugo", r: 1, cls: "Berserker", atk: 1150, hp: 6900, cards: ["R", "R", "V"] },
+      { id: "anouk", name: "Anouk", r: 1, cls: "Rôdeur", atk: 1000, hp: 7400, cards: ["V", "R", "B"] },
+      { id: "basil", name: "Basil", r: 1, cls: "Archer", atk: 1080, hp: 6600, cards: ["V", "R", "R"] },
+      { id: "celestine", name: "Célestine", r: 1, cls: "Mage", atk: 990, hp: 7800, cards: ["B", "V", "B"] },
+      { id: "dorian", name: "Dorian", r: 1, cls: "Archer", atk: 1120, hp: 6700, cards: ["R", "V", "B"] },
+      { id: "emeric", name: "Emeric", r: 1, cls: "Chevalier", atk: 980, hp: 8600, cards: ["R", "B", "V"] },
+      { id: "fenna", name: "Fenna", r: 1, cls: "Rôdeur", atk: 1040, hp: 7200, cards: ["V", "V", "R"] },
+      { id: "gael", name: "Gael", r: 1, cls: "Berserker", atk: 1180, hp: 6600, cards: ["R", "V", "B"] },
+      { id: "hilda", name: "Hilda", r: 1, cls: "Mage", atk: 940, hp: 8000, cards: ["B", "R", "B"] },
+      { id: "ivor", name: "Ivor", r: 1, cls: "Chevalier", atk: 1060, hp: 8200, cards: ["B", "R", "R"] },
+      { id: "jolande", name: "Jolande", r: 1, cls: "Mage", atk: 1010, hp: 7500, cards: ["V", "B", "B"] },
+      { id: "kasimir", name: "Kasimir", r: 1, cls: "Berserker", atk: 1140, hp: 7100, cards: ["V", "R", "R"] },
+      { id: "lisette", name: "Lisette", r: 1, cls: "Archer", atk: 1090, hp: 6900, cards: ["B", "V", "R"] },
+      { id: "marceau", name: "Marceau", r: 1, cls: "Rôdeur", atk: 1070, hp: 7300, cards: ["R", "V", "V"] },
+      { id: "noemie", name: "Noémie", r: 1, cls: "Mage", atk: 970, hp: 7700, cards: ["B", "V", "R"] },
+      { id: "oswald", name: "Oswald", r: 1, cls: "Chevalier", atk: 990, hp: 8800, cards: ["V", "B", "R"] },
+      { id: "petra", name: "Petra", r: 1, cls: "Rôdeur", atk: 1030, hp: 7600, cards: ["B", "V", "V"] },
     ];
+
+    const CLASS_BONUS = {
+      Chevalier: "Encaisse : ripostes subies réduites de 25 %",
+      Berserker: "Enragé : +20 % dégâts sous 50 % PV",
+      Mage: "Arcane : dégâts +30 % et Ultime recharge plus vite",
+      Archer: "Viseur : critiques à 35 % (au lieu de 25 %)",
+      "Rôdeur": "Esquive : 25 % de chance d'éviter une riposte",
+    };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
     function loadSave() {
@@ -177,6 +218,15 @@ OS.registerApp({
       hint.textContent = "Touchez une unité pour l'ajouter ou la retirer de l'équipe (3 max)";
       content.appendChild(hint);
 
+      const help = document.createElement("div");
+      help.className = "class-help";
+      Object.keys(CLASS_BONUS).forEach((cls) => {
+        const line = document.createElement("div");
+        line.innerHTML = "<b>" + cls + "</b> — " + CLASS_BONUS[cls];
+        help.appendChild(line);
+      });
+      content.appendChild(help);
+
       const box = document.createElement("div");
       box.className = "roster";
       content.appendChild(box);
@@ -285,8 +335,11 @@ OS.registerApp({
 
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
       let crit = false;
-      if (card.type === "V" && Math.random() < 0.25) { dmg *= 2; crit = true; }
-      battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? 22 : 8));
+      const critChance = card.type === "V" ? (u.cls === "Archer" ? 0.35 : 0.25) : 0;
+      if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
+      if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
+      if (u.cls === "Berserker" && battle.hp[gi] < u.hp / 2) dmg = Math.round(dmg * 1.2);
+      battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift((crit ? "CRIT ! " : "") + unit.name + " (" + c.label + ") → " + dmg + " dégâts");
 
@@ -312,9 +365,15 @@ OS.registerApp({
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
       const ti = targets[Math.floor(Math.random() * targets.length)];
-      const dmg = Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.4));
-      battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
-      battle.log.unshift(battle.enemy.name + " frappe " + battle.units[ti].name + " → " + dmg + " dégâts");
+      const target = battle.units[ti];
+      if (target.cls === "Rôdeur" && Math.random() < 0.25) {
+        battle.log.unshift(target.name + " esquive la riposte !");
+      } else {
+        let dmg = Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.4));
+        if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
+        battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
+        battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
+      }
       if (!aliveIdx().length) endBattle(false);
       else {
         newHand();
