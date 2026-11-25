@@ -1198,6 +1198,7 @@ OS.registerApp({
     }
 
     function renderSummon() {
+      OS.sfx.setTheme("summon");
       setActiveTab(tabSummon);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -1347,6 +1348,7 @@ OS.registerApp({
     /* ---------- Équipe ---------- */
 
     function renderTeam() {
+      OS.sfx.setTheme("forge");
       setActiveTab(tabTeam);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -1612,6 +1614,7 @@ OS.registerApp({
     let trainPick = null;
 
     function renderTraining() {
+      OS.sfx.setTheme("training");
       setActiveTab(tabTraining);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -1740,6 +1743,7 @@ OS.registerApp({
     let collectionFilters = { cls: "all", rarity: "all", ownership: "all" };
 
     function renderCollection() {
+      OS.sfx.setTheme("collection");
       setActiveTab(tabCollection);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -3340,6 +3344,7 @@ OS.registerApp({
     }
 
     function renderStory() {
+      OS.sfx.setTheme("story");
       clearTyping();
       // Une victoire/défaite d'histoire est terminée : sortir du combat avant
       // de revenir à la carte évite de conserver une équipe de combat obsolète.
@@ -3428,6 +3433,7 @@ OS.registerApp({
     }
 
     function renderScene() {
+      OS.sfx.setTheme("story");
       clearTyping();
       setActiveTab(tabStory);
       if (!storyScene || !STORY[storyScene.idx] || !STORY[storyScene.idx].events[storyScene.step]) {
@@ -3568,6 +3574,7 @@ OS.registerApp({
     }
 
     function renderDoneChapter(i, subtitle) {
+      OS.sfx.setTheme("story");
       clearTyping();
       setActiveTab(tabStory);
       const ch = STORY[i];
