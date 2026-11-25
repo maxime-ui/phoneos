@@ -1713,7 +1713,7 @@ OS.registerApp({
         mode: "train",
         trainingDamage: 0,
         floor: 1,
-        enemy: { name: op.name, type: op.type, hp: op.hp, maxHp: op.hp, atk: op.atk },
+        enemy: { name: op.name, type: op.type, ...enemyStats(op.type, op.hp, op.atk) },
         tier: "train",
         units: [unit],
         hp: [unit.hp],
