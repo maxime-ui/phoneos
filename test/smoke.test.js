@@ -87,6 +87,23 @@ setTimeout(() => {
   clickUnit("Bron"); clickUnit("Nerys"); clickUnit("Sirona"); clickUnit("Poppy");
   check("équipe 3 Soigneurs composée", [...document.querySelectorAll(".roster .unit-card.in-team .unit-cls")].every((el) => el.textContent === "Soigneur"));
 
+  // Forge d'évolution : butin semé puis 1re évolution de Bron (+8 Éclat d'acier)
+  const saveForge = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  saveForge.loot = { eclat: 999, coeur: 50, larme: 50, couronne: 50, sceau: 50 };
+  window.eval('(function(){localStorage.setItem("phoneos:epopee",' + JSON.stringify(JSON.stringify(saveForge)) + ')})()');
+  window.eval("OS").openApp("epopee");
+  const teamTabF = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
+  teamTabF.click();
+  check("inventaire de butin affiché (5 matières)", document.querySelectorAll(".loot-chip").length === 5);
+  check("forge d'évolution : lignes présentes", document.querySelectorAll(".forge-line").length >= 100);
+  const bronLine = [...document.querySelectorAll(".forge-line")].find((l) => l.querySelector(".unit-name").textContent.startsWith("Bron"));
+  check("forge : ligne Bron évolutive et finançable", !!bronLine && !bronLine.querySelector("button").disabled);
+  if (bronLine) bronLine.querySelector("button").click();
+  const saveEvo = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  check("évolution Bron persistée (+10 %, −8 Éclat)", saveEvo.evo.bron === 1 && saveEvo.loot.eclat === 991);
+  const bronCardF = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
+  check("étoiles ★ affichées sur la carte", !!bronCardF && bronCardF.querySelector(".unit-name").textContent.includes("★"));
+
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
   const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
   check("onglet Collection présent", !!colTab);
@@ -143,6 +160,30 @@ setTimeout(() => {
   check("Soigneur soigne l'allié le plus blessé", logText.includes("soigne"));
   const dailyCards = JSON.parse(window.localStorage.getItem("phoneos:epopee-daily")).missions.find((m) => m.t === "cards");
   check("mission cartes progresse en combat (3 jouées)", !!dailyCards && dailyCards.p >= 3);
+
+  // Chasse au butin : équipe offensive gagne la quête facile → Éclat d'acier garanti
+  const teamTabW = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
+  teamTabW.click();
+  clickUnit("Mère Édelé"); clickUnit("Sirona"); clickUnit("Poppy");
+  clickUnit("Bron"); clickUnit("Tilia"); clickUnit("Nerys");
+  const questTabW = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  questTabW.click();
+  let lootSeen = false;
+  for (let attempt = 0; attempt < 4 && !lootSeen; attempt++) {
+    const tierBtnW = [...document.querySelectorAll(".pull-row .pull-btn")].find((b) => b.classList.contains("tier-facile"));
+    if (!tierBtnW) break;
+    tierBtnW.click();
+    for (let t2 = 0; t2 < 16; t2++) {
+      if (!document.querySelector(".battle") || document.querySelector(".battle-result")) break;
+      for (let p2 = 0; p2 < 3; p2++) {
+        const card2 = document.querySelector(".hand-card:not([disabled])");
+        if (card2) card2.click();
+      }
+      const lg = document.querySelector(".battle-log");
+      if (lg && lg.textContent.includes("Butin")) { lootSeen = true; break; }
+    }
+  }
+  check("butin : Éclat d'acier gagné en victoire facile", lootSeen && JSON.parse(window.localStorage.getItem("phoneos:epopee")).loot.eclat >= 992);
 
   // Mode Infini : démarrage sans erreur, étage affiché
   window.eval("OS").openApp("epopee");

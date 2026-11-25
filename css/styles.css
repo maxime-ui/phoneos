@@ -1031,3 +1031,23 @@ button { font-family: inherit; }
 .daily-mission small { color: #aab2c6; }
 .daily-mission.claimed { opacity: 0.5; }
 .daily-mission .claim-btn { font-size: 11px; padding: 7px 10px; }
+
+/* ---------- Butin et Forge d'évolution ---------- */
+.loot-bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.loot-chip {
+  font-size: 10.5px; background: #1a2030; border-radius: 999px;
+  padding: 4px 9px; color: #dfe6f5; display: inline-flex; align-items: center; gap: 5px;
+}
+.loot-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.forge-panel h3 { margin: 16px 0 8px; font-size: 13px; color: #e3b23c; }
+.forge-line {
+  background: #1a2030; border-radius: 10px; padding: 8px 10px; font-size: 12px;
+  border: 1px solid #2a3145; margin-bottom: 6px;
+}
+.forge-line.ready { border-color: #3ba75c; }
+.forge-line .unit-name { margin-bottom: 2px; }
+.forge-evo { color: #e3b23c; font-size: 11px; margin-bottom: 2px; }
+.forge-req { font-size: 11px; margin-bottom: 6px; }
+.forge-req .ok { color: #3ba75c; }
+.forge-req .ko { color: #c34a2f; }
+.evo-stars { color: #e3b23c; }

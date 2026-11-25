@@ -29,6 +29,18 @@ OS.registerApp({
       { pct: 75, quartz: 200 },
       { pct: 100, quartz: 500 },
     ];
+    const LOOT = {
+      eclat: { name: "Éclat d'acier", color: "#8f9bb3" },
+      coeur: { name: "Cœur de braise", color: "#ff8c5a" },
+      larme: { name: "Larme de la nuit", color: "#4f9eff" },
+      couronne: { name: "Couronne d'aube", color: "#e3b23c" },
+      sceau: { name: "Sceau du dragon", color: "#d33b2f" },
+    };
+    const EVO_REQ = {
+      1: [{ eclat: 8 }, { eclat: 12, larme: 5 }, { larme: 5, sceau: 2 }],
+      2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
+      3: [{ eclat: 20, coeur: 10 }, { larme: 12, couronne: 6 }, { sceau: 5 }],
+    };
 
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
@@ -203,10 +215,19 @@ OS.registerApp({
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
+    function gainLoot(gains) {
+      return Object.keys(gains).filter((k) => gains[k] > 0).map((k) => {
+        save.loot[k] = (save.loot[k] || 0) + gains[k];
+        return "+" + gains[k] + " " + LOOT[k].name;
+      }).join(", ");
+    }
+
     function unitPower(u) {
       const count = save.owned[u.id] || 1;
       const mult = 1 + 0.08 * Math.min(count - 1, 12);
-      return { ...u, lvl: count, atk: Math.round(u.atk * mult), hp: Math.round(u.hp * mult) };
+      const evo = save.evo[u.id] || 0;
+      const em = 1 + 0.10 * evo;
+      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em), hp: Math.round(u.hp * mult * em) };
     }
 
     let infiniteBest = OS.store.get("infinite-best", 0);
@@ -219,6 +240,8 @@ OS.registerApp({
     let save = loadSave();
     if (!save.pity) save.pity = {};
     if (!save.collected) save.collected = [];
+    if (!save.loot) save.loot = {};
+    if (!save.evo) save.evo = {};
     function persist() { OS.store.set("epopee", save); }
 
     let storyState = OS.store.get("epopee-story", { done: 0, music: false, diff: "moyen" });
@@ -449,12 +472,13 @@ OS.registerApp({
 
     function unitCard(u) {
       const p = unitPower(u);
+      const stars = "★".repeat(p.evo || 0);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
       c.innerHTML =
         '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
-        '<div class="unit-name">' + u.name + "</div>" +
-        '<div class="unit-cls">' + u.cls + (p.lvl > 1 ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
+        '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
+        '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
         (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + '</div>' : "") +
         '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
       return c;
@@ -516,6 +540,69 @@ OS.registerApp({
         });
         box.appendChild(card);
       });
+
+      content.appendChild(lootBar());
+      content.appendChild(forgePanel());
+    }
+
+    function lootBar() {
+      const div = document.createElement("div");
+      div.className = "loot-bar";
+      Object.keys(LOOT).forEach((k) => {
+        const chip = document.createElement("span");
+        chip.className = "loot-chip";
+        chip.innerHTML = '<span class="loot-dot" style="background:' + LOOT[k].color + '"></span>' + LOOT[k].name + " ×" + (save.loot[k] || 0);
+        div.appendChild(chip);
+      });
+      return div;
+    }
+
+    function forgePanel() {
+      const wrap = document.createElement("div");
+      wrap.className = "forge-panel";
+      const h = document.createElement("h3");
+      h.textContent = "Forge d'évolution — +10 % ATK/PV par évolution (max ★★★)";
+      wrap.appendChild(h);
+
+      const candidates = UNITS.filter((u) => save.owned[u.id] && u.id !== "graal" && (save.evo[u.id] || 0) < 3)
+        .slice().sort((a, b) => b.r - a.r || a.name.localeCompare(b.name));
+      if (!candidates.length) {
+        const done = document.createElement("div");
+        done.className = "team-hint";
+        done.textContent = "Toutes vos unités évolutives sont au maximum (★\u2605\u2605\u2605) — le Graal est déjà au-delà.";
+        wrap.appendChild(done);
+        return wrap;
+      }
+      candidates.forEach((u) => {
+        const evo = save.evo[u.id] || 0;
+        const req = EVO_REQ[u.r][evo] || {};
+        const can = Object.keys(req).every((k) => (save.loot[k] || 0) >= req[k]);
+        const line = document.createElement("div");
+        line.className = "forge-line" + (can ? " ready" : "");
+        line.innerHTML =
+          '<div class="unit-name">' + u.name + "</div>" +
+          '<div class="forge-evo">' + "★".repeat(evo) + "→ " + "★".repeat(evo + 1) + " \u00b7 +10 % ATK/PV</div>" +
+          '<div class="forge-req">' + Object.keys(req).map((k) => {
+            const ok = (save.loot[k] || 0) >= req[k];
+            return '<span class="' + (ok ? "ok" : "ko") + '">' + req[k] + "× " + LOOT[k].name + "</span>";
+          }).join(" · ") + "</div>";
+        const b = document.createElement("button");
+        b.className = "pull-btn claim-btn";
+        b.textContent = "Évoluer";
+        b.disabled = !can;
+        if (can) {
+          b.addEventListener("click", () => {
+            Object.keys(req).forEach((k) => { save.loot[k] -= req[k]; });
+            save.evo[u.id] = (save.evo[u.id] || 0) + 1;
+            persist();
+            OS.sfx.play("unlock");
+            renderTeam();
+          });
+        }
+        line.appendChild(b);
+        wrap.appendChild(line);
+      });
+      return wrap;
     }
 
     /* ---------- Collection ---------- */
@@ -951,12 +1038,23 @@ OS.registerApp({
             OS.notify("✦", "#8c2f2f", "Le Graal", "Astrée, Héritière des braises (SS) vous rejoint !", 6000);
             battle.log.unshift("✦ Dragon des cendres vaincu en Enfer+ : Astrée, Héritière des braises (SS) rejoint votre collection ! (+50 ◆)");
           }
+          const gains = { larme: diffIdx >= 4 ? 3 : diffIdx >= 2 ? 2 : 1 };
+          if (diffIdx === 3) gains.couronne = 1;
+          if (diffIdx === 4) gains.couronne = 2;
+          if (diffIdx === 4 && storyState.diff === "enferPlus") gains.sceau = 2;
+          battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");
         }
       } else {
         reward = win ? TIER[battle.tier].reward : 2;
-        if (win) trackDaily("wins");
+        if (win) {
+          const gains = { eclat: battle.tier === "facile" ? 1 : battle.tier === "normal" ? 2 : 3 };
+          if (battle.tier === "normal" && Math.random() < 0.3) gains.eclat++;
+          if (battle.tier === "dur") gains.couronne = 1;
+          battle.log.unshift("Butin : " + gainLoot(gains));
+          trackDaily("wins");
+        }
       }
       OS.sfx.play(win ? "victory" : "defeat");
       save.quartz += reward;
@@ -969,6 +1067,7 @@ OS.registerApp({
     function advanceFloor() {
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
+      battle.log.unshift("Butin : " + gainLoot({ coeur: 1 + (battle.floor % 5 === 0 ? 1 : 0) }));
       battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
       battle.gauge = Math.min(100, battle.gauge + 15);
