@@ -806,3 +806,10 @@ body.cb .rb-score { color: #0fb3a3; }
 .story-speaker-card .portrait-art { width:68px; height:78px; display:block; object-fit:contain; flex:0 0 auto; border-radius:8px; background:rgba(255,255,255,.06); }
 .story-boss-portrait .portrait-art { width:96px; height:108px; display:block; object-fit:contain; flex:0 0 auto; border-radius:10px; background:rgba(255,255,255,.06); }
 .training-score { gap:5px; }
+
+
+/* Accessibilité clavier et réduction des animations */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
