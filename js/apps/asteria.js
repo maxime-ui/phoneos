@@ -66,6 +66,9 @@
       "mat_Soigneur": { name: "Baume de Soigneur", color: "#3bd4a0" },
       "mat_Défenseur": { name: "Rivet de Défenseur", color: "#9fb0c8" },
       "mat_Tueur": { name: "Lame du Tueur", color: "#d33b6f" },
+      "mat_Artificier": { name: "Noyau d’Artificier", color: "#d7a85a" },
+      "mat_Druide": { name: "Sève de Druide", color: "#3bd4a0" },
+      "mat_Occultiste": { name: "Voile d’Occultiste", color: "#9b79d0" },
     };
 
     const RECYCLE_GAIN = { 1: 2, 2: 4, 3: 8 };
@@ -2936,7 +2939,7 @@ OS.registerApp({
       { name: "Bannière de la Sève-Lune", color: "#398f6b" },
       { name: "Bannière du Dernier Sablier", color: "#3d627f" },
     ];
-    const BOSS_IDX = [1, 3, 6, 9, 11, 12, 14, 16];
+    const BOSS_IDX = [1, 3, 6, 9, 11, 18, 20, 22];
 
     function bannersUnlockedCount() {
       const beaten = storyState.bossBeaten || {};
