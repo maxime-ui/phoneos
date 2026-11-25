@@ -1,9 +1,9 @@
 /* Test de fumée PhoneOS sous jsdom */
 const fs = require("fs");
 const path = require("path");
-const { JSDOM } = require("/tmp/node_modules/jsdom");
+const { JSDOM } = require("jsdom");
 
-const root = "/workspace/phoneos";
+const root = path.resolve(__dirname, "..");
 let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
@@ -53,7 +53,10 @@ const artFiles = [
   "assets/asteria/equipment/orbe.svg",
 ];
 artFiles.forEach((file) => {
-  if (!fs.existsSync(path.join(root, file))) throw new Error("Illustration manquante : " + file);
+  const fullPath = path.join(root, file);
+  if (!fs.existsSync(fullPath)) throw new Error("Illustration manquante : " + file);
+  const svg = fs.readFileSync(fullPath, "utf8");
+  if (!/<svg\\b/.test(svg) || !/<\\/svg>\\s*$/.test(svg)) throw new Error("SVG invalide : " + file);
 });
 const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/asteria.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 
