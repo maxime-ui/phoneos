@@ -81,11 +81,13 @@ const dom = new JSDOM(html, {
   runScripts: "dangerously",
   url: "http://localhost/",
   pretendToBeVisual: true,
+  beforeParse(window) {
+    // OS.openApp() appelle scrollTo pendant l’initialisation ; le stub doit exister avant les scripts.
+    window.scrollTo = () => {};
+  },
 });
 const { window } = dom;
 const { document } = window;
-// jsdom ne fournit pas scrollTo ; l’interface l’appelle lors des changements d’écran.
-window.scrollTo = () => {};
 
 let errors = [];
 window.addEventListener("error", (e) => errors.push("window error: " + e.message));
