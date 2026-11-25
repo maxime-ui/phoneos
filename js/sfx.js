@@ -108,6 +108,16 @@ OS.sfx = (() => {
   const SCALE = [220, 261.6, 293.7, 329.6, 392, 440, 523.3];
   const MELODY = [0, 3, 5, 3, 7, 5, 3, 2, 0, 2, 3, 5, 3, 7, 10, 7, 5, 3, 2, 0, 2, 3, 7, 5];
   const BASS = [110, 110, 130.8, 98];
+  const THEMES = {
+    default: { melody: MELODY, bass: BASS },
+    summon: { melody: [0, 3, 5, 7, 10, 7, 5, 3, 2, 5, 7, 10, 12, 10, 7, 5], bass: [110, 146.8, 164.8, 130.8] },
+    forge: { melody: [0, 0, 3, 5, 3, 7, 5, 3, 0, 2, 5, 7, 5, 3, 2, 0], bass: [82.4, 110, 98, 73.4] },
+    training: { melody: [0, 2, 4, 5, 7, 5, 4, 2, 0, 4, 5, 7, 9, 7, 5, 4], bass: [98, 110, 130.8, 110] },
+    collection: { melody: [0, 5, 3, 7, 5, 10, 7, 5, 3, 7, 5, 10, 12, 10, 7, 3], bass: [130.8, 110, 146.8, 98] },
+    battle: { melody: [0, 2, 0, 5, 3, 7, 5, 2, 0, 3, 5, 7, 10, 7, 5, 2], bass: [73.4, 73.4, 98, 82.4] },
+    story: { melody: [0, 3, 5, 3, 2, 0, 2, 5, 7, 5, 3, 2, 0, 2, 3, 5], bass: [82.4, 98, 110, 73.4] },
+  };
+  let currentTheme = "default";
   let bar = 0;
 
   function scheduleBar() {
@@ -116,12 +126,14 @@ OS.sfx = (() => {
     if (!c) return;
     const beat = 0.14 / Math.max(0.5, OS.store.get("game-speed", 1));
     for (let i = 0; i < 8; i++) {
-      const step = MELODY[(bar * 8 + i) % MELODY.length];
+      const theme = THEMES[currentTheme] || THEMES.default;
+      const step = theme.melody[(bar * 8 + i) % theme.melody.length];
       if (step !== null) {
         beep({ freq: SCALE[step % SCALE.length] * (step >= 7 ? 2 : 1), dur: beat * 0.9, type: "triangle", vol: 0.045, music: true, delay: i * beat });
       }
     }
-    beep({ freq: BASS[bar % BASS.length], dur: beat * 6, type: "sine", vol: 0.07, music: true });
+    const theme = THEMES[currentTheme] || THEMES.default;
+    beep({ freq: theme.bass[bar % theme.bass.length], dur: beat * 6, type: "sine", vol: 0.07, music: true });
     bar++;
     musicVoice = setTimeout(scheduleBar, beat * 8 * 1000);
   }
@@ -145,6 +157,16 @@ OS.sfx = (() => {
         scheduleBar();
       }
     },
+    setTheme(theme) {
+      if (!THEMES[theme] || currentTheme === theme) return;
+      currentTheme = theme;
+      if (musicOn && !muted) {
+        if (musicVoice) clearTimeout(musicVoice);
+        musicVoice = null;
+        scheduleBar();
+      }
+    },
+    get theme() { return currentTheme; },
     setMusic(on) {
       on = !!on;
       if (musicOn === on) return;
