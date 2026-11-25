@@ -73,8 +73,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (192 vérifications)
-test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
+test/smoke.test.js  Test de fumée automatisé (navigation, sauvegardes, combats, progression, assets)
 ```
 
 ## Lancer
@@ -102,6 +101,6 @@ Mode Infini, **Entraînement (héros grisés testables, mannequins, aucun gain)*
 
 ```bash
 npm install jsdom   # uniquement pour le test
-node test/smoke.test.js    # 192 vérifications
-node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
+npm run check:syntax      # vérification syntaxique des scripts
+npm test                   # test de fumée jsdom
 ```
