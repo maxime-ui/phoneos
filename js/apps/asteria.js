@@ -534,8 +534,11 @@ function evoSkillLabelsOf(u, evo) {
   return out;
 }
 
+function heroPortraitMarkup(id) { return '<svg class="portrait-art hero-art" viewBox="0 0 120 140" role="img" aria-label="Portrait de héros"><use href="assets/asteria/heroes/roster.svg#hero-' + id + '"></use></svg>'; }
+    function enemyPortraitMarkup(type, name) { const known = ENEMY_NAMES.includes(name); const key = known ? 'enemy-' + name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : 'enemy-type-' + ({ "Colosse de givre": "colosse-de-givre", "Nécromant": "necromant" }[type] || type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); return '<svg class="portrait-art enemy-art" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + (name || type) + '"><use href="assets/asteria/enemies/bestiary.svg#' + key + '"></use></svg>'; }
+
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
 
 OS.asteriaData.teamSynergyInfo = function () {
   return [
@@ -1028,9 +1031,8 @@ OS.registerApp({
       const evoLines = evoSkillLabels(u, p.evo || 0);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
-      const portraitClass = ({ "Chevalier": "chevalier", "Mage": "mage", "Archer": "archer", "Berserker": "berserker", "Rôdeur": "rodeur", "Héros": "heros", "Soigneur": "soigneur", "Défenseur": "defenseur", "Tueur": "tueur" })[u.cls] || "heros";
       c.innerHTML =
-        '<div class="unit-portrait"><img loading="lazy" alt="" src="assets/asteria/heroes/' + portraitClass + '.svg"></div>' +
+        '<div class="unit-portrait">' + heroPortraitMarkup(u.id) + '</div>' +
         '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
         '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
         '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
@@ -1481,6 +1483,7 @@ OS.registerApp({
         const c = document.createElement("div");
         c.className = "unit-card locked r" + u.r;
         c.innerHTML =
+          '<div class="unit-portrait">' + heroPortraitMarkup(u.id) + '</div>' +
           '<div class="unit-rarity">' + RARITY[u.r].label + "</div>" +
           '<div class="unit-name">' + u.name + "</div>" +
           '<div class="unit-cls">Non invoqué…</div>' +
@@ -1535,16 +1538,7 @@ OS.registerApp({
       if (battle) content.appendChild(battleView());
     }
 
-    function enemyPortrait(type) {
-      const paths = {
-        "Brute": "brute", "Assassin": "assassin", "Sorcier": "sorcier",
-        "Capitaine": "capitaine", "Golem": "golem", "Oracle": "oracle",
-        "Muraille": "muraille", "Invocateur": "invocateur", "Fantassin": "fantassin",
-        "Nécromant": "necromant", "Banshee": "banshee", "Sanguinaire": "sanguinaire",
-        "Colosse de givre": "colosse-givre"
-      };
-      return "assets/asteria/enemies/types/" + (paths[type] || "brute") + ".svg";
-    }
+    function enemyPortrait(type, name) { return enemyPortraitMarkup(type, name); }
 
     function enemyIntent(type) {
       const intents = {
@@ -2244,7 +2238,7 @@ OS.registerApp({
         view.insertBefore(battleSceneArt(), view.firstChild);
         const enemyPortraitBox = document.createElement("div");
         enemyPortraitBox.className = "battle-enemy-art";
-        enemyPortraitBox.innerHTML = '<img loading="lazy" alt="" src="' + enemyPortrait(battle.enemy.type) + '"><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
+        enemyPortraitBox.innerHTML = '<img loading="lazy" alt="" src="' + enemyPortrait(battle.enemy.type, battle.enemy.name) + '</div><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
         view.appendChild(enemyPortraitBox);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
         const breakMax = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
