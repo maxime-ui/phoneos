@@ -37,6 +37,22 @@ OS.art = (() => {
         weapon = `<line x1="${x + 14 * dir}" y1="${y - 40}" x2="${x + 14 * dir}" y2="${y - 8}" stroke="${color}" stroke-width="2"/>
           <path d="M ${x + 14 * dir} ${y - 40} Q ${x + 26 * dir} ${y - 34} ${x + 14 * dir} ${y - 26}" fill="${color}"/>`;
         break;
+      case "Soigneur":
+        weapon = `<line x1="${x + 12 * dir}" y1="${y - 44}" x2="${x + 12 * dir}" y2="${y - 2}" stroke="${color}" stroke-width="2"/>
+          <circle cx="${x + 12 * dir}" cy="${y - 46}" r="3.5" fill="none" stroke="${color}" stroke-width="1.5"/>
+          <line x1="${x + 12 * dir}" y1="${y - 48.5}" x2="${x + 12 * dir}" y2="${y - 43.5}" stroke="${color}" stroke-width="1.5"/>
+          <line x1="${x + 9.5 * dir}" y1="${y - 46}" x2="${x + 14.5 * dir}" y2="${y - 46}" stroke="${color}" stroke-width="1.5"/>
+          <circle cx="${x - 10 * dir}" cy="${y - 30}" r="4" fill="${color}" opacity="0.35"/>`;
+        break;
+      case "Défenseur":
+        weapon = `<ellipse cx="${x + 12 * dir}" cy="${y - 22}" rx="7" ry="14" fill="${color}" opacity="0.85"/>
+          <ellipse cx="${x + 12 * dir}" cy="${y - 22}" rx="4" ry="9" fill="none" stroke="#0e1420" stroke-width="1" opacity="0.5"/>`;
+        break;
+      case "Tueur":
+        weapon = `<rect x="${x + 15 * dir}" y="${y - 52}" width="5" height="42" fill="${color}" transform="rotate(${6 * dir} ${x + 17 * dir} ${y - 31})"/>
+          <polygon points="${x + 15 * dir},${y - 60} ${x + 12 * dir},${y - 52} ${x + 23 * dir},${y - 52}" fill="${color}"/>
+          <rect x="${x + 11 * dir}" y="${y - 12}" width="13" height="3" fill="${color}"/>`;
+        break;
       case "Héros":
         weapon = `<rect x="${x + 13 * dir}" y="${y - 48}" width="3" height="36" fill="${color}" transform="rotate(${10 * dir} ${x + 14 * dir} ${y - 30})"/>
           <path d="M ${x - 2} ${y - 24} L ${x + 8 * dir} ${y - 10} L ${x - 2} ${y - 4} Z" fill="${color}" opacity="0.55"/>`;

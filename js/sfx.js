@@ -82,6 +82,10 @@ OS.sfx = (() => {
         break;
       case "page": noise(0.12, 0.06, 3200); break;
       case "type": beep({ freq: 880 + Math.random() * 200, dur: 0.015, type: "square", vol: 0.015 }); break;
+      case "heal":
+        beep({ freq: 660, slideTo: 880, dur: 0.18, type: "sine", vol: 0.1 });
+        beep({ freq: 990, dur: 0.22, type: "sine", vol: 0.07, delay: 0.12 });
+        break;
       case "ui": beep({ freq: 520, dur: 0.06, type: "sine", vol: 0.07 }); break;
       case "unlock":
         [392, 523, 659].forEach((f, i) => beep({ freq: f, dur: 0.15, type: "sine", vol: 0.12, delay: i * 0.09 }));

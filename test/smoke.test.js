@@ -10,6 +10,15 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 // comme le font de vraies balises script dans un navigateur.
 const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
   "js/apps/messages.js", "js/apps/clock.js", "js/apps/gallery.js", "js/apps/settings.js", "js/main.js"];
+
+// Seed save Épopée : 112 unités possédées + équipe avec Soigneur (doit précéder tous les scripts)
+const unitsBlock = fs.readFileSync(path.join(root, "js/apps/epopee.js"), "utf8").match(/UNITS\s*=\s*\[([\s\S]*?)\n    \];/)[1];
+const unitIds = [...unitsBlock.matchAll(/\{ id: "([^"]+)"/g)].map((m) => m[1]);
+const ownedAll = {};
+unitIds.forEach((id) => { ownedAll[id] = 1; });
+const seedSave = { quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
+html = html.replace('<script src="js/os.js">',
+  '<script>localStorage.setItem("phoneos:epopee", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   const inline = "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "<\/script>";
@@ -74,8 +83,23 @@ setTimeout(() => {
   const res = padEl.querySelector(".calc-result").textContent;
   check("calculatrice 7×8=56", res === "56");
 
-  // Épopée : lancer une quête et jouer 3 cartes
+  // Épopée : roster complet et classes de gameplay
   window.eval("OS").openApp("epopee");
+  const teamTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
+  teamTabR.click();
+  check("roster de 112 unités possédées", document.querySelectorAll(".roster .unit-card").length === 112);
+  const helpText = $("#app-body").textContent;
+  check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
+
+  // Composer une équipe 100 % Soigneurs par clics UI
+  const clickUnit = (name) => {
+    const c = [...document.querySelectorAll(".roster .unit-card")].find((x) => x.querySelector(".unit-name").textContent === name);
+    if (c) c.click();
+  };
+  clickUnit("Bron"); clickUnit("Nerys"); clickUnit("Sirona"); clickUnit("Poppy");
+  check("équipe 3 Soigneurs composée", [...document.querySelectorAll(".roster .unit-card.in-team .unit-cls")].every((el) => el.textContent === "Soigneur"));
+
+  // Quête facile : le Soigneur soigne au lieu d'attaquer
   const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   check("onglet quêtes présent", !!questTab);
   questTab.click();
@@ -90,6 +114,8 @@ setTimeout(() => {
   }
   const afterLog = document.querySelectorAll(".battle-log > div").length;
   check("3 cartes jouées -> log enrichi (" + beforeLog + " → " + afterLog + ")", afterLog > beforeLog);
+  const logText = document.querySelector(".battle-log") ? document.querySelector(".battle-log").textContent : "";
+  check("Soigneur soigne l'allié le plus blessé", logText.includes("soigne"));
 
   // Mode Infini : démarrage sans erreur, étage affiché
   window.eval("OS").openApp("epopee");

@@ -124,6 +124,35 @@ OS.registerApp({
       { id: "mei", name: "Mei", r: 1, cls: "Mage", atk: 980, hp: 7700, cards: ["B", "V", "B"] },
       { id: "kenji", name: "Kenji", r: 1, cls: "Archer", atk: 1090, hp: 6800, cards: ["V", "R", "R"] },
       { id: "sora", name: "Sora Takeda", r: 1, cls: "Rôdeur", atk: 1010, hp: 7300, cards: ["V", "V", "B"] },
+
+      /* --- Vague des nouveaux rôles : Soigneur, Défenseur, Tueur --- */
+      /* --- SSR --- */
+      { id: "edele", name: "Mère Édelé", r: 3, cls: "Soigneur", atk: 1500, hp: 10000, cards: ["B", "B", "V"] },
+      { id: "nadila", name: "Nadila l'Apothicaire", r: 3, cls: "Soigneur", atk: 1550, hp: 9900, cards: ["B", "V", "B"] },
+      { id: "bastien", name: "Bastien le Rempart", r: 3, cls: "Défenseur", atk: 1300, hp: 14000, cards: ["R", "B", "V"] },
+      { id: "orlan", name: "Orlan, lames de l'aube", r: 3, cls: "Tueur", atk: 2100, hp: 9000, cards: ["R", "R", "V"] },
+      { id: "raiden", name: "Raiden l'Éclair-Noir", r: 3, cls: "Tueur", atk: 2050, hp: 9200, cards: ["R", "V", "V"] },
+      { id: "rin", name: "Rin, l'élue noire", r: 3, cls: "Héros", atk: 2000, hp: 10400, cards: ["R", "R", "B"] },
+      { id: "vespera", name: "Vespera des veillés", r: 3, cls: "Mage", atk: 1860, hp: 9700, cards: ["B", "B", "R"] },
+      { id: "takumi", name: "Takumi, bras du dragon", r: 3, cls: "Chevalier", atk: 1970, hp: 11600, cards: ["R", "B", "R"] },
+      /* --- SR --- */
+      { id: "sirona", name: "Sirona", r: 2, cls: "Soigneur", atk: 1150, hp: 8900, cards: ["B", "B", "V"] },
+      { id: "annelie", name: "Annelie", r: 2, cls: "Soigneur", atk: 1120, hp: 8700, cards: ["B", "V", "V"] },
+      { id: "gorm", name: "Gorm", r: 2, cls: "Défenseur", atk: 1050, hp: 11500, cards: ["R", "B", "V"] },
+      { id: "hedda", name: "Hedda", r: 2, cls: "Défenseur", atk: 1080, hp: 11200, cards: ["B", "R", "V"] },
+      { id: "kelt", name: "Kelt", r: 2, cls: "Tueur", atk: 1750, hp: 8000, cards: ["R", "V", "V"] },
+      { id: "sablier", name: "Sablier", r: 2, cls: "Tueur", atk: 1720, hp: 8100, cards: ["V", "R", "B"] },
+      { id: "luna", name: "Luna des tombes", r: 2, cls: "Mage", atk: 1450, hp: 9300, cards: ["B", "B", "V"] },
+      { id: "hachiro", name: "Hachiro", r: 2, cls: "Berserker", atk: 1740, hp: 8500, cards: ["R", "R", "V"] },
+      /* --- R --- */
+      { id: "poppy", name: "Poppy", r: 1, cls: "Soigneur", atk: 850, hp: 7300, cards: ["B", "V", "V"] },
+      { id: "germain", name: "Germain", r: 1, cls: "Soigneur", atk: 840, hp: 7400, cards: ["B", "B", "V"] },
+      { id: "tulio", name: "Tulio", r: 1, cls: "Défenseur", atk: 800, hp: 10200, cards: ["R", "B", "V"] },
+      { id: "marguerite", name: "Marguerite", r: 1, cls: "Défenseur", atk: 790, hp: 10000, cards: ["B", "V", "R"] },
+      { id: "faust", name: "Faust", r: 1, cls: "Tueur", atk: 1150, hp: 6900, cards: ["R", "V", "B"] },
+      { id: "yuki", name: "Yuki", r: 1, cls: "Archer", atk: 1100, hp: 6800, cards: ["V", "R", "B"] },
+      { id: "tora", name: "Tora", r: 1, cls: "Rôdeur", atk: 1030, hp: 7100, cards: ["V", "V", "B"] },
+      { id: "piou", name: "Piou-Bleu", r: 1, cls: "Mage", atk: 950, hp: 7800, cards: ["B", "B", "V"] },
     ];
 
     const CLASS_BONUS = {
@@ -133,6 +162,9 @@ OS.registerApp({
       Archer: "Viseur : critiques à 35 % (au lieu de 25 %)",
       "Rôdeur": "Esquive : 25 % de chance d'éviter une riposte",
       "Héros": "Protagoniste : +5 % de dégâts à chaque tour qui passe (montée en puissance)",
+      "Soigneur": "Cure : soigne l'allié le plus blessé (30 % d'ATK) au lieu d'attaquer",
+      "Défenseur": "Rempart : dégâts subis par toute l'équipe réduits de 10 % tant qu'il est debout",
+      "Tueur": "Tueur de géants : +30 % de dégâts, mais attire les ripostes en priorité",
     };
 
     const SKILL_INFO = {
@@ -150,6 +182,14 @@ OS.registerApp({
       enzo: ["Déflagration", "ses Brut enflamment l'ennemi : 4 % PV max/tour, 3 cumuls max"],
       kargan: ["Fureur titanesque", "enragé dès 80 % PV (+35 % de dégâts)"],
       valen: ["Gardien du trône", "+30 % d'ATK permanent quand un allié tombe K.O."],
+      edele: ["Prière du printemps", "ses soins sont majorés de 50 %"],
+      nadila: ["Pharmacie d'herbes", "chaque soin recharge +5 % d'Ultime"],
+      bastien: ["Mur de Hautefeuille", "son encaissement vaut 15 % (au lieu de 10 %)"],
+      orlan: ["Lames de l'aube", "+45 % de dégâts (au lieu de +30 %)"],
+      raiden: ["Exécution", "+100 % de dégâts contre un ennemi sous 25 % PV"],
+      rin: ["Destin noirci", "+8 % de dégâts par tour qui passe (au lieu de +5 %)"],
+      vespera: ["Veillées", "chaque carte jouée recharge +6 % d'Ultime"],
+      takumi: ["Garde-rapprochée", "renvoie 20 % des dégâts de la riposte qu'il subit"],
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
@@ -442,6 +482,21 @@ OS.registerApp({
       const gi = aliveIdx().includes(card.idx) ? card.idx : aliveIdx()[0];
       const unit = battle.units[gi];
 
+      if (u.cls === "Soigneur") {
+        const needy = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b]);
+        const wi = needy[0];
+        const heal = Math.round(unit.atk * 0.30 * (u.id === "edele" ? 1.5 : 1) * (0.9 + Math.random() * 0.2));
+        const healed = Math.min(battle.units[wi].hp - battle.hp[wi], heal);
+        battle.hp[wi] = Math.min(battle.units[wi].hp, battle.hp[wi] + heal);
+        battle.log.unshift(unit.name + " soigne " + battle.units[wi].name + " (+" + healed + " PV)");
+        battle.gauge = Math.min(100, battle.gauge + 12);
+        if (u.id === "nadila") battle.gauge = Math.min(100, battle.gauge + 5);
+        OS.sfx.play("heal");
+        if (battle.picks >= 3) enemyTurn();
+        renderQuests();
+        return;
+      }
+
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
       dmg = Math.round(dmg * teamAtkMult() * (battle.storyMult || 1));
       let crit = false;
@@ -454,14 +509,18 @@ OS.registerApp({
         const rage = u.id === "draven" ? 1.3 : 1.2;
         if (battle.hp[gi] < u.hp * threshold) dmg = Math.round(dmg * rage);
       }
+      if (u.cls === "Tueur") dmg = Math.round(dmg * (u.id === "orlan" ? 1.45 : 1.30));
+      if (u.id === "raiden" && battle.enemy.hp / battle.enemy.maxHp < 0.25) dmg = Math.round(dmg * 2);
       if (u.cls === "Héros" && battle.heroStacks && battle.heroStacks[gi] > 1) {
-        dmg = Math.round(dmg * (1 + 0.05 * (battle.heroStacks[gi] - 1)));
+        const heroGrowth = u.id === "rin" ? 0.08 : 0.05;
+        dmg = Math.round(dmg * (1 + heroGrowth * (battle.heroStacks[gi] - 1)));
       }
       if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
 
       const gaugeGain = card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8;
       battle.gauge = Math.min(100, battle.gauge + (battle.elite && battle.elite.id === "oriflamme" ? Math.round(gaugeGain * 0.8) : gaugeGain));
       if (u.id === "morgane") battle.gauge = Math.min(100, battle.gauge + 5);
+      if (u.id === "vespera") battle.gauge = Math.min(100, battle.gauge + 6);
       if (u.id === "ravenne" && card.type === "B") {
         battle.curse++;
         battle.log.unshift(unit.name + " maudit l'ennemi (+" + (battle.curse * 10) + " % dégâts)");
@@ -484,6 +543,10 @@ OS.registerApp({
       renderQuests();
     }
 
+    function unitName(list) {
+      return list.map((u) => u.name).join(" et ");
+    }
+
     function teamAtkMult() {
       let mult = 1;
       if (battle.units.some((u, i) => u.id === "aldric" && battle.hp[i] > 0)) mult += 0.10;
@@ -503,7 +566,7 @@ OS.registerApp({
       if (!battle || battle.gauge < 100 || battle.picks >= 3) return;
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
-      const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + 0.05 * (battle.heroStacks[si] - 1)) : 1;
+      const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
       const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
@@ -528,6 +591,12 @@ OS.registerApp({
         return 0;
       }
       let dmg = raw;
+      const defenders = battle.units.filter((u, i) => u.cls === "Défenseur" && battle.hp[i] > 0);
+      if (defenders.length) {
+        const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10), 0));
+        dmg = Math.round(dmg * (1 - cut));
+        battle.log.unshift(unitName(defenders) + " encaisse : dégâts réduits de " + Math.round(cut * 100) + " %");
+      }
       if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
       battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
       battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
@@ -537,10 +606,13 @@ OS.registerApp({
         battle.log.unshift("Siphon d'âmes : le boss absorbe " + heal + " PV");
       }
 
-      if (target.id === "gauvin" && battle.enemy.hp > 0) {
-        hitEnemy(Math.round(dmg * 0.30), target.name, "serment d'acier (renvoi)");
-      } else if (target.id === "barrok" && battle.enemy.hp > 0) {
-        hitEnemy(Math.round(dmg * 0.35), target.name, "poing élastique (renvoi)");
+      const RENVOI = {
+        gauvin: ["serment d'acier (renvoi)", 0.30],
+        barrok: ["poing élastique (renvoi)", 0.35],
+        takumi: ["garde-rapprochée (renvoi)", 0.20],
+      };
+      if (RENVOI[target.id] && battle.enemy.hp > 0) {
+        hitEnemy(Math.round(dmg * RENVOI[target.id][1]), target.name, RENVOI[target.id][0]);
       }
       if (battle.hp[ti] === 0 && battle.enemy.hp > 0) {
         battle.log.unshift(target.name + " tombe K.O.");
@@ -559,10 +631,12 @@ OS.registerApp({
       const type = battle.enemy.type;
       let ti;
       switch (type) {
-        case "Brute":
-          ti = targets.sort((a, b) => battle.hp[a] - battle.hp[b])[0];
+        case "Brute": {
+          const tkBrute = targets.filter((i) => battle.units[i].cls === "Tueur");
+          ti = tkBrute.length ? tkBrute[0] : targets.sort((a, b) => battle.hp[a] - battle.hp[b])[0];
           attackAlly(ti, Math.round(battle.enemy.atk * 1.25 * (0.85 + Math.random() * 0.25)));
           break;
+        }
         case "Assassin":
           ti = targets.sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
           let raw = battle.enemy.atk * (0.8 + Math.random() * 0.3);
@@ -586,9 +660,12 @@ OS.registerApp({
           battle.enemy.atk = Math.round(battle.enemy.atk * 1.04);
           battle.log.unshift("Le Capitaine joue de la corne : il frappe plus fort au tour suivant (+4 %)");
           break;
-        default:
-          ti = targets[Math.floor(Math.random() * targets.length)];
+        default: {
+          const tk = targets.filter((i) => battle.units[i].cls === "Tueur");
+          if (tk.length && Math.random() < 0.6) ti = tk[0];
+          else ti = targets[Math.floor(Math.random() * targets.length)];
           attackAlly(ti, Math.round(battle.enemy.atk * 0.9 * (0.8 + Math.random() * 0.4)));
+        }
       }
       if (battle.burn > 0 && battle.enemy.hp > 0) {
         const burnDmg = Math.round(battle.enemy.maxHp * 0.04 * battle.burn);
@@ -911,7 +988,7 @@ OS.registerApp({
         title: "Le sanctuaire des murmures",
         scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 160, actors: [
           { cls: "Mage", color: "#6b4f9e", x: 170 },
-          { cls: "Mage", color: "#e3b23c", x: 215, flip: true },
+          { cls: "Soigneur", color: "#e3b23c", x: 215, flip: true },
         ] },
         events: [
           { t: "Au sommet des marches, un sanctuaire qu'aucun cartographe n'a nommé. Dans la pierre, des runes murmurent dans une langue morte." },
