@@ -130,3 +130,4 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Le curseur de volume règle maintenant un gain maître partagé par les effets sonores et la musique, avec persistance et bornage de 0 à 100 %.
 - Les attaques ultimes utilisent le même pipeline de dégâts que les cartes : résistances d'archétype, malédiction et jauge de rupture sont appliquées de façon cohérente.
 - Le test de fumée couvre le bornage, la persistance et le raccord du volume au moteur audio.
+- Le moteur audio ignore les demandes répétées d'activation/désactivation de la musique et du mute ; cela évite de lancer plusieurs boucles lors des re-rendus du Mode Histoire. L'initialisation AudioContext échouée reste non bloquante.
