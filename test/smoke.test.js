@@ -10,6 +10,8 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 // comme le font de vraies balises script dans un navigateur.
 // Vérification statique du pack d'illustrations livré avec Astéria 2.0.
 const artFiles = [
+  "assets/asteria/heroes/roster.svg",
+  "assets/asteria/enemies/bestiary.svg",
   "assets/asteria/heroes/chevalier.svg",
   "assets/asteria/heroes/mage.svg",
   "assets/asteria/heroes/archer.svg",
@@ -66,6 +68,17 @@ const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/asteria.js", 
 // Seed save Astéria : toutes les unités SAUF le Graal + équipe avec Soigneur (doit précéder tous les scripts)
 const unitsBlock = fs.readFileSync(path.join(root, "js/apps/asteria.js"), "utf8").match(/UNITS\s*=\s*\[([\s\S]*?)\n    \];/)[1];
 const unitIds = [...unitsBlock.matchAll(/\{ id: "([^"]+)"/g)].map((m) => m[1]);
+const heroSprite = fs.readFileSync(path.join(root, "assets/asteria/heroes/roster.svg"), "utf8");
+const enemySprite = fs.readFileSync(path.join(root, "assets/asteria/enemies/bestiary.svg"), "utf8");
+unitIds.forEach((id) => {
+  if (!heroSprite.includes('id="hero-' + id + '"')) throw new Error("Portrait héros absent du sprite : " + id);
+});
+["gobelin-ancien","chevalier-dechu","dragon-des-cendres","spectre-des-marais","colosse-de-pierre","sorciere-du-brouillard","basilic","seigneur-liche","fantassin-d-elite","necromant-errant","banshee-des-marais","sanguinaire-du-brasier","colosse-de-givre","ombre-du-serment"].forEach((id) => {
+  if (!enemySprite.includes('id="enemy-' + id + '"')) throw new Error("Portrait ennemi absent du sprite : " + id);
+});
+["brute","assassin","sorcier","capitaine","golem","oracle","muraille","invocateur","fantassin","necromant","banshee","sanguinaire","colosse-de-givre"].forEach((id) => {
+  if (!enemySprite.includes('id="enemy-type-' + id + '"')) throw new Error("Portrait d'archétype absent du sprite : " + id);
+});
 const ownedAll = {};
 unitIds.forEach((id) => { if (id !== "graal") ownedAll[id] = 1; });
 const seedSave = { schemaVersion: 2, quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
@@ -270,6 +283,7 @@ setTimeout(() => {
   check("onglet Collection présent", !!colTab);
   colTab.click();
   check("collection affiche les " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
+  check("chaque carte de héros possède un portrait individuel", document.querySelectorAll(".col-grid .unit-card .hero-art use").length === unitIds.length);
   check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("progression 132 / " + (unitIds.length) + " affichée", document.body.textContent.includes("132 / " + unitIds.length));
   const claim = document.querySelector(".collect-line .claim-btn");
@@ -540,7 +554,7 @@ setTimeout(() => {
   check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
   check("intention ennemie annoncée", !!document.querySelector(".battle-intent"));
-  check("portrait du boss affiché en combat", !!document.querySelector(".battle-enemy-art img") && fs.existsSync(path.join(root, document.querySelector(".battle-enemy-art img").getAttribute("src"))));
+  check("portrait individuel du boss affiché en combat", !!document.querySelector(".battle-enemy-art .enemy-art use") && document.querySelector(".battle-enemy-art .enemy-art use").getAttribute("href").includes("bestiary.svg#"));
   check("affinité élémentaire de l’ennemi affichée", !!document.querySelector(".battle-affinity"));
   check("jauge de rupture visible", !!document.querySelector(".break-gauge"));
   check("action de garde disponible", [...document.querySelectorAll(".battle-actions button")].some((b) => b.textContent.includes("Garde d'équipe")));
