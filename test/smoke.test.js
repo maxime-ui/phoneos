@@ -456,6 +456,7 @@ setTimeout(() => {
     if (card) card.click();
   }
   check("infini : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 2);
+  check("infini : progression et récompenses évolutives annoncées", document.querySelector(".infinite-scaling-hint") && document.querySelector(".infinite-scaling-hint").textContent.includes("+18 % PV"));
 
   // ---- Mode Histoire ----
   // Évolution poussée : l'équipe est réinitialisée avec Bron ★★★ (talents II/III empilables)
@@ -535,6 +536,23 @@ setTimeout(() => {
   check("musique ON persistée", document.querySelector(".music-toggle").textContent.includes("ON") && musicSaved.music === true);
   document.querySelector(".music-toggle").click();
 
+  // Les escarmouches de l'histoire sont de vrais combats ; on les termine
+  // avec les cartes normales avant de poursuivre le scénario.
+  function finishStorySkirmish() {
+    let guard = 0;
+    while (document.querySelector(".battle") && !document.querySelector(".battle-result") && guard++ < 90) {
+      const cards = [...document.querySelectorAll(".hand-card:not([disabled])")];
+      if (!cards.length) break;
+      cards.slice(0, 3).forEach((card) => card.click());
+    }
+    if (document.querySelector(".battle-result.win")) {
+      const cont = [...document.querySelectorAll(".story-next")].pop();
+      if (cont) cont.click();
+      return true;
+    }
+    return false;
+  }
+
   // Choix narratif du chapitre 3 (bénédiction persistée)
   window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.done=2;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
@@ -547,7 +565,13 @@ setTimeout(() => {
     const next = [...document.querySelectorAll(".story-next")].pop();
     if (next) next.click();
   }
-  check("choix narratif affiché", document.querySelectorAll(".story-choice").length === 2);
+  const chapter3Skirmish = document.querySelector(".story-boss");
+  check("chapitre 3 : escarmouche jouable avant le choix", !!chapter3Skirmish && chapter3Skirmish.textContent.includes("Combattre"));
+  if (chapter3Skirmish) chapter3Skirmish.click();
+  check("chapitre 3 : combat d'escarmouche lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Escarmouche"));
+  const skirmishWon = finishStorySkirmish();
+  check("chapitre 3 : escarmouche remportable avec les cartes de combat", skirmishWon);
+  check("choix narratif affiché après l'escarmouche", document.querySelectorAll(".story-choice").length === 2);
   const choice = document.querySelector(".story-choice");
   if (choice) choice.click();
   const blessingSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
@@ -560,12 +584,21 @@ setTimeout(() => {
   const chapter4 = [...document.querySelectorAll(".story-chapter")][3];
   check("chapitre 4 (Gortak) déverrouillé", chapter4 && !chapter4.classList.contains("locked"));
   chapter4.click();
-  for (let i = 0; i < 3; i++) {
+  let chapter4Guard = 0;
+  while (chapter4Guard++ < 12) {
+    const encounterBtn = document.querySelector(".story-boss");
+    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
+    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
+      encounterBtn.click();
+      if (!finishStorySkirmish()) break;
+      continue;
+    }
     const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
+    if (!next) break;
+    next.click();
   }
-  const bossBtn = document.querySelector(".story-boss");
-  check("bouton boss Gortak présent", !!bossBtn);
+  const bossBtn = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
+  check("bouton boss Gortak présent après l'escarmouche", !!bossBtn);
   if (bossBtn) bossBtn.click();
   check("combat boss lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Gortak") && document.body.textContent.includes("Boss d'histoire"));
   for (let draws = 0; draws < 3; draws++) {
@@ -582,9 +615,20 @@ setTimeout(() => {
   const chapter12 = [...document.querySelectorAll(".story-chapter")][11];
   check("chapitre 12 déverrouillé", chapter12 && !chapter12.classList.contains("locked"));
   chapter12.click();
-  const next12 = [...document.querySelectorAll(".story-next")].pop();
-  if (next12) next12.click();
-  const dragonBtn = document.querySelector(".story-boss");
+  let dragonGuard = 0;
+  while (dragonGuard++ < 12) {
+    const encounterBtn = document.querySelector(".story-boss");
+    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
+    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
+      encounterBtn.click();
+      if (!finishStorySkirmish()) break;
+      continue;
+    }
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (!next) break;
+    next.click();
+  }
+  const dragonBtn = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
   check("bouton boss dragon présent", !!dragonBtn);
   if (dragonBtn) dragonBtn.click();
   check("boss final lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
