@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoneOS — Émulateur de téléphone</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="phone" id="phone">
+
+      <div class="phone-frame">
+        <button class="hardware-btn power" id="btn-power" title="Power" aria-label="Power"></button>
+        <button class="hardware-btn vol-up" id="btn-vol-up" title="Volume +" aria-label="Volume +"></button>
+        <button class="hardware-btn vol-down" id="btn-vol-down" title="Volume -" aria-label="Volume -"></button>
+
+        <div class="screen" id="screen">
+
+          <!-- Barre d'état -->
+          <div class="status-bar" id="status-bar">
+            <div class="status-left">
+              <span id="status-time">--:--</span>
+            </div>
+            <div class="status-right">
+              <span id="status-plane" class="hidden">✈</span>
+              <span id="status-wifi">📶</span>
+              <span id="status-batt">100%</span>
+              <span id="status-batt-icon">🔋</span>
+            </div>
+          </div>
+
+          <!-- Boot -->
+          <div class="layer boot-screen" id="layer-boot">
+            <div class="boot-logo">◼</div>
+            <div class="boot-name">PhoneOS</div>
+            <div class="boot-progress"><div class="boot-bar" id="boot-bar"></div></div>
+          </div>
+
+          <!-- Verrouillage -->
+          <div class="layer lock-screen hidden" id="layer-lock">
+            <div class="lock-clock" id="lock-clock">--:--</div>
+            <div class="lock-date" id="lock-date"></div>
+            <div class="lock-hint">Entrez le code PIN (1234)</div>
+            <div class="lock-dots" id="lock-dots"></div>
+            <div class="lock-pad" id="lock-pad"></div>
+            <div class="lock-error" id="lock-error"></div>
+          </div>
+
+          <!-- Accueil -->
+          <div class="layer home-screen hidden" id="layer-home">
+            <div class="home-grid" id="home-grid"></div>
+            <div class="dock" id="dock"></div>
+          </div>
+
+          <!-- Recents / multitâche -->
+          <div class="layer recents-screen hidden" id="layer-recents">
+            <div class="recents-title">Applications récentes</div>
+            <div class="recents-list" id="recents-list"></div>
+            <button class="recents-clear" id="recents-clear">Tout fermer</button>
+          </div>
+
+          <!-- Conteneur d'app -->
+          <div class="layer app-layer hidden" id="layer-app">
+            <div class="app-header" id="app-header">
+              <button class="app-back" id="app-back">‹</button>
+              <div class="app-title" id="app-title"></div>
+              <div class="app-header-space"></div>
+            </div>
+            <div class="app-body" id="app-body"></div>
+          </div>
+
+          <!-- Notifications -->
+          <div class="notif-stack" id="notif-stack"></div>
+
+          <!-- Overlay éteint / veille -->
+          <div class="screen-off hidden" id="screen-off"></div>
+
+          <!-- Barre de navigation -->
+          <div class="nav-bar" id="nav-bar">
+            <button class="nav-btn" id="nav-back" title="Retour">‹</button>
+            <button class="nav-btn" id="nav-home" title="Accueil">◯</button>
+            <button class="nav-btn" id="nav-recents" title="Multitâche">▢</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="stage-caption">PhoneOS 1.0 — émulateur · code PIN : 1234 · bouton ⏻ à droite de l'écran</div>
+  </div>
+
+  <template id="tpl-notification">
+    <div class="notif">
+      <div class="notif-icon"></div>
+      <div class="notif-content">
+        <div class="notif-title"></div>
+        <div class="notif-text"></div>
+      </div>
+    </div>
+  </template>
+
+  <script src="js/os.js"></script>
+  <script src="js/apps/calculator.js"></script>
+  <script src="js/apps/notes.js"></script>
+  <script src="js/apps/phone.js"></script>
+  <script src="js/apps/messages.js"></script>
+  <script src="js/apps/clock.js"></script>
+  <script src="js/apps/gallery.js"></script>
+  <script src="js/apps/settings.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
