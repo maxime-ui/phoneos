@@ -731,3 +731,7 @@ body.cb .rb-score { color: #0fb3a3; }
 
 .battle-enemy-art .enemy-portrait-frame { display:flex; flex:0 0 104px; align-items:center; justify-content:center; width:104px; height:120px; overflow:hidden; border-radius:10px; background:#0b101b; }
 .battle-enemy-art .enemy-portrait-frame .portrait-art { width:104px; height:120px; }
+
+/* Laboratoire de test libre */
+.battle-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.battle-actions .pull-btn { flex:1 1 220px; }
