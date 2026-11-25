@@ -537,6 +537,22 @@ function evoSkillLabelsOf(u, evo) {
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
 OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
 
+OS.asteriaData.teamSynergyInfo = function () {
+  return [
+    { classes: ["Mage", "Archer"], name: "Convergence arcanique", effect: "+8 % dégâts d'équipe" },
+    { classes: ["Chevalier", "Soigneur"], name: "Serment protecteur", effect: "−10 % dégâts reçus" },
+    { classes: ["Berserker", "Rôdeur"], name: "Traque coordonnée", effect: "+6 % dégâts d'équipe" },
+  ];
+};
+OS.asteriaData.elementInfo = function () {
+  return {
+    cards: Object.fromEntries(Object.entries(CARD).map(([key, card]) => [key, { label: card.label, element: card.element }])),
+    elements: ELEMENTS,
+    enemyAffinity: ENEMY_AFFINITY,
+  };
+};
+
+
 
 OS.registerApp({
   id: "asteria",
@@ -2997,23 +3013,7 @@ OS.registerApp({
       storyScene = { idx: battle.storyChapter, step: battle.storyStep };
       openScene(battle.storyChapter, battle.storyStep);
     }
-
-    /* ---------- API diffé pour la barre supérieure ---------- */
-    OS.asteriaData.teamSynergyInfo = function () {
-      return [
-        { classes: ["Mage", "Archer"], name: "Convergence arcanique", effect: "+8 % dégâts d'équipe" },
-        { classes: ["Chevalier", "Soigneur"], name: "Serment protecteur", effect: "−10 % dégâts reçus" },
-        { classes: ["Berserker", "Rôdeur"], name: "Traque coordonnée", effect: "+6 % dégâts d'équipe" },
-      ];
-    };
-
-    OS.asteriaData.elementInfo = function () {
-      return {
-        cards: Object.fromEntries(Object.entries(CARD).map(([key, card]) => [key, { label: card.label, element: card.element }])),
-        elements: ELEMENTS,
-        enemyAffinity: ENEMY_AFFINITY,
-      };
-    };
+    /* ---------- API de données exposée dès le chargement ---------- */
     
     OS.asteriaData.storyDiffs = function () {
       const st = OS.store.get(SAVE_PREFIX + "-story", {});
