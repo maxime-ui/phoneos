@@ -18,6 +18,8 @@ Applications incluses :
 
 | App | Fonctions |
 |---|---|
+| Snake | Jeu d'arcade : grille 15×15, record sauvegardé, clavier + croix directionnelle |
+| 2048 | Puzzle de fusion : tuiles colorées, record sauvegardé, clavier + croix directionnelle |
 | Calc | Calculatrice avec parenthèses, aperçu du résultat en direct |
 | Téléphone | Clavier téléphonique, appel simulé avec chrono d'appel |
 | Messages | Conversations persistées, réponses automatiques simulées |

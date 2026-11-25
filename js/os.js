@@ -150,7 +150,9 @@ const OS = (() => {
   }
 
   function closeApp() {
+    const previous = state.currentApp && APPS[state.currentApp];
     state.currentApp = null;
+    if (previous && typeof previous.onClose === "function") previous.onClose();
     $("#app-body").innerHTML = "";
     showLayer("home");
   }

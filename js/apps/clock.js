@@ -26,6 +26,7 @@ OS.registerApp({
       if (offTick) offTick();
       const view = buildClockView();
       offTick = view.dispose;
+      app.onClose = () => offTick && offTick();
       body.append(tabs, view);
     }
 
@@ -33,8 +34,9 @@ OS.registerApp({
       setActive(viewSw);
       body.innerHTML = "";
       if (offTick) offTick();
-      const view = buildStopwatchView(app);
+      const view = buildStopwatchView();
       offTick = view.dispose;
+      app.onClose = () => offTick && offTick();
       body.append(tabs, view);
     }
 

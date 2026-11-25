@@ -8,7 +8,7 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
-const scripts = ["js/os.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
+const scripts = ["js/os.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
   "js/apps/messages.js", "js/apps/clock.js", "js/apps/gallery.js", "js/apps/settings.js", "js/main.js"];
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
@@ -57,7 +57,7 @@ setTimeout(() => {
 
   // Ouvrir chaque app
   const apps = Object.keys(window.eval("OS").APPS);
-  check("7 apps enregistrées", apps.length === 7);
+  check("9 apps enregistrées", apps.length === 9);
   apps.forEach((id) => {
     window.eval("OS").openApp(id);
     check("app ouverte : " + id, !$("#layer-app").classList.contains("hidden") && $("#app-body").children.length > 0);
