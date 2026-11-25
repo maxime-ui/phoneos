@@ -84,6 +84,8 @@ const dom = new JSDOM(html, {
 });
 const { window } = dom;
 const { document } = window;
+// jsdom ne fournit pas scrollTo ; l’interface l’appelle lors des changements d’écran.
+window.scrollTo = () => {};
 
 let errors = [];
 window.addEventListener("error", (e) => errors.push("window error: " + e.message));
