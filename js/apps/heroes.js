@@ -95,6 +95,21 @@ OS.registerApp({
         panel.appendChild(s);
       }
 
+      const ultimate = D.CLASS_ULTIMATE && D.CLASS_ULTIMATE[u.cls];
+      if (ultimate) {
+        const ult = document.createElement("div");
+        ult.className = "sheet-line sheet-ultimate";
+        ult.innerHTML = "<b>✦ Ultime de classe : " + ultimate.name + "</b><br>Se déclenche automatiquement après " + ultimate.turns + " tours complets. " +
+          (ultimate.heal ? "Restaure " + Math.round(ultimate.heal * 100) + " % des PV de l’équipe. " : "") +
+          (ultimate.shield ? "Bouclier d’équipe : " + Math.round(ultimate.shield * 100) + " %. " : "") +
+          (ultimate.dodge ? "Esquive la prochaine attaque. " : "") +
+          (ultimate.teamAtk ? "ATK d’équipe +" + Math.round(ultimate.teamAtk * 100) + " %. " : "") +
+          (ultimate.gauge ? "Jauge +" + ultimate.gauge + " %. " : "") +
+          (ultimate.curse ? "Ajoute une marque de malédiction. " : "") +
+          (ultimate.power ? "Inflige une frappe de classe (" + Math.round(ultimate.power * 100) + " % de l’ATK)." : "");
+        panel.appendChild(ult);
+      }
+
       const pa = D.PASSIVE_INFO[id];
       if (pa) {
         const s = document.createElement("div");
