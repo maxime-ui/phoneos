@@ -1,4 +1,4 @@
-/* PhoneOS — générateur d'illustrations SVG procédurales */
+/* Astéria — générateur d'illustrations SVG procédurales */
 "use strict";
 
 OS.art = (() => {

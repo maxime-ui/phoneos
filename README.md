@@ -1,6 +1,8 @@
-# PhoneOS 1.0
+# Astéria
 
-Émulateur de téléphone complet dans le navigateur, 100 % HTML/CSS/JS vanilla.
+RPG gacha complet en page web, 100 % HTML/CSS/JS vanilla : tout l'univers
+s'affiche directement dans le navigateur, avec un bouton **⛶ Plein écran**
+dans la barre supérieure.
 Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 
 📖 **Guide complet du jeu** : [GUIDE.md](GUIDE.md) — tout y est expliqué (OS, combat, héros, reliques, raid, histoire, stratégies).
@@ -12,7 +14,10 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 | Astéria | Gacha + combat au tour par tour façon FGO + Mode Histoire + Raid — détail ci-dessous |
 | Personnages | Fiches détaillées des 113 héros (liste complète, non possédés grisés), accessibles depuis la Collection : classe et bonus, cartes de combat, stats réelles (doublons, évolutions, reliques incluses), compétence, **passif**, éveils et talents acquis, coût de la prochaine évolution, indice d'obtention pour les héros non invoqués (Graal → Enfer+) |
 | Trophées | Salle des trophées : étagère des 5 bannières (débloquées/scellées), records des 5 boss (meilleur niveau vaincu, **Enfer+ distingué d'Enfer** avec mise en avant dorée), record du Mode Infini, statut du **Graal** (Astrée, Héritière des braises, SS exclusive débloquée en battant le Dragon des cendres en Enfer+) |
-| Réglages | Mode avion, luminosité, **vitesse du jeu (Lent/Normal/Rapide — dialogues + musique)**, **vitesse des dialogues du Mode Histoire (Instantané/Lent/Normal/Rapide, indépendante du jeu)**, **mode daltonien (repères visuels en plus des couleurs : badges de rareté, symboles sur les cartes de combat, repères PV)**, **son du jeu on/off**, **notifications système on/off**, volume, chargeur, réinitialisation (purge complète des données) |
+| Réglages | **Vitesse du jeu (Lent/Normal/Rapide — dialogues + musique)**, **vitesse des dialogues du Mode Histoire (Instantané/Lent/Normal/Rapide, indépendante du jeu)**, **mode daltonien (repères visuels en plus des couleurs : badges de rareté, symboles sur les cartes de combat, repères PV)**, **son du jeu on/off**, **notifications système on/off**, volume, réinitialisation (purge complète des données) |
+
+La barre supérieure donne accès aux 4 sections (**Astéria**, Personnages,
+Trophées, Réglages) et au **plein écran** (bouton ⛶).
 
 ### Astéria en détail
 
@@ -54,9 +59,9 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 ```
 index.html          Point d'entrée
 GUIDE.md            Guide complet du jeu (10 sections)
-css/styles.css      Châssis du téléphone + styles système et apps
-js/os.js            Noyau : couches d'affichage, cycle de vie des apps,
-                    notifications (désactivables), état système, persistance
+css/styles.css      Barre supérieure de navigation + styles système et apps
+js/os.js            Noyau : navigation entre apps, notifications (désactivables),
+plein écran, persistance
 js/sfx.js           Moteur audio Web Audio (sfx synthétisés + musique chiptune, muet configurable)
 js/svgart.js        Générateur d'illustrations SVG procédurales (scènes du Mode Histoire,
                     silhouettes évoluées : aura/halo/couronne d'étoiles)
@@ -65,7 +70,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (142 vérifications)
+test/smoke.test.js  Test de fumée (140 vérifications)
 test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ```
 
@@ -79,15 +84,16 @@ python3 -m http.server       # puis http://localhost:8000
 
 ## Tester
 
-Le test de fumée simule boot, déverrouillage, ouverture des 4 apps (Astéria, Personnages, Réglages, Trophées), roster des 112 unités possédées, écran Collection (Graal grisé,
+Le test de fumée simule l'ouverture de la page (barre d'apps, Astéria ouverte par défaut, bouton plein écran, horloge),
+les 4 apps, roster des 112 unités possédées, écran Collection (Graal grisé,
 récompense de complétion réclamée, clic → fiche détaillée dans l'app Personnages, retour, fiche du Graal non invoqué), réglages bonus (mode daltonien persisté,
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
 Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),
 Raid hebdomadaire (3 phases, coffre réclamé, −1 Élixir à l'entrée, silhouettes évoluées),
-Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, et multitâche, via jsdom :
+Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, et notifications + plein écran, via jsdom :
 
 ```bash
 npm install jsdom   # uniquement pour le test
-node test/smoke.test.js    # 142 vérifications
+node test/smoke.test.js    # 140 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
 ```

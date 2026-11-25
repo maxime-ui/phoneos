@@ -18,21 +18,7 @@ const { document } = dom.window;
 const errors = [];
 window.addEventListener("error", (e) => errors.push(e.message));
 
-function unlock() {
-  const pad = document.querySelector("#lock-pad");
-  [...pad.querySelectorAll("button")].slice(1);
-  const key = (k) => [...pad.querySelectorAll("button")].find((b) => b.textContent === k).dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-  ["1", "2", "3", "4"].forEach(key);
-  // attendre boot si nécessaire
-}
-
 setTimeout(() => {
-  try {
-    // attendre fin du boot puis déverrouiller
-    const pad = document.querySelector("#lock-pad");
-    const key = (k) => [...pad.querySelectorAll("button")].find((b) => b.textContent === k).dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    ["1", "2", "3", "4"].forEach(key);
-  } catch (e) { errors.push("unlock: " + e.message); }
 
   const OSref = () => window.eval("OS");
   let maxFloorSeen = 1;
@@ -40,8 +26,7 @@ setTimeout(() => {
   let picksCount = 0;
 
   function inBattle() {
-    const layer = document.getElementById("layer-app");
-    return !layer.classList.contains("hidden") && document.querySelector(".battle") && !document.querySelector(".battle-result");
+    return !!document.querySelector(".battle") && !document.querySelector(".battle-result");
   }
 
   function launchBattle() {

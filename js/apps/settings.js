@@ -51,26 +51,6 @@ OS.registerApp({
     function renderAll() {
       body.innerHTML = "";
 
-      const net = group("Réseau");
-      net.appendChild(toggle("Mode avion", "Coupe le Wi-Fi simulé", OS.store.get("airplane", false), (v) => {
-        OS.store.set("airplane", v);
-        OS.setAirplane(v);
-      }));
-
-      const display = group("Affichage");
-      const rowB = row("Luminosité", "Écran du téléphone");
-      const slider = document.createElement("input");
-      slider.type = "range";
-      slider.min = "20";
-      slider.max = "100";
-      slider.value = String(OS.store.get("brightness", 100));
-      slider.addEventListener("input", () => {
-        OS.setBrightness(Number(slider.value));
-        OS.store.set("brightness", Number(slider.value));
-      });
-      rowB.appendChild(slider);
-      display.appendChild(rowB);
-
       const game = group("Jeu");
       const speed = OS.store.get("game-speed", 1);
       const rowS = row("Vitesse du jeu", speed + "× — vitesse des dialogues et de la musique");
@@ -130,31 +110,17 @@ OS.registerApp({
       rowV.appendChild(vol);
       sound.appendChild(rowV);
 
-      const batt = group("Batterie");
-      batt.appendChild(toggle("Charger", "Recharge la batterie simulée", OS.state.charging, (v) => {
-        OS.state.charging = v;
-        OS.setBattery(OS.state.battery);
-      }));
-
       const sys = group("Système");
       const about = document.createElement("div");
       about.className = "about-line";
       about.innerHTML =
-        "PhoneOS 1.0<br>" +
-        "Émulateur de téléphone en HTML/CSS/JS<br>" +
-        "Batterie : " + OS.state.battery + " % · " +
-        (OS.state.airplane ? "Avion actif" : "Connecté");
+        "Astéria — RPG gacha en page web (HTML/CSS/JS)<br>" +
+        "Plein écran : bouton ⛶ dans la barre supérieure · sauvegarde automatique dans le navigateur";
       sys.appendChild(about);
 
       const actions = document.createElement("div");
       actions.className = "notes-actions";
       actions.style.padding = "0 16px 16px";
-      const reboot = document.createElement("button");
-      reboot.textContent = "Redémarrer";
-      reboot.addEventListener("click", () => {
-        OS.notify("⚙️", "#5a6275", "Système", "Redémarrage…", 1200);
-        setTimeout(() => location.reload(), 800);
-      });
       const wipe = document.createElement("button");
       wipe.className = "danger";
       wipe.textContent = "Réinitialiser les données";
@@ -169,9 +135,9 @@ OS.registerApp({
         OS.notify("⚙️", "#5a6275", "Système", "Données réinitialisées", 2000);
         setTimeout(() => location.reload(), 800);
       });
-      actions.append(reboot, wipe);
+      actions.append(wipe);
 
-      body.append(net, display, game, sound, batt, sys, actions);
+      body.append(game, sound, sys, actions);
     }
 
     renderAll();

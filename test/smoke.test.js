@@ -43,32 +43,25 @@ const results = [];
 function check(name, cond) { results.push((cond ? "PASS" : "FAIL") + "  " + name); }
 
 // Déclenche DOMContentLoaded manuellement
-// 1. Boot visibilité
 check("DOMOSS existe", typeof window.eval("OS") === "object");
-check("boot visible", !$("#layer-boot").classList.contains("hidden"));
 
-// Attendre fin du boot (~2 s max)
+// Attendre l'init de la page web (~2 s max)
 setTimeout(() => {
-  check("verrouillage affiché après boot", !$("#layer-lock").classList.contains("hidden"));
+  // Page web : plus de téléphone (châssis, boot, verrouillage) — barre d'apps + Astéria ouverte par défaut
+  check("page web : aucun châssis de téléphone", !document.querySelector(".phone") && !document.querySelector(".lock-pad"));
+  check("barre d'apps présente (4 onglets)", document.querySelectorAll("#top-tabs .top-tab").length === 4);
+  const activeTab = document.querySelector("#top-tabs .top-tab.active");
+  check("Astéria ouverte par défaut", !!activeTab && activeTab.dataset.app === "asteria");
+  check("bouton plein écran présent", !!document.getElementById("btn-fullscreen"));
+  check("horloge de la barre affichée", document.getElementById("top-clock").textContent !== "--:--");
 
-  // PIN incorrect
-  const pad = $("#lock-pad");
-  const buttons = [...pad.querySelectorAll("button")];
-  const key = (k) => click(buttons.find((b) => b.textContent === k));
-  ["1", "2", "3", "5"].forEach(key);
-  check("mauvais PIN refusé", $("#layer-home").classList.contains("hidden"));
-
-  // PIN correct
-  key("C");
-  ["1", "2", "3", "4"].forEach(key);
-  check("déverrouillé -> home visible", !$("#layer-home").classList.contains("hidden"));
-
-  // Ouvrir chaque app
+  // Ouvrir chaque app (la page ne quitte jamais le flux web)
   const apps = Object.keys(window.eval("OS").APPS);
   check("4 apps enregistrées (Astéria, Personnages, Réglages, Trophées)", apps.length === 4);
   apps.forEach((id) => {
     window.eval("OS").openApp(id);
-    check("app ouverte : " + id, !$("#layer-app").classList.contains("hidden") && $("#app-body").children.length > 0);
+    const tab = [...document.querySelectorAll("#top-tabs .top-tab")].find((t) => t.dataset.app === id);
+    check("app ouverte : " + id, !!tab && tab.classList.contains("active") && $("#app-body").children.length > 0);
   });
 
   // Astéria : roster complet et classes de gameplay
@@ -457,38 +450,25 @@ setTimeout(() => {
 
   window.eval("OS").closeApp();
 
-  // Retour -> home
-  window.eval("OS").closeApp();
-  check("retour home", !$("#layer-home").classList.contains("hidden"));
-
-  // Recents
-  window.eval("OS").showRecents();
-  const cards = document.querySelectorAll(".recents-card").length;
-  check("recents non vide (" + cards + ")", cards >= 3);
-  window.eval("OS").clearRecents();
-  check("recents vidées -> home", !$("#layer-home").classList.contains("hidden"));
+  // closeApp ramène sur Astéria (page web unique, pas d'écran d'accueil)
+  const backTab = document.querySelector("#top-tabs .top-tab.active");
+  check("retour -> Astéria ouverte", !!backTab && backTab.dataset.app === "asteria");
 
   // Notifications
   window.eval("OS").notify("✅", "#333", "Test", "Message de test");
   check("notification affichée", document.querySelectorAll(".notif").length >= 1);
 
-  // Power off -> boot
-  window.eval("OS").state.locked = false;
-  // powerOff via bouton
-  click(document.getElementById("btn-power"));
-  check("écran éteint", !document.getElementById("screen-off").classList.contains("hidden"));
-  click(document.getElementById("btn-power"));
-  check("reboot lancé", !$("#layer-boot").classList.contains("hidden"));
+  // Plein écran : bouton présent, clic sans erreur (fallback notification en jsdom)
+  const fsBtn = document.getElementById("btn-fullscreen");
+  check("bouton plein écran actif", !!fsBtn);
+  if (fsBtn) fsBtn.click();
+  check("clic plein écran sans erreur", true);
 
-  setTimeout(() => {
-    check("reboot -> lock", !$("#layer-lock").classList.contains("hidden"));
-
-    if (errors.length) {
-      console.log("ERREURS:\n" + errors.join("\n"));
-    }
-    console.log(results.join("\n"));
-    const fails = results.filter((r) => r.startsWith("FAIL")).length;
-    console.log("\n" + (fails === 0 && errors.length === 0 ? "TOUS LES TESTS PASSENT" : fails + " échec(s), " + errors.length + " erreur(s) JS"));
-    process.exit(fails === 0 && errors.length === 0 ? 0 : 1);
-  }, 2600);
+  if (errors.length) {
+    console.log("ERREURS:\n" + errors.join("\n"));
+  }
+  console.log(results.join("\n"));
+  const fails = results.filter((r) => r.startsWith("FAIL")).length;
+  console.log("\n" + (fails === 0 && errors.length === 0 ? "TOUS LES TESTS PASSENT" : fails + " échec(s), " + errors.length + " erreur(s) JS"));
+  process.exit(fails === 0 && errors.length === 0 ? 0 : 1);
 }, 2400);

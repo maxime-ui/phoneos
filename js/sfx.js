@@ -1,4 +1,4 @@
-/* PhoneOS — moteur audio (Web Audio, synthèse pure, aucun fichier) */
+/* Astéria — moteur audio (Web Audio, synthèse pure, aucun fichier) */
 "use strict";
 
 OS.sfx = (() => {

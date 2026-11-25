@@ -1,23 +1,21 @@
-# PhoneOS — Le guide complet
+# Astéria — Le guide complet
 
-🌞 Bienvenue sur PhoneOS, un téléphone simulé dans votre navigateur, et son jeu
-principal : **l'Astéria**, un gacha + RPG au tour par tour. Ce document explique
-tout : l'OS, le combat, les héros, les évolutions, les reliques, le Raid, le
+🌞 Bienvenue dans **Astéria**, un gacha + RPG au tour par tour jouable directement
+dans votre navigateur, en une simple page web avec bouton plein écran. Ce document explique
+tout : la page, le combat, les héros, les évolutions, les reliques, le Raid, le
 Mode Histoire et les stratégies. 100 % hors-ligne, aucune donnée ne quitte
 votre navigateur.
 
 ---
 
-## 1. Le téléphone
+## 1. La page de jeu
 
 | Élément | Fonctionnement |
 |---|---|
-| Boot | Séquence animée à chaque allumage (bouton power) |
-| Verrouillage | Code PIN **1234** par défaut — horloge et date réelles |
-| Accueil | Grille d'apps (Astéria, Personnages, Réglages, Trophées) |
-| Barre d'état | Heure réelle, batterie simulée (décharge lente + chargeur dans Réglages), mode avion |
-| Multitâche | Apps récentes, fermeture individuelle ou globale |
-| Notifications | Empilées, désactivables dans Réglages |
+| Barre supérieure | Identité du jeu + **4 onglets** (Astéria, Personnages, Réglages, Trophées) + **bouton ⛶ Plein écran** + horloge réelle |
+| Page principale | L'app affichée en grand — **Astéria est ouverte par défaut** au chargement |
+| Notifications | Bannières empilées en haut à droite, désactivables dans Réglages |
+| Sauvegarde | Automatique, dans le stockage local du navigateur — rien à faire |
 
 **Réglages utiles** : vitesse du jeu (Lent/Normal/Rapide), vitesse des
 dialogues de l'Histoire (avec *Instantané*), mode daltonien (repères visuels),
@@ -243,6 +241,6 @@ compétiteurs — affichée dans la Salle des trophées.
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
 - Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
-- Tests : `node test/smoke.test.js` (142 vérifications) et
+- Tests : `node test/smoke.test.js` (140 vérifications) et
   `node test/stress.test.js` — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.

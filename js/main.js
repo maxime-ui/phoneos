@@ -1,4 +1,4 @@
-/* Point d'entrée PhoneOS */
+/* Point d'entrée Astéria */
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
