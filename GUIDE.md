@@ -43,7 +43,7 @@ les paliers de Collection. On le dépense en invocations.
 | Portail de classe (12 classes) | 5 ◆ | Pool limité à la classe, **pity : SSR garanti au 30ᵉ tirage** (compteur visible, réinitialisé au SSR) |
 
 Les **portails de classe** sont le moyen sûr de viser un rôle précis
-(Soigneur, Défenseur, Tueur de boss…). Le pity compte séparément par classe.
+(Soigneur, Défenseur, Tueur, Artificier, Druide ou Occultiste…). Le pity compte séparément par classe.
 
 Les **doublons** montent le niveau d'un héros : +8 % ATK/PV par copie
 (plafond +96 %, soit 13 copies utiles).
@@ -70,7 +70,7 @@ Les **doublons** montent le niveau d'un héros : +8 % ATK/PV par copie
 | Mage | Jauge rapide | Ultime +4 %/carte |
 | Archer | Coup critique | Esquive +8 % |
 | Rôdeur | Esquive | Esquive +10 % |
-| Héros | Croissance | +5 % dégâts/tour (Héros accumulent : rin, graal) |
+| Héros | Croissance | +4 % dégâts/tour (+5 % pour Rin et Astrée) |
 | **Soigneur** | Survie | Se soigne au lieu d'attaquer — soigne l'allié le plus blessé |
 | **Défenseur** | Survie | Réduit les dégâts subis par toute l'équipe |
 | **Tueur** | Burst | Exécution renforcée, attire les ripostes en priorité |
@@ -157,7 +157,7 @@ ou bonus %), y compris pour un déplacement entre héros.
    achetez.
 
 | Rang | Lame | Écaille | Étendard | Anneau | Orbe | Talisman | Grimoire | Bottes |
-|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|
 | N | ATK +12 % | PV +12 % | Jauge +15 % | Critique +8 % | Dégâts +8 % | Soins +8 % | Jauge +4 %/carte | Esquive +5 % |
 | R | +18 % · Crit +3 % | +18 % · Soins +4 % | Jauge +18 % · ATK équipe +3 % | Crit +12 % · Exécution +6 % | Dégâts +12 % · ATK équipe +4 % | Soins +12 % · PV +4 % | Jauge +6 %/carte · Dégâts +3 % | Esquive +8 % · Renvoi +3 % |
 | SR | +26 % · Crit +3 % · Renvoi +5 % | +26 % · Soins +4 % · Esquive +4 % | Jauge +21 % · ATK équipe +3 % · Ultime/carte +2 % | Crit +16 % · Exécution +6 % · Ultime/carte +3 % | Dégâts +16 % · ATK équipe +4 % · Soins +5 % | Soins +16 % · PV +4 % · Jauge +2 % | Jauge +8 %/carte · Dégâts +6 % · Crit +3 % | Esquive +11 % · Renvoi +3 % · PV +4 % |
