@@ -53,7 +53,7 @@ OS.registerApp({
     shelf.className = "story-banners";
     let unlockedCount = 0;
     BANNERS.forEach((bn, t) => {
-      const unlocked = BOSS_IDX.every((i) => (beaten[i] || 0) >= t + 1);
+      const unlocked = BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, DIFFS.length));
       if (unlocked) unlockedCount++;
       const slot = document.createElement("div");
       slot.className = "banner-slot" + (unlocked ? " unlocked" : " locked");
