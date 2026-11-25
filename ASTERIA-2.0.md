@@ -105,3 +105,5 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Trois paysages de région (forêt, terres embrasées, ruines) illustrent les entrées de chapitres de la carte narrative.
 - Les cartes de chapitres et le panneau d'ennemi disposent de styles adaptatifs pour les petits écrans.
 - Le test de fumée vérifie aussi la présence des 13 portraits de bestiaire et des trois paysages.
+
+- Cinq icônes de reliques (arme, armure, étendard, anneau, orbe) sont ajoutées et intégrées aux lignes du reliquaire. Le test de fumée vérifie leurs fichiers.
