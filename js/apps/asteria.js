@@ -477,7 +477,7 @@
       rin: ["Destin noirci", "+8 % de dégâts par tour qui passe (au lieu de +5 %)"],
       vespera: ["Veillées", "chaque carte jouée recharge +6 % d'Ultime"],
       takumi: ["Garde-rapprochée", "renvoie 20 % des dégâts de la riposte qu'il subit"],
-      graal: ["Héritage des braises", "+8 %/tour, renvoie 35 % des ripostes et soigne 15 % des dégâts infligés"],
+      graal: ["Héritage des braises", "+5 %/tour, renvoie 20 % des ripostes et soigne 8 % des dégâts infligés"],
     };
     const TRAIN_OPPONENTS = [
       { key: "bois", name: "Mannequin de bois", type: "Muraille", hp: 20000, atk: 780 },
@@ -692,6 +692,9 @@ OS.asteriaData.teamSynergyInfo = function () {
     { classes: ["Mage", "Archer"], name: "Convergence arcanique", effect: "+8 % dégâts d'équipe" },
     { classes: ["Chevalier", "Soigneur"], name: "Serment protecteur", effect: "−10 % dégâts reçus" },
     { classes: ["Berserker", "Rôdeur"], name: "Traque coordonnée", effect: "+6 % dégâts d'équipe" },
+    { classes: ["Artificier", "Druide"], name: "Atelier vivant", effect: "+4 % ATK et −5 % dégâts reçus" },
+    { classes: ["Druide", "Occultiste"], name: "Cycle du voile", effect: "−6 % dégâts reçus" },
+    { classes: ["Artificier", "Occultiste"], name: "Mécanique interdite", effect: "+8 % dégâts d'équipe" },
   ];
 };
 OS.asteriaData.elementInfo = function () {
@@ -2118,6 +2121,9 @@ OS.registerApp({
       if (classes.has("Mage") && classes.has("Archer")) pairs.push({ id: "precision", name: "Convergence arcanique", desc: "+8 % dégâts d'équipe", atk: 0.08 });
       if (classes.has("Chevalier") && classes.has("Soigneur")) pairs.push({ id: "serment", name: "Serment protecteur", desc: "−10 % dégâts reçus", guard: 0.10 });
       if (classes.has("Berserker") && classes.has("Rôdeur")) pairs.push({ id: "traque", name: "Traque coordonnée", desc: "+6 % dégâts d'équipe", atk: 0.06 });
+      if (classes.has("Artificier") && classes.has("Druide")) pairs.push({ id: "atelier-vivant", name: "Atelier vivant", desc: "+4 % ATK · −5 % dégâts reçus", atk: 0.04, guard: 0.05 });
+      if (classes.has("Druide") && classes.has("Occultiste")) pairs.push({ id: "cycle-voile", name: "Cycle du voile", desc: "−6 % dégâts reçus", guard: 0.06 });
+      if (classes.has("Artificier") && classes.has("Occultiste")) pairs.push({ id: "mecanique-interdite", name: "Mécanique interdite", desc: "+8 % dégâts d'équipe", atk: 0.08 });
       return pairs;
     }
 
@@ -2530,7 +2536,7 @@ OS.registerApp({
         persistRaid();
         const ph = RAID_PHASES[battle.raidPhase];
         battle.raidPhase++;
-        battle.enemy = { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk };
+        battle.enemy = { name: ph.name, type: ph.type, ...enemyStats(ph.type, ph.hp, ph.atk) };
         battle.elite = ph.elite;
         battle.hp = battle.units.map((u) => u.hp);
         battle.breakGauge = 0;
