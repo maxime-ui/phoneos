@@ -15,8 +15,11 @@ OS.registerApp({
       { name: "Bannière du Serment", color: "#a06a2c" },
       { name: "Bannière de la Caldeira", color: "#8c2f39" },
       { name: "Bannière du Dragon Rouge", color: "#d33b2f" },
+      { name: "Bannière des Failles", color: "#7551b8" },
+      { name: "Bannière de la Sève-Lune", color: "#398f6b" },
+      { name: "Bannière du Dernier Sablier", color: "#3d627f" },
     ];
-    const BOSS_IDX = [1, 3, 6, 9, 11];
+    const BOSS_IDX = [1, 3, 6, 9, 11, 18, 20, 22];
     const DIFFS = ["Facile", "Moyen", "Difficile", "Impossible", "Enfer", "Enfer+"];
 
     const story = OS.store.get("asteria-v2-story", {});
@@ -60,7 +63,7 @@ OS.registerApp({
     wrap.appendChild(shelf);
     const shelfNote = document.createElement("div");
     shelfNote.className = "team-hint";
-    shelfNote.textContent = unlockedCount + " / " + BANNERS.length + " bannières — battez les 5 boss d'histoire au niveau affiché pour débloquer la suivante.";
+    shelfNote.textContent = unlockedCount + " / " + BANNERS.length + " bannières — battez les 8 boss d'histoire au niveau affiché pour débloquer la suivante.";
     wrap.appendChild(shelfNote);
 
     const h2 = document.createElement("h3");
@@ -90,7 +93,7 @@ OS.registerApp({
       '<div class="graal-name">✦ Astrée, Héritière des braises</div>' +
       '<div class="unit-rarity">SS · exclusif</div>' +
       '<div class="team-hint">' + (graalOwned
-        ? "Rejointe ! La descendante du dragon des cendres combat à vos côtés (+8 %/tour, renvoi 35 %, soin 15 % des dégâts)."
+        ? "Rejointe ! La descendante du dragon des cendres combat à vos côtés (+5 %/tour, renvoi 20 %, soin 8 % des dégâts)."
         : "Verrouillée — battez le Dragon des cendres (chapitre 12) en difficulté Enfer+ pour la faire rejoindre votre collection.") +
       "</div>";
     wrap.appendChild(graal);
