@@ -141,11 +141,47 @@ Trois bannières temporaires sont disponibles dans **Invoquer** :
 
 Chaque bannière conserve ses propres compteurs : SSR garanti au 50ᵉ tirage, puis héros vedette garanti au 100ᵉ. Les trois héros vedettes sont également présents dans le pool SSR général. Le roster total est de **145 héros** : 69 R, 42 SR, 33 SSR et 1 SS. Aucun nouveau SS n’a été ajouté.
 
+**Nouveaux héros et statistiques de base (avant doublons, évolutions et reliques)** :
+
+| Rareté | Héros | Classe | ATK | PV |
+|---|---|---|---:|---:|
+| SSR | Elyndra, forgeuse d’étoiles | Artificier | 1 840 | 10 100 |
+| SSR | Maélis, gardienne des racines | Druide | 1 580 | 10 800 |
+| SSR | Nyxar, veilleur du voile | Occultiste | 1 900 | 9 500 |
+| SR | Toren des enclumes | Artificier | 1 430 | 9 300 |
+| SR | Sylwen la sève-lune | Druide | 1 160 | 9 500 |
+| SR | Vhal l’exilé | Occultiste | 1 510 | 8 900 |
+| SR | Brena la mécaniste | Artificier | 1 390 | 9 700 |
+| R | Lirio des clairières | Druide | 880 | 7 900 |
+| R | Zarek | Occultiste | 1 080 | 7 300 |
+| R | Pavel l’apprenti | Artificier | 1 030 | 7 600 |
+| R | Nima | Druide | 860 | 8 000 |
+| R | Orik des cendres | Occultiste | 1 060 | 7 400 |
+
+Passifs des nouveaux héros : Elyndra (ATK équipe +6 %), Maélis (soins +18 %, PV +5 %), Nyxar (dégâts +10 %), Toren (dégâts +7 %), Sylwen (soins +12 %), Vhal (exécution +12 %), Brena (jauge +4 % par carte), Lirio (soins +8 %), Zarek (dégâts +5 %), Pavel (ATK équipe +2 %), Nima (PV +5 %) et Orik (critique +5 %).
+
 ### 3.6 — Passifs, synergies et ultimes
 
 Tous les héros possèdent maintenant un passif, spécifique ou attribué selon leur classe. Les trois nouvelles classes apportent des synergies dédiées : Atelier vivant (Artificier + Druide), Cycle du voile (Druide + Occultiste) et Mécanique interdite (Artificier + Occultiste).
 
 Les ultimes de classe sont distincts de la jauge partagée : ils se chargent automatiquement à chaque cycle complet et se déclenchent au bout de **3 à 5 tours** selon la classe. L’interface de combat indique le compteur de chaque héros. Les ennemis disposent eux aussi d’un ultime au **4ᵉ tour ennemi**, avec des effets différents selon leur archétype.
+
+| Classe | Délai | Ultime | Effet principal |
+|---|---:|---|---|
+| Chevalier | 4 tours | Serment inébranlable | Frappe et bouclier d’équipe |
+| Berserker | 3 tours | Rage du dernier rempart | Frappe lourde |
+| Mage | 4 tours | Déluge arcanique | Dégâts arcaniques et jauge |
+| Archer | 3 tours | Pluie perforante | Rafale de dégâts |
+| Rôdeur | 3 tours | Pas du prédateur | Dégâts et esquive de la prochaine attaque |
+| Héros | 4 tours | Éveil du protagoniste | Dégâts et jauge |
+| Soigneur | 4 tours | Sanctuaire vivant | Soin de l’équipe |
+| Défenseur | 5 tours | Bastion absolu | Protection d’équipe |
+| Tueur | 3 tours | Sentence du géant | Exécution renforcée sous 35 % PV |
+| Artificier | 4 tours | Surcharge de l’atelier | Dégâts et ATK d’équipe |
+| Druide | 4 tours | Floraison primordiale | Dégâts et soin d’équipe |
+| Occultiste | 4 tours | Éclipse du voile | Dégâts et marque de malédiction |
+
+Les ultimes sont indépendants : chacun charge selon le nombre de cycles où le héros est vivant. Ils ne remplacent pas l’Ultime partagé à 100 % de jauge.
 
 ---
 
@@ -243,6 +279,25 @@ Six archétypes s’ajoutent aux treize existants :
 - **Chronomancien** : draine la jauge d’Ultime et déforme le rythme du combat.
 
 Les 19 archétypes ont chacun une calibration PV/ATQ. Les nouveaux ennemis sont intégrés aux combats de quête, aux rencontres de l’histoire et aux vagues adaptées du Mode Infini. Le journal de combat annonce les ultimes ennemis.
+
+**Nouveaux ennemis nommés** : Dueliste des failles, Canonnière cendrée, Alchimiste du néant, Sentinelle prismatique, Prédateur nocturne, Chronomancien brisé, Hydre des brumes, Reine des épines, Garde astral et Dévoreur de runes.
+
+**Multiplicateurs d’équilibrage PV / ATQ** appliqués à la base de chaque archétype :
+
+| Archétype | PV | ATQ | Archétype | PV | ATQ |
+|---|---:|---:|---|---:|---:|
+| Brute | ×1,08 | ×1,04 | Assassin | ×0,94 | ×1,12 |
+| Sorcier | ×1,00 | ×0,96 | Capitaine | ×1,06 | ×1,00 |
+| Golem | ×1,18 | ×0,90 | Oracle | ×1,12 | ×0,88 |
+| Muraille | ×1,22 | ×0,84 | Invocateur | ×0,96 | ×1,04 |
+| Fantassin | ×1,00 | ×0,98 | Nécromant | ×1,04 | ×0,94 |
+| Banshee | ×0,96 | ×1,02 | Sanguinaire | ×0,94 | ×1,12 |
+| Colosse de givre | ×1,14 | ×0,96 | Duelliste | ×0,96 | ×1,10 |
+| Artilleur | ×0,92 | ×1,08 | Alchimiste | ×1,04 | ×0,92 |
+| Sentinelle | ×1,20 | ×0,90 | Prédateur | ×0,96 | ×1,12 |
+| Chronomancien | ×0,92 | ×1,08 | | | |
+
+**Réglage de base des héros par classe (ATK / PV)** : Chevalier ×1,00 / ×1,02 ; Berserker ×1,02 / ×0,96 ; Mage ×0,96 / ×1,02 ; Archer ×0,98 / ×0,98 ; Rôdeur ×0,98 / ×1,00 ; Héros ×0,96 / ×1,00 ; Soigneur ×1,00 / ×1,04 ; Défenseur ×1,00 / ×1,05 ; Tueur ×0,94 / ×0,96 ; Artificier ×1,00 / ×1,00 ; Druide ×0,94 / ×1,06 ; Occultiste ×1,02 / ×0,96. Ces coefficients s’appliquent avant les doublons, évolutions et reliques.
 
 ---
 
