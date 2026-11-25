@@ -135,16 +135,16 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 
 ## Pack de portraits individuels — roster complet
 
-- Sprite vectoriel `assets/asteria/heroes/roster.svg` : un symbole SVG unique par héros (133 portraits distincts), indexé par identifiant stable.
-- Sprite vectoriel `assets/asteria/enemies/bestiary.svg` : 14 ennemis nommés et 13 archétypes de combat, chacun avec son propre symbole.
-- Les portraits individuels sont raccordés aux cartes de la Collection, de l'Équipe, de l'Entraînement, aux fiches Personnages et au panneau ennemi en combat.
-- Les tests smoke vérifient la présence de chaque identifiant de portrait, l'affichage du roster complet et le rendu du portrait ennemi.
-- Les anciens portraits de classes et d'ennemis restent présents comme ressources de compatibilité ; les nouveaux visuels ne modifient pas les sauvegardes.
+- Les portraits sont désormais dessinés en SVG directement par le moteur à partir d'une identité stable (identifiant du héros, ou nom + archétype de l'ennemi).
+- Chaque héros reçoit un visage, une coiffure, des yeux, une palette, une tenue et des ornements déterminés individuellement ; les classes influencent l'équipement et les couleurs, la rareté le cadre.
+- Les ennemis ont une silhouette monstrueuse, des cornes, une peau, des yeux et des marques déterminés par leur identité. Les noms et archétypes ne partagent plus un portrait générique.
+- Les portraits personnalisés sont utilisés dans la Collection, l'Équipe, l'Entraînement, les fiches Personnages, les dialogues et les combats.
+- Les tests smoke vérifient l'unicité des dessins pour les 133 héros et pour les ennemis du bestiaire. Les sauvegardes ne sont pas modifiées.
 
 
 ## Laboratoire d'entraînement libre
 
-Le menu Entraînement permet de sélectionner n'importe lequel des héros du roster, possédé ou non, puis de lancer un combat contre un ennemi choisi aléatoirement parmi les noms et archétypes du bestiaire. La cible possède une réserve de PV de simulation et ne perd jamais de PV : elle est immortelle. Elle ne riposte pas, afin de permettre de tester les compétences sans interruption. Un bouton de sortie reste disponible pendant le combat et ramène immédiatement au menu Entraînement. Aucun gain ni coût de progression n'est appliqué.
+Le menu Entraînement permet de sélectionner n'importe lequel des héros du roster, possédé ou non, puis de lancer un vrai duel contre un adversaire aléatoire du bestiaire. Les PV ennemis diminuent réellement, l'adversaire utilise ses attaques et ses mécaniques d'archétype, et le héros peut gagner ou être mis K.O. Les statistiques de l'adversaire sont calibrées à partir de celles du héros. Le compteur affiche les dégâts cumulés et les PV restants. Un bouton permet de quitter à tout moment. Aucun quartz, butin, mission quotidienne ou changement de sauvegarde n'est attribué.
 
 
 ## Fiabilisation du Mode Histoire
@@ -158,8 +158,8 @@ Le menu Entraînement permet de sélectionner n'importe lequel des héros du ros
 
 ## Correctifs interface, entraînement, collection et invocation
 
-- Les portraits SVG utilisent désormais les attributs href et xlink:href pour une meilleure compatibilité des références externes aux symboles du roster et du bestiaire.
-- Cliquer directement sur un héros dans Entraînement lance son combat individuel contre une cible aléatoire immortelle. Le rendu reste dans l'onglet Entraînement pendant les actions, soins et fins de combat.
+- Les portraits sont maintenant des SVG individuels générés à la volée : chaque héros et chaque adversaire possède une identité visuelle propre, sans référence externe à un sprite partagé.
+- Cliquer directement sur un héros dans Entraînement lance son duel réel contre un ennemi équilibré ; les PV des deux combattants évoluent et la victoire comme le K.O. sont possibles. Le rendu reste dans l'onglet Entraînement.
 - La Collection propose trois filtres combinables : classe, rareté et possession.
 - Cliquer sur un portail de classe ouvre d'abord son aperçu : héros du pool, probabilités par rareté, compteur de pity et actions d'invocation ×1/×10. L'ouverture du portail ne consomme aucun quartz.
 - Les taux affichés suivent les probabilités effectives du tirage et tiennent compte des raretés absentes du pool. La garantie SSR est indiquée seulement pour les portails qui contiennent des SSR.
