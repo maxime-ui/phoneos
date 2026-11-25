@@ -19,7 +19,7 @@ Aucune dépendance à installer pour jouer et aucun back-end. La suite de tests 
 
 La barre supérieure donne accès aux 4 sections (**Astéria**, Personnages,
 Trophées, Réglages), au **sélecteur de difficulté du Mode Histoire** (chaîne de difficultés : change la difficulté en un clic, chaque palier débloqué seulement après que toute l'histoire a été bouclée au palier précédent) et au
-**plein écran** (bouton ⛶ ou raccourci clavier **F**).
+**plein écran** (bouton ⛶ ou raccourci clavier **F**). Les raccourcis **1–4** ouvrent les quatre apps dans l’ordre de la barre ; **Échap** revient à Astéria. Les combinaisons Ctrl/⌘/Alt (dont Ctrl+F) ne déclenchent pas ces raccourcis.
 
 ### Astéria en détail
 
