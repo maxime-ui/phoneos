@@ -697,3 +697,17 @@ body.cb .rb-score { color: #0fb3a3; }
 /* Décor illustré du champ de bataille */
 .story-art-box { background-image: linear-gradient(180deg, rgba(10,14,28,.12), rgba(10,14,28,.55)), url("../assets/asteria/scenes/crepuscule-ruines.svg"); background-size: cover; background-position: center; border-radius: 14px; overflow: hidden; }
 .story-art-box > svg { position: relative; z-index: 1; }
+
+
+/* Bestiaire illustré et carte des chapitres */
+.battle-enemy-art { display:flex; align-items:center; gap:14px; margin:10px 0; padding:10px; border:1px solid rgba(180,160,220,.25); border-radius:14px; background:linear-gradient(120deg,rgba(27,30,49,.95),rgba(12,16,27,.88)); }
+.battle-enemy-art img { width:104px; height:112px; object-fit:contain; border-radius:10px; background:#0b101b; }
+.battle-enemy-art div { display:flex; flex-direction:column; gap:5px; }
+.battle-enemy-art strong { color:#f2e7d2; font-family:serif; font-size:1.05rem; }
+.battle-enemy-art span { color:#b6a4df; font-size:.82rem; }
+.story-chapter { display:flex; align-items:stretch; gap:10px; overflow:hidden; padding:7px; }
+.story-chapter-art { flex:0 0 94px; height:68px; overflow:hidden; border-radius:8px; background:#111827; }
+.story-chapter-art img { width:100%; height:100%; object-fit:cover; }
+.story-chapter-copy { display:flex; flex:1; flex-direction:column; justify-content:center; gap:5px; text-align:left; }
+.story-chapter-copy small { opacity:.75; }
+@media(max-width:380px) { .battle-enemy-art img { width:82px; height:92px; } .story-chapter-art { flex-basis:76px; height:60px; } }
