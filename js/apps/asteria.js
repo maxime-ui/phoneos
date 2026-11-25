@@ -9,7 +9,18 @@
       dur: { label: "Difficile", hp: 28000, atk: 2050, reward: 20 },
       infini: { label: "Infini", hp: 7000, atk: 780, reward: 0, infinite: true },
     };
-    const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
+    const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche", "Fantassin d'élite", "Nécromant errant", "Banshee des marais", "Sanguinaire du brasier", "Colosse de givre", "Ombre du serment"];
+
+    const DIFF_ORDER = ["facile", "moyen", "difficile", "impossible", "enfer", "enferPlus"];
+
+    function diffUnlockedSt(st, key) {
+      const cleared = (st && Array.isArray(st.cleared)) ? st.cleared : [];
+      const i = DIFF_ORDER.indexOf(key);
+      if (i <= 0) return true;
+      return DIFF_ORDER.slice(0, i).every((dk) => cleared.includes(dk));
+    }
+
+    function matKeyOf(cls) { return "mat_" + cls; }
 
     const COLLECTION_REWARDS = [
       { pct: 25, quartz: 50 },
@@ -26,7 +37,18 @@
       elixir: { name: "Élixir de raid", color: "#3bd4c4" },
       poussiere: { name: "Poussière de relique", color: "#b48ce0" },
       cristal: { name: "Cristal de relique", color: "#7de0e8" },
+      "mat_Chevalier": { name: "Insigne de Chevalier", color: "#c8cfe0" },
+      "mat_Berserker": { name: "Croc de Berserker", color: "#d46a2f" },
+      "mat_Mage": { name: "Rune de Mage", color: "#6b8ce3" },
+      "mat_Archer": { name: "Plume d'Archer", color: "#7ee08c" },
+      "mat_Rôdeur": { name: "Fleur de Rôdeur", color: "#3ba75c" },
+      "mat_Héros": { name: "Étoile du Héros", color: "#e3b23c" },
+      "mat_Soigneur": { name: "Baume de Soigneur", color: "#3bd4a0" },
+      "mat_Défenseur": { name: "Rivet de Défenseur", color: "#9fb0c8" },
+      "mat_Tueur": { name: "Lame du Tueur", color: "#d33b6f" },
     };
+
+    const RECYCLE_GAIN = { 1: 2, 2: 4, 3: 8 };
     const RAID_PHASES = [
       { name: "Gardien de la trempe", type: "Golem", hp: 66000, atk: 2730, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" } },
       { name: "Commandant du feu", type: "Capitaine", hp: 100000, atk: 3360, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" } },
@@ -73,6 +95,7 @@
       2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
       3: [{ eclat: 20, coeur: 10 }, { larme: 12, couronne: 6 }, { sceau: 5 }],
     };
+    const EVO4_REQ = { 1: 3, 2: 4, 3: 5 };
     const EVO2 = {
       Chevalier: { fx: { hp: 8 }, label: "PV max +8 %" },
       Berserker: { fx: { crit: 8 }, label: "Critique +8 %" },
@@ -129,7 +152,30 @@
       rin: ["Destin lié", "jauge de départ +15 %", { jaugeInit: 15 }],
       vespera: ["Âme veillée", "PV max +8 %", { hp: 8 }],
       takumi: ["Écailles d'épaule", "PV max +12 %", { hp: 12 }],
-      graal: ["Héritière des braises", "dégâts +15 %", { dmg: 15 }],
+      graal: ["Héritière des braises", "dégâts +18 % et jauge de départ +20 %", { dmg: 18, jaugeInit: 20 }],
+      sirona: ["Cœur du baume", "soins +15 %", { heal: 15 }],
+      gorm: ["Mur d'os", "renvoie 12 %", { renvoi: 12 }],
+      poppy: ["Petite jauge", "jauge +4 % par carte", { gauge: 4 }],
+      elise: ["Discipline d'acier", "renvoie 8 %", { renvoi: 8 }],
+      yuki: ["Pluie fine", "esquive +10 %", { esquive: 10 }],
+      luna: ["Regard des tombes", "+10 % contre une cible sous 50 % PV", { execute: 10 }],
+      kelt: ["Crochet du soir", "+12 % contre une cible sous 50 % PV", { execute: 12 }],
+      hiryu: ["Trait du vent", "esquive +10 %", { esquive: 10 }],
+      garrion: ["Étendard levé", "ATK d'équipe +7 %", { teamAtk: 7 }],
+      lyra: ["Source pure", "soins +18 %", { heal: 18 }],
+      mordevai: ["Lame au flanc", "+20 % contre une cible sous 50 % PV", { execute: 20 }],
+      haru: ["Archet d'aube", "critique +12 %", { crit: 12 }],
+      freida: ["Braises retenues", "dégâts +10 %", { dmg: 10 }],
+      doran: ["Porte de fer", "PV max +16 %", { hp: 16 }],
+      asuran: ["Sang bouillant", "renvoie 12 %", { renvoi: 12 }],
+      milena: ["Mains douces", "soins +12 %", { heal: 12 }],
+      corvan: ["Aiguillon", "jauge +4 % par carte", { gauge: 4 }],
+      ella: ["Souffle vert", "jauge de départ +8 %", { jaugeInit: 8 }],
+      brann: ["Mur de glaise", "renvoie 8 %", { renvoi: 8 }],
+      iseult: ["Lueur d'archive", "dégâts +7 %", { dmg: 7 }],
+      togor: ["Croc court", "critique +6 %", { crit: 6 }],
+      mira: ["Tisane claire", "soins +8 %", { heal: 8 }],
+      wendel: ["Serment frais", "PV max +6 %", { hp: 6 }],
     };
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
@@ -140,6 +186,11 @@
       "Oracle": { desc: "Prie à chaque tour : régénère 4 % de ses PV max" },
       "Muraille": { desc: "Bastion : subit 10 % de dégâts en moins" },
       "Invocateur": { desc: "Rituel : appelle une ombre qui frappe une seconde fois" },
+      "Fantassin": { desc: "Rythme de fer : frappe deux fois, mais plus légèrement" },
+      "Nécromant": { desc: "Juste funeste : se soigne 3 % de ses PV max puis frappe" },
+      "Banshee": { desc: "Hurlement : draine 12 % de la jauge d'Ultime de l'équipe" },
+      "Sanguinaire": { desc: "Soif de sang : frappe très fort les membres les plus blessés" },
+      "Colosse de givre": { desc: "Carapace de givre : subit 15 % de dégâts en moins" },
     };
     const UNITS = [
       /* --- SSR (5 %) --- */
@@ -263,8 +314,32 @@
       { id: "yuki", name: "Yuki", r: 1, cls: "Archer", atk: 1100, hp: 6800, cards: ["V", "R", "B"] },
       { id: "tora", name: "Tora", r: 1, cls: "Rôdeur", atk: 1030, hp: 7100, cards: ["V", "V", "B"] },
       { id: "piou", name: "Piou-Bleu", r: 1, cls: "Mage", atk: 950, hp: 7800, cards: ["B", "B", "V"] },
+      /* --- Nouvelle vague SSR --- */
+      { id: "hiryu", name: "Hiryu, aile de vent", r: 3, cls: "Rôdeur", atk: 2010, hp: 9300, cards: ["V", "V", "B"] },
+      { id: "garrion", name: "Garrion le Porteur", r: 3, cls: "Héros", atk: 1960, hp: 11400, cards: ["R", "R", "B"] },
+      { id: "lyra", name: "Lyra du Sanctuaire", r: 3, cls: "Soigneur", atk: 1560, hp: 10100, cards: ["B", "B", "V"] },
+      { id: "mordevai", name: "Mordevai", r: 3, cls: "Tueur", atk: 2120, hp: 8900, cards: ["R", "R", "V"] },
+      { id: "haru", name: "Haru, l'arc d'aube", r: 3, cls: "Archer", atk: 1890, hp: 9300, cards: ["V", "R", "B"] },
+      { id: "freida", name: "Freida la Flamboyante", r: 3, cls: "Mage", atk: 1880, hp: 9600, cards: ["B", "B", "V"] },
+      { id: "doran", name: "Doran du Mur atavique", r: 3, cls: "Défenseur", atk: 1310, hp: 14200, cards: ["R", "B", "V"] },
+      { id: "asuran", name: "Asuran", r: 3, cls: "Berserker", atk: 2070, hp: 9000, cards: ["R", "R", "V"] },
+      /* --- Nouvelle vague SR --- */
+      { id: "milena", name: "Milena", r: 2, cls: "Soigneur", atk: 1140, hp: 9000, cards: ["B", "B", "V"] },
+      { id: "corvan", name: "Corvan", r: 2, cls: "Tueur", atk: 1740, hp: 8200, cards: ["R", "V", "V"] },
+      { id: "ella", name: "Ella des sentiers", r: 2, cls: "Rôdeur", atk: 1530, hp: 8700, cards: ["V", "V", "R"] },
+      { id: "brann", name: "Brann le Tangru", r: 2, cls: "Défenseur", atk: 1060, hp: 11400, cards: ["R", "B", "V"] },
+      { id: "iseult", name: "Iseult", r: 2, cls: "Mage", atk: 1440, hp: 9400, cards: ["B", "B", "V"] },
+      { id: "togor", name: "Togor", r: 2, cls: "Berserker", atk: 1690, hp: 8700, cards: ["R", "R", "V"] },
+      /* --- Nouvelle vague R --- */
+      { id: "atis", name: "Atis", r: 1, cls: "Mage", atk: 960, hp: 7600, cards: ["B", "B", "V"] },
+      { id: "renar", name: "Renar", r: 1, cls: "Rôdeur", atk: 1000, hp: 7400, cards: ["V", "V", "B"] },
+      { id: "clara", name: "Clara", r: 1, cls: "Berserker", atk: 1140, hp: 6800, cards: ["R", "R", "V"] },
+      { id: "wendel", name: "Wendel", r: 1, cls: "Chevalier", atk: 990, hp: 8200, cards: ["B", "R", "V"] },
+      { id: "mira", name: "Mira", r: 1, cls: "Soigneur", atk: 850, hp: 7300, cards: ["B", "V", "V"] },
+      { id: "oskar", name: "Oskar", r: 1, cls: "Archer", atk: 1100, hp: 6800, cards: ["V", "R", "B"] },
+
       /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
-      { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2400, hp: 13000, cards: ["R", "R", "R"] },
+      { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2650, hp: 14500, cards: ["R", "R", "R"] },
     ];
     const CLASS_BONUS = {
       Chevalier: "Encaisse : ripostes subies réduites de 25 %",
@@ -302,11 +377,18 @@
       takumi: ["Garde-rapprochée", "renvoie 20 % des dégâts de la riposte qu'il subit"],
       graal: ["Héritage des braises", "+8 %/tour, renvoie 35 % des ripostes et soigne 15 % des dégâts infligés"],
     };
+    const TRAIN_OPPONENTS = [
+      { key: "bois", name: "Mannequin de bois", type: "Muraille", hp: 20000, atk: 780 },
+      { key: "fer", name: "Mannequin de fer", type: "Golem", hp: 34000, atk: 1500 },
+      { key: "boss", name: "Boss simulé", type: "Sorcier", hp: 52000, atk: 2300 },
+    ];
     const byId = (id) => UNITS.find((u) => u.id === id);
     const RELICS = {
       arme: { name: "Lame du Raid", effect: "ATK du héros équipé", cost: { couronne: 8, larme: 10 } },
       armure: { name: "Écaille du Dragon", effect: "PV du héros équipé", cost: { eclat: 20, coeur: 15 } },
       etendard: { name: "Étendard des trois phases", effect: "Jauge d’Ultime du héros", cost: { couronne: 12, sceau: 5 } },
+      anneau: { name: "Anneau des serments", effect: "Critique du héros équipé", cost: { larme: 14, sceau: 6 } },
+      orbe: { name: "Orbe des braises", effect: "Dégâts du héros équipé", cost: { coeur: 18, larme: 10 } },
     };
     const RELIC_TIERS = [
       { key: "N", label: "Normale", color: "#7d869c" },
@@ -315,19 +397,23 @@
       { key: "SSR", label: "Légendaire", color: "#e3b23c" },
     ];
     const RELIC_MAIN = {
-      arme: { stat: "atk", label: "ATK du héros", values: [10, 16, 22, 30] },
-      armure: { stat: "hp", label: "PV du héros", values: [10, 16, 22, 30] },
+      arme: { stat: "atk", label: "ATK du héros", values: [12, 18, 26, 36] },
+      armure: { stat: "hp", label: "PV du héros", values: [12, 18, 26, 36] },
       etendard: { stat: "jaugeInit", label: "Jauge du héros", values: [15, 18, 21, 24] },
+      anneau: { stat: "crit", label: "Critique du héros", values: [8, 12, 16, 22] },
+      orbe: { stat: "dmg", label: "Dégâts du héros", values: [8, 12, 16, 22] },
     };
     const RELIC_SUBS = {
       arme: [{ crit: 3 }, { renvoi: 5 }, { execute: 8 }],
       armure: [{ heal: 4 }, { esquive: 4 }, { hp: 6 }],
       etendard: [{ teamAtk: 3 }, { gauge: 2 }, { growth: 2 }],
+      anneau: [{ execute: 6 }, { gauge: 3 }, { renvoi: 5 }],
+      orbe: [{ teamAtk: 4 }, { heal: 5 }, { growth: 3 }],
     };
     const RELIC_SETS = [
       { id: "trio", name: "Pacte du trio", need: 2, fx: { dmg: 4 }, desc: "2 reliques forgées et équipées : dégâts +4 %" },
-      { id: "trinite", name: "Trinité du dragon", need: 3, fx: { dmg: 4, jaugeInit: 10 }, desc: "3 reliques forgées et équipées : dégâts +4 % et jauge de départ +10 %" },
-      { id: "harmonie", name: "Harmonie parfaite", need: 3, sameTier: 3, fx: { dmg: 8 }, desc: "3 reliques équipées en rang Épique ou + : dégâts +8 %" },
+      { id: "trinite", name: "Trinité du dragon", need: 4, fx: { dmg: 4, jaugeInit: 10 }, desc: "4 reliques forgées et équipées : dégâts +4 % et jauge de départ +10 %" },
+      { id: "harmonie", name: "Harmonie parfaite", need: 4, sameTier: 3, fx: { dmg: 8 }, desc: "4 reliques équipées en rang Épique ou + : dégâts +8 %" },
     ];
     const RELIC_UP = { 2: { poussiere: 10 }, 3: { poussiere: 20, cristal: 5 }, 4: { poussiere: 40, cristal: 12 } };
     const RELIC_STAT_LABELS = { dmg: "Dégâts", crit: "Critique", esquive: "Esquive", renvoi: "Renvoi", execute: "Exécution", heal: "Soins", gauge: "Ultime par carte", growth: "Croissance/tour", teamAtk: "ATK d’équipe", hp: "PV du héros", jaugeInit: "Jauge du héros", atk: "ATK du héros" };
@@ -351,6 +437,10 @@ function coreFx(u, sv) {
       if (t) Object.keys(t.fx).forEach((k) => add(k, t.fx[k]));
     });
   }
+  if (evo >= 4) {
+    add("dmg", 6);
+    add("jaugeInit", 5);
+  }
   return fx;
 }
 
@@ -372,11 +462,14 @@ function relicFxOf(sv) {
   const worn = Object.keys(RELIC_MAIN).filter((k) => relicTierOf(sv, k) >= 1 && eq[k]);
   RELIC_SETS.forEach((set) => {
     if (worn.length < set.need) return;
-    if (set.sameTier && !(worn.length === 3 && worn.every((k) => relicTierOf(sv, k) >= set.sameTier))) return;
+    if (set.sameTier && !(worn.length >= set.need && worn.every((k) => relicTierOf(sv, k) >= set.sameTier))) return;
     Object.keys(set.fx).forEach((k) => add(k, set.fx[k]));
   });
-  const ft = relicTierOf(sv, "etendard");
-  if (eq.etendard && ft >= 2) RELIC_SUBS.etendard.slice(0, ft - 1).forEach((sub) => { if (sub.teamAtk) add("teamAtk", sub.teamAtk); });
+  worn.forEach((k) => {
+    const tier = relicTierOf(sv, k);
+    if (tier < 2) return;
+    RELIC_SUBS[k].slice(0, tier - 1).forEach((sub) => { if (sub.teamAtk) add("teamAtk", sub.teamAtk); });
+  });
   return fx;
 }
 
@@ -398,7 +491,7 @@ function heroRelicFx(sv, heroId) {
 function corePower(u, sv) {
   const count = (sv.owned && sv.owned[u.id]) || 1;
   const mult = 1 + 0.08 * Math.min(count - 1, 12);
-  const evo = (sv.evo && sv.evo[u.id]) || 0;
+  const evo = Math.min((sv.evo && sv.evo[u.id]) || 0, 4);
   const em = 1 + 0.10 * evo;
   const rfx = relicFxOf(sv);
   const hero = heroRelicFx(sv, u.id);
@@ -417,11 +510,12 @@ function evoSkillLabelsOf(u, evo) {
     if (EVO3[u.cls]) out.push("Éveil III ✦ " + EVO3[u.cls].label);
     if (EVO3B[u.cls]) out.push("Talent ✦ " + EVO3B[u.cls].label);
   }
+  if (evo >= 4) out.push("Éveil IV ✦ Dégâts +6 % et jauge de départ +5 %");
   return out;
 }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
 
 
 OS.registerApp({
@@ -443,7 +537,7 @@ OS.registerApp({
       const teamDmg = relicFxOf(save).dmg;
       if (teamDmg) add("dmg", teamDmg);
       const hero = heroRelicFx(save, u.id);
-      ["jaugeInit", "crit", "esquive", "renvoi", "execute", "heal", "gauge", "growth"].forEach((k) => {
+      ["jaugeInit", "crit", "esquive", "renvoi", "execute", "heal", "gauge", "growth", "dmg"].forEach((k) => {
         if (hero[k]) add(k, hero[k]);
       });
       return fx;
@@ -458,6 +552,19 @@ OS.registerApp({
         save.loot[k] = (save.loot[k] || 0) + gains[k];
         return "+" + gains[k] + " " + LOOT[k].name;
       }).join(", ");
+    }
+
+    function classMatGains(n) {
+      const team = (battle && battle.units && battle.units.length) ? battle.units : teamUnits();
+      const pool = {};
+      team.forEach((u) => { if (u.cls) pool[u.cls] = true; });
+      const keys = Object.keys(pool).length ? Object.keys(pool) : ["Chevalier"];
+      const gains = {};
+      for (let i = 0; i < n; i++) {
+        const k = matKeyOf(keys[Math.floor(Math.random() * keys.length)]);
+        gains[k] = (gains[k] || 0) + 1;
+      }
+      return gains;
     }
 
 
@@ -491,8 +598,10 @@ OS.registerApp({
     });
     function persist() { OS.store.set("asteria", save); }
 
-    let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "moyen" });
-    if (!storyState.diff) storyState.diff = "moyen";
+    let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "facile" });
+    if (!storyState.diff) storyState.diff = "facile";
+    if (!Array.isArray(storyState.cleared)) storyState.cleared = [];
+    if (!diffUnlockedSt(storyState, storyState.diff)) storyState.diff = "facile";
     function persistStory() { OS.store.set("asteria-story", storyState); }
 
     /* ---------- Missions quotidiennes ---------- */
@@ -678,10 +787,11 @@ OS.registerApp({
     tabsRow.className = "gacha-tabs";
     const tabSummon = tab("Invoquer");
     const tabTeam = tab("Équipe");
+    const tabTraining = tab("Entraînement");
     const tabCollection = tab("Collection");
     const tabBattle = tab("Quêtes");
     const tabStory = tab("Histoire");
-    tabsRow.append(tabSummon, tabTeam, tabCollection, tabBattle, tabStory);
+    tabsRow.append(tabSummon, tabTeam, tabTraining, tabCollection, tabBattle, tabStory);
 
     function tab(label) {
       const b = document.createElement("button");
@@ -690,6 +800,7 @@ OS.registerApp({
         OS.sfx.play("ui");
         if (label === "Invoquer") renderSummon();
         else if (label === "Équipe") renderTeam();
+        else if (label === "Entraînement") renderTraining();
         else if (label === "Collection") renderCollection();
         else if (label === "Histoire") renderStory();
         else renderQuests();
@@ -697,7 +808,7 @@ OS.registerApp({
       return b;
     }
     function setActiveTab(btn) {
-      [tabSummon, tabTeam, tabCollection, tabBattle, tabStory].forEach((b) => b.classList.toggle("active", b === btn));
+      [tabSummon, tabTeam, tabTraining, tabCollection, tabBattle, tabStory].forEach((b) => b.classList.toggle("active", b === btn));
     }
 
     body.append(tabsRow);
@@ -755,7 +866,16 @@ OS.registerApp({
       trackDaily("pulls", n);
       const results = [];
       for (let i = 0; i < n; i++) {
-        const unit = rollUnit();
+        save.pity.banniere = (save.pity.banniere || 0) + 1;
+        let unit;
+        if (save.pity.banniere >= 50) {
+          const ssrAge = UNITS.filter((u) => u.r === 3 && u.id !== "graal");
+          unit = ssrAge[Math.floor(Math.random() * ssrAge.length)];
+          save.pity.banniere = 0;
+        } else {
+          unit = rollUnit();
+          if (unit.r === 3) save.pity.banniere = 0;
+        }
         save.owned[unit.id] = (save.owned[unit.id] || 0) + 1;
         results.push(unit);
       }
@@ -773,8 +893,9 @@ OS.registerApp({
 
       const banner = document.createElement("div");
       banner.className = "banner";
-      banner.innerHTML = '<div class="banner-title">Bannière des héros</div><div class="banner-sub">5 % SSR · 20 % SR · 75 % R</div>';
+      banner.innerHTML = '<div class="banner-title">Bannière des héros</div><div class="banner-sub"></div>';
       content.appendChild(banner);
+      updateBannerPity();
 
       const buttons = document.createElement("div");
       buttons.className = "pull-row";
@@ -815,6 +936,11 @@ OS.registerApp({
       content.appendChild(result);
     }
 
+    function updateBannerPity() {
+      const sub = content.querySelector(".banner-sub");
+      if (sub) sub.innerHTML = "5 % SSR · 20 % SR · 75 % R · SSR garanti à 50 invocations (<b>pity " + (save.pity.banniere || 0) + "/50</b>)";
+    }
+
     function pullBtn(label, n) {
       const b = document.createElement("button");
       b.className = "pull-btn";
@@ -826,6 +952,7 @@ OS.registerApp({
         const box = e.target.closest(".gacha-content").querySelector(".pull-results");
         box.innerHTML = "";
         got.forEach((u) => box.appendChild(unitCard(u)));
+        updateBannerPity();
         OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
       });
       return b;
@@ -917,7 +1044,27 @@ OS.registerApp({
 
       content.appendChild(lootBar());
       content.appendChild(forgePanel());
+      content.appendChild(recyclePanel());
       content.appendChild(relicPanel());
+    }
+
+    function relicPreviewLabel(k, heroId) {
+      const un = byId(heroId);
+      if (!un || relicTierOf(save, k) < 1) return "";
+      const sv2 = { ...save, relicsEquip: { ...save.relicsEquip, [k]: heroId } };
+      const main = RELIC_MAIN[k];
+      if (main.stat === "atk") {
+        const now = corePower(un, save);
+        const after = corePower(un, sv2);
+        return " (ATK " + now.atk + " → " + after.atk + ")";
+      }
+      if (main.stat === "hp") {
+        const now = corePower(un, save);
+        const after = corePower(un, sv2);
+        return " (PV " + now.hp + " → " + after.hp + ")";
+      }
+      const v = (heroRelicFx(sv2, heroId)[main.stat] || 0) - (heroRelicFx(save, heroId)[main.stat] || 0);
+      return " (" + RELIC_STAT_LABELS[main.stat] + " +"+ v +" %)";
     }
 
     function relicTierChip(tier) {
@@ -987,7 +1134,7 @@ OS.registerApp({
           if (id && !un) return;
           const op = document.createElement("option");
           op.value = id;
-          op.textContent = un ? un.name : "— aucun —";
+          op.textContent = un ? un.name + (id !== wornId ? relicPreviewLabel(k, id) : "") : "— aucun —";
           sel.appendChild(op);
         });
         sel.value = wornId;
@@ -1022,11 +1169,13 @@ OS.registerApp({
       const wrap = document.createElement("div");
       wrap.className = "forge-panel relic-panel";
       const h = document.createElement("h3");
-      h.textContent = "Reliquaire du raid — chaque relique s’équipe sur un héros";
+      h.textContent = "Reliquaire du raid — 5 reliques, chacune s’équipe sur un héros";
       wrap.appendChild(h);
       wrap.appendChild(relicLine("arme"));
       wrap.appendChild(relicLine("armure"));
       wrap.appendChild(relicLine("etendard"));
+      wrap.appendChild(relicLine("anneau"));
+      wrap.appendChild(relicLine("orbe"));
 
       const h2 = document.createElement("h3");
       h2.textContent = "Bonus d'ensemble";
@@ -1060,10 +1209,10 @@ OS.registerApp({
       const wrap = document.createElement("div");
       wrap.className = "forge-panel";
       const h = document.createElement("h3");
-      h.textContent = "Forge d'évolution — +10 % ATK/PV par évolution (max ★★★)";
+      h.textContent = "Forge d'évolution — +10 % ATK/PV par évolution (max ★★★★)";
       wrap.appendChild(h);
 
-      const candidates = UNITS.filter((u) => save.owned[u.id] && u.id !== "graal" && (save.evo[u.id] || 0) < 3)
+      const candidates = UNITS.filter((u) => save.owned[u.id] && u.id !== "graal" && (save.evo[u.id] || 0) < 4)
         .slice().sort((a, b) => b.r - a.r || a.name.localeCompare(b.name));
       if (!candidates.length) {
         const done = document.createElement("div");
@@ -1074,12 +1223,13 @@ OS.registerApp({
       }
       candidates.forEach((u) => {
         const evo = save.evo[u.id] || 0;
-        const req = EVO_REQ[u.r][evo] || {};
+        const req = evo === 3 ? { [matKeyOf(u.cls)]: EVO4_REQ[u.r] } : EVO_REQ[u.r][evo] || {};
         const can = Object.keys(req).every((k) => (save.loot[k] || 0) >= req[k]);
         const nextEvoLabel = ({
           1: "Éveil I ✦ Jauge de départ +10 %",
           2: "Éveil II ✦ Dégâts +8 %" + (EVO2[u.cls] ? " + Talent ✦ " + EVO2[u.cls].label : ""),
           3: (EVO3[u.cls] ? "Éveil III ✦ " + EVO3[u.cls].label : "") + (EVO3B[u.cls] ? " + Talent ✦ " + EVO3B[u.cls].label : ""),
+          4: "Éveil IV ✦ Dégâts +6 % et jauge de départ +5 %",
         })[evo + 1];
         const line = document.createElement("div");
         line.className = "forge-line" + (can ? " ready" : "");
@@ -1103,6 +1253,104 @@ OS.registerApp({
             renderTeam();
           });
         }
+        line.appendChild(b);
+        wrap.appendChild(line);
+      });
+      return wrap;
+    }
+
+    /* ---------- Entraînement ---------- */
+
+    let trainPick = null;
+
+    function renderTraining() {
+      setActiveTab(tabTraining);
+      content.innerHTML = "";
+      content.appendChild(quartzBar());
+
+      const hint = document.createElement("div");
+      hint.className = "team-hint";
+      hint.textContent = "Mode Entraînement — testez tous les héros, même non possédés. Aucun gain, aucune perte : pure simulation.";
+      content.appendChild(hint);
+
+      const box = document.createElement("div");
+      box.className = "roster";
+      content.appendChild(box);
+
+      UNITS.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
+        const card = unitCard(u);
+        card.classList.add("selectable");
+        if (!save.owned[u.id]) card.classList.add("locked");
+        if (trainPick === u.id) card.classList.add("in-team");
+        card.addEventListener("click", () => { trainPick = u.id; renderTraining(); });
+        box.appendChild(card);
+      });
+
+      const oppHint = document.createElement("div");
+      oppHint.className = "team-hint";
+      oppHint.textContent = "Adversaire d'entraînement :";
+      content.appendChild(oppHint);
+      const row = document.createElement("div");
+      row.className = "pull-row";
+      TRAIN_OPPONENTS.forEach((op) => {
+        const b = document.createElement("button");
+        b.className = "pull-btn tier-infini";
+        b.innerHTML = op.name + "<br><small>" + op.type + " · " + op.hp + " PV · atk " + op.atk + "</small>";
+        b.addEventListener("click", () => startTrainingBattle(op));
+        row.appendChild(b);
+      });
+      content.appendChild(row);
+      if (battle && battle.mode === "train" && battle.over) content.appendChild(battleView());
+    }
+
+    function startTrainingBattle(op) {
+      const u = trainPick ? byId(trainPick) : null;
+      if (!u) return;
+      const unit = corePower(u, save);
+      battle = {
+        mode: "train",
+        floor: 1,
+        enemy: { name: op.name, type: op.type, hp: op.hp, maxHp: op.hp, atk: op.atk },
+        tier: "train",
+        units: [unit],
+        hp: [unit.hp],
+        gauge: Math.min(60, unitFx(unit).jaugeInit || 0),
+        picks: 0,
+        curse: 0,
+        burn: 0,
+        log: ["----- ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [aucun gain] -----"],
+      };
+      battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
+      newHand();
+      OS.sfx.play("ult");
+      renderQuests();
+    }
+
+    function recyclePanel() {
+      const wob = UNITS.filter((u) => u.id !== "graal" && (save.owned[u.id] || 0) >= 2)
+        .slice().sort((a, b) => b.r - a.r || a.name.localeCompare(b.name));
+      if (!wob.length) return document.createElement("div");
+      const wrap = document.createElement("div");
+      wrap.className = "forge-panel recycle-panel";
+      const h = document.createElement("h3");
+      h.textContent = "Recyclage des doublons — échangez un doublon contre un matériau de sa classe";
+      wrap.appendChild(h);
+      wob.forEach((u) => {
+        const line = document.createElement("div");
+        line.className = "forge-line";
+        line.innerHTML =
+          '<div class="unit-name">' + u.name + " <small>(" + RARITY[u.r].label + ")</small></div>" +
+          '<div class="forge-req">' + (save.owned[u.id] || 0) + " doublons · recyclage : +" + RECYCLE_GAIN[u.r] + " " + LOOT[matKeyOf(u.cls)].name + "</div>";
+        const b = document.createElement("button");
+        b.className = "pull-btn claim-btn";
+        b.textContent = "♻ Recycler ×1";
+        b.addEventListener("click", () => {
+          save.owned[u.id] = (save.owned[u.id] || 1) - 1;
+          save.loot[matKeyOf(u.cls)] = (save.loot[matKeyOf(u.cls)] || 0) + RECYCLE_GAIN[u.r];
+          persist();
+          OS.sfx.play("ui");
+          renderTeam();
+        });
         line.appendChild(b);
         wrap.appendChild(line);
       });
@@ -1413,6 +1661,7 @@ OS.registerApp({
       let dmg = base;
       if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
+      else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
@@ -1493,7 +1742,7 @@ OS.registerApp({
         case "Brute": {
           const tkBrute = targets.filter((i) => battle.units[i].cls === "Tueur");
           ti = tkBrute.length ? tkBrute[0] : targets.sort((a, b) => battle.hp[a] - battle.hp[b])[0];
-          attackAlly(ti, Math.round(battle.enemy.atk * 1.25 * (0.85 + Math.random() * 0.25)));
+          attackAlly(ti, Math.round(battle.enemy.atk * 1.2 * (0.85 + Math.random() * 0.25)));
           break;
         }
         case "Assassin":
@@ -1510,7 +1759,7 @@ OS.registerApp({
         case "Sorcier":
           battle.log.unshift("Le Sorcier embrase toute l'équipe !");
           targets.forEach((i) => {
-            attackAlly(i, Math.round(battle.enemy.atk * 0.55 * (0.9 + Math.random() * 0.25)));
+            attackAlly(i, Math.round(battle.enemy.atk * 0.6 * (0.9 + Math.random() * 0.25)));
           });
           break;
         case "Capitaine":
@@ -1537,6 +1786,41 @@ OS.registerApp({
             attackAlly(t2, Math.round(battle.enemy.atk * 0.5 * (0.8 + Math.random() * 0.4)));
             battle.log.unshift("Rituel : une ombre invoquée frappe à son tour !");
           }
+          break;
+        }
+        case "Fantassin": {
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.6 * (0.85 + Math.random() * 0.25)));
+          const restantsD = aliveIdx();
+          if (restantsD.length) attackAlly(restantsD[Math.floor(Math.random() * restantsD.length)], Math.round(battle.enemy.atk * 0.6 * (0.85 + Math.random() * 0.25)));
+          battle.log.unshift("Rythme de fer : le Fantassin frappe deux fois !");
+          break;
+        }
+        case "Nécromant": {
+          const healN = Math.round(battle.enemy.maxHp * 0.03);
+          battle.enemy.hp = Math.min(battle.enemy.maxHp, battle.enemy.hp + healN);
+          battle.log.unshift("Juste funeste : le Nécromant absorbe " + healN + " PV");
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.9 * (0.8 + Math.random() * 0.4)));
+          break;
+        }
+        case "Banshee": {
+          battle.gauge = Math.max(0, Math.round(battle.gauge * 0.88));
+          battle.log.unshift("Hurlement : la Banshee draine 12 % de votre jauge d'Ultime !");
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.85 * (0.8 + Math.random() * 0.4)));
+          break;
+        }
+        case "Sanguinaire": {
+          const ts = targets.slice().sort((a, b) => (battle.hp[a] / battle.units[a].hp) - (battle.hp[b] / battle.units[b].hp));
+          ti = ts[0];
+          attackAlly(ti, Math.round(battle.enemy.atk * 1.35 * (0.85 + Math.random() * 0.25)));
+          battle.log.unshift("Soif de sang : le Sanguinaire s'acharne sur les blessés !");
+          break;
+        }
+        case "Colosse de givre": {
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.25)));
           break;
         }
         default: {
@@ -1571,6 +1855,9 @@ OS.registerApp({
             battle.hp[i] = Math.max(0, battle.hp[i] - Math.round(battle.units[i].hp * 0.03));
             if (battle.hp[i] === 0) battle.log.unshift(battle.units[i].name + " tombe K.O.");
           });
+        } else if (battle.elite.id === "veil") {
+          battle.gauge = Math.max(0, Math.round(battle.gauge * 0.88));
+          battle.log.unshift("Voile d'ombre : votre jauge d'Ultime est drainée !");
         }
       }
       if (!aliveIdx().length) return endBattle(false);
@@ -1578,6 +1865,13 @@ OS.registerApp({
     }
 
     function endBattle(win) {
+      if (battle.mode === "train") {
+        battle.over = true;
+        battle.log.unshift(win ? "Mannequin détruit ! Entraînement réussi (aucun gain)." : "Le mannequin tient bon… (aucun gain)");
+        OS.sfx.play(win ? "victory" : "defeat");
+        renderQuests();
+        return;
+      }
       if (win && battle.mode === "infini") return advanceFloor();
       if (win && battle.mode === "raid" && battle.raidPhase < 3) {
         raid.cleared = Math.max(raid.cleared || 0, battle.raidPhase);
@@ -1591,7 +1885,7 @@ OS.registerApp({
         battle.curse = 0;
         battle.burn = 0;
         const wonPhases = battle.raidPhase - 1;
-        gainLoot({ cristal: 1 });
+        gainLoot({ cristal: 1, ...classMatGains(1) });
         battle.log.unshift("Phase " + wonPhases + " franchie ! +1 Cristal de relique. L'équipe est restaurée.");
         battle.log.unshift("----- RAID · Phase " + battle.raidPhase + "/3 : " + ph.name + " -----");
         if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
@@ -1624,6 +1918,13 @@ OS.registerApp({
             battle.log.unshift("✦ Bannière débloquée : " + BANNERS[after - 1].name + " (+25 ◆)");
             OS.notify("🏆", "#6b4f2a", "Salle des trophées", "Bannière débloquée : " + BANNERS[after - 1].name, 5000);
           }
+          if (battle.storyChapter === STORY.length - 1 && !storyState.cleared.includes(storyState.diff)) {
+            storyState.cleared.push(storyState.diff);
+            persistStory();
+            const nxt = DIFF_ORDER[DIFF_ORDER.indexOf(storyState.diff) + 1];
+            if (nxt) battle.log.unshift("✨ Difficulté " + STORY_DIFFS[storyState.diff].label + " terminée — " + STORY_DIFFS[nxt].label + " déverrouillée !");
+            else battle.log.unshift("✨ Histoire entièrement bouclée en Enfer+ : il n'y a rien au-dessus.");
+          }
           if (battle.storyChapter === 11 && storyState.diff === "enferPlus" && !save.owned.graal) {
             save.owned.graal = 1;
             save.quartz += 50;
@@ -1637,8 +1938,10 @@ OS.registerApp({
           if (diffIdx >= 4) gains.couronne = 2;
           if (diffIdx >= 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
           if (diffIdx >= 4 && storyState.diff === "enferPlus") gains.sceau = 2;
-          gains.poussiere = 2;
+          gains.poussiere = 2 + Math.floor(diffIdx / 2);
           if (diffIdx >= 4) gains.cristal = storyState.diff === "enferPlus" ? 2 : 1;
+          else if (diffIdx >= 2) gains.cristal = 1;
+          Object.assign(gains, classMatGains(1 + Math.floor(diffIdx / 2)));
           battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");
@@ -1666,6 +1969,7 @@ OS.registerApp({
           if (battle.tier === "normal" && Math.random() < 0.3) gains.eclat++;
           gains.poussiere = battle.tier === "facile" ? 1 : 2;
           if (battle.tier === "dur") { gains.couronne = 1; gains.elixir = 1; gains.cristal = 1; }
+          Object.assign(gains, classMatGains(battle.tier === "facile" ? 1 : battle.tier === "normal" ? 2 : 3));
           battle.log.unshift("Butin : " + gainLoot(gains));
           trackDaily("wins");
         }
@@ -1685,7 +1989,7 @@ OS.registerApp({
     function advanceFloor() {
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
-      const flGain = { coeur: 1, poussiere: 1 };
+      const flGain = { coeur: 1, poussiere: 1, ...classMatGains(1) };
       if (battle.floor % 5 === 0) { flGain.elixir = 1; flGain.cristal = 1; }
       battle.log.unshift("Butin : " + gainLoot(flGain));
       battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
@@ -1758,6 +2062,16 @@ OS.registerApp({
           row.appendChild(quit);
           view.appendChild(row);
         }
+        if (battle.mode === "train") {
+          const row = document.createElement("div");
+          row.className = "battle-actions";
+          const quit = document.createElement("button");
+          quit.className = "pull-btn";
+          quit.textContent = "♢ Retour à l'entraînement";
+          quit.addEventListener("click", () => { battle = null; renderTraining(); });
+          row.appendChild(quit);
+          view.appendChild(row);
+        }
       } else {
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
           : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
@@ -1804,6 +2118,16 @@ OS.registerApp({
         ult.addEventListener("click", useUltimate);
         actions.appendChild(ult);
         view.appendChild(actions);
+        if (battle.mode === "train") {
+          const trow = document.createElement("div");
+          trow.className = "battle-actions";
+          const tquit = document.createElement("button");
+          tquit.className = "pull-btn";
+          tquit.textContent = "♢ Abandonner l'entraînement";
+          tquit.addEventListener("click", () => { battle = null; renderTraining(); });
+          trow.appendChild(tquit);
+          view.appendChild(trow);
+        }
       }
 
       const log = document.createElement("div");
@@ -2048,6 +2372,98 @@ OS.registerApp({
           { t: "FIN — La légende du dragon des cendres, qu'un village nomme encore celle des Trois Volontaires." },
         ],
       },
+      /* --- Acte IV --- */
+      {
+        act: "Acte IV — Les braises d'avant",
+        title: "Le passant sans visage",
+        scene: { sky: "night", ground: "foret", stars: true, sunX: 60, actors: [
+          { cls: "Archer", color: "#3ba75c", x: 120 },
+          { cls: "Chevalier", color: "#e3b23c", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Le village chante ce soir. Mais sur la route du sud, un passant sans visage demande à chacun les mêmes mots : « Souviens-tu du premier serment ? »" },
+          { s: "Orwen", t: "Il ne marche pas, il glisse. Et là où il est passé, même les braises du feu de camp restent grises." },
+          { s: "Dame Elise", t: "Il efface ce qu'il touche. Alors parlons-lui de la forge et des bannières : on ne peut pas tout effacer d'un coup." },
+          { boss: { name: "Nomade sans visage", type: "Banshee", hp: 46000, atk: 2350, reward: 42, elite: { id: "veil", name: "Voile d'ombre", desc: "draine 12 % de votre jauge d'Ultime à chaque tour" }, intro: "Le visage vide fixe votre serment. Il veut le rendre gris." } },
+        ],
+      },
+      {
+        act: "Acte IV — Les braises d'avant",
+        title: "Les cendres qui prient",
+        scene: { sky: "ash", ground: "sanctuaire", sunX: 250, actors: [
+          { cls: "Mage", color: "#6b4f9e", x: 120 },
+          { cls: "Soigneur", color: "#3bd4a0", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Au sanctuaire du cratère, de vieilles robes veillent dans l'encens. Elles réclament le retour de leur « crépuscule doré » — le brasier d'avant la guerre." },
+          { s: "Kaeren", t: "Leur juste est noirci : elles prient les cendres elles-mêmes. Elles ne veulent pas de la paix, elles veulent un dieu mort." },
+          { boss: { name: "Prêtre des braises", type: "Nécromant", hp: 50000, atk: 2500, reward: 45, intro: "Le juste funeste buvra vos forces. Frappez sans relâche." } },
+        ],
+      },
+      {
+        act: "Acte IV — Les braises d'avant",
+        title: "Le golem du serment",
+        scene: { sky: "forest", ground: "canopee3", sunX: 250, actors: [
+          { cls: "Défenseur", color: "#9fb0c8", x: 120 },
+          { cls: "Berserker", color: "#c34a2f", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Les pierres du vieux pont se soulèvent une à une et s'assemblent en une silhouette colossale. Un golem dressé par un serment que personne n'a jamais levé." },
+          { s: "Gortak", t: "CE GARDIEN A SERMENTÉ AVANT VOUS, ET SES MAÎTRES SONT MORTS. FRAPPEZ : LIBÉREZ-LE DE SA TÂCHE !" },
+          { q: "Comment aider ce vieux gardien à se libérer ?", opts: [
+            { label: "Rallumer les runes des originels", blessing: "runes" },
+            { label: "Le relever à mains nues, face à lui", blessing: "courage" },
+          ] },
+          { boss: { name: "Golem du serment", type: "Golem", hp: 54000, atk: 2600, reward: 48, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" }, intro: "Le golem baisse sa garde pour vous écouter : il en profite pour frapper." } },
+        ],
+      },
+      {
+        act: "Acte IV — Les braises d'avant",
+        title: "La triade de fer",
+        scene: { sky: "dawn", ground: "village", sunX: 250, actors: [
+          { cls: "Chevalier", color: "#e3b23c", x: 120 },
+          { cls: "Rôdeur", color: "#4f9eff", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Trois fantassins d'élite, alignés d'un seul pas, se présentent comme la garde morte des serments anciens. Les villages les racontent comme des fables." },
+          { s: "Dame Elise", t: "Trois d'un coup, qui portent des armes que je reconnais — celles de notre armurerie du serment." },
+          { s: "Orwen", t: "Ils frappent ensemble. Une seule seconde d'écart, et leur formation de fer ne suffit plus." },
+          { boss: { name: "La triade de fer", type: "Fantassin", hp: 58000, atk: 2700, reward: 50, elite: { id: "meute", name: "Chasse en meute", desc: "un second prédateur frappe chaque tour" }, intro: "Trois fantassins qui frappent en même temps. Attention au second coup." } },
+        ],
+      },
+      {
+        act: "Acte IV — Les braises d'avant",
+        title: "Le sanguinaire des cratères",
+        scene: { sky: "ash", ground: "vulkan", sunX: 60, actors: [
+          { cls: "Berserker", color: "#c34a2f", x: 120 },
+          { cls: "Archer", color: "#3ba75c", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Au fond du dernier cratère, dans la poussière sèche, attend ce que les villages nomment le Sanguinaire : une hache de braise qui traque les blessés." },
+          { s: "Kaeren", t: "Il suit les blessures, il sait les trouver. Alors soignez-vous entre deux coups, ou tenez debout jusqu'au bout." },
+          { boss: { name: "Sanguinaire des cratères", type: "Sanguinaire", hp: 62000, atk: 2850, reward: 52, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" }, intro: "L'ordre de braise chasse les blessés. Restez debout." } },
+        ],
+      },
+      /* --- Epilogue --- */
+      {
+        act: "Epilogue — Les origines",
+        title: "Les trois qui restaient debout",
+        scene: { sky: "dawn", ground: "sanctuaire", sunX: 160, actors: [
+          { cls: "Chevalier", color: "#e3b23c", x: 120 },
+          { cls: "Mage", color: "#6b4f9e", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "Sous le cratère refroidi, vos lanternes trouvent un sanctuaire que personne n'avait vu depuis un siècle. Trois statues veillent sur une muraille de serments." },
+          { t: "Sur le socle, une inscription : « Trois restèrent debout : la lame, la rune et l'ordre. Ils forgèrent les premières reliques et portèrent les premières bannières. »" },
+          { s: "Dame Elise", t: "La lame, la rune et l'ordre. C'est nous. C'était eux avant nous — et avant eux, d'autres. Il y a toujours eu des volontaires." },
+          { t: "La plus vieille statue se penche vers vous, et le sanctuaire raconte : bien avant les rois défaillants, un premier dragon descendit du nord, et trois volontaires restèrent debout pour lui tenir tête." },
+          { t: "Leur serment fut le premier. La Lame du Raid, l'Étendard des trois phases, les runes et l'orbe : tout ce que la Forge répare aujourd'hui a été forgé par leur main, transmis de génération en génération." },
+          { t: "Le souffle du sanctuaire se soulève d'un coup : du fond de la dalle, l'écho du premier dragon se lève comme un défi jeté au temps." },
+          { boss: { name: "Écho du premier dragon", type: "Sorcier", hp: 66000, atk: 3000, reward: 55, intro: "Le souvenir brûle plus fort que la cendre. Regardez-le endurer, puis tomber." } },
+          { t: "L'écho retombe en poussière tiède. Sur la muraille, une dernière ligne s'allume : « Trois restèrent debout, et le monde se souvint. »" },
+          { t: "FIN DE L'EPILOGUE — Astéria commence toujours par trois volontaires : ceux qui restent debout. La suite, c'est vous qui la perpétuez." },
+        ],
+      },
     ];
 
     let storyScene = null;
@@ -2135,14 +2551,13 @@ OS.registerApp({
       content.appendChild(diffTitle);
       const diffRow = document.createElement("div");
       diffRow.className = "pull-row diff-row";
-      const banners = bannersUnlockedCount();
       Object.keys(STORY_DIFFS).forEach((key) => {
         const d = STORY_DIFFS[key];
         const b = document.createElement("button");
-        const locked = key === "enferPlus" && banners < BANNERS.length;
+        const locked = !diffUnlockedSt(storyState, key);
         b.className = "pull-btn tier-" + key + (storyState.diff === key ? " active-diff" : "") + (locked ? " locked" : "");
         b.innerHTML = locked
-          ? d.label + "<br><small>🔒 les 5 boss en Enfer</small>"
+          ? d.label + "<br><small>🔒 toute l'histoire d'abord en " + STORY_DIFFS[key === "enferPlus" ? "enfer" : key].label.toLowerCase() + "</small>"
           : d.label + "<br><small>boss ×" + String(d.hp).replace(".", ",") + " · ◆ ×" + String(d.rw).replace(".", ",") + "</small>";
         if (!locked) b.addEventListener("click", () => {
           storyState.diff = key;
@@ -2400,8 +2815,8 @@ OS.registerApp({
       return Object.keys(STORY_DIFFS).map((key) => ({
         key,
         label: STORY_DIFFS[key].label,
-        locked: key === "enferPlus" && bn < 5,
-        active: (st.diff || "moyen") === key,
+        locked: !diffUnlockedSt(st, key),
+        active: (st.diff || "facile") === key,
       }));
     };
     OS.asteriaData.setStoryDiff = function (key) {
