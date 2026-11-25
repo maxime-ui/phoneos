@@ -2238,7 +2238,7 @@ OS.registerApp({
         view.insertBefore(battleSceneArt(), view.firstChild);
         const enemyPortraitBox = document.createElement("div");
         enemyPortraitBox.className = "battle-enemy-art";
-        enemyPortraitBox.innerHTML = '<img loading="lazy" alt="" src="' + enemyPortrait(battle.enemy.type, battle.enemy.name) + '</div><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
+        enemyPortraitBox.innerHTML = '<div class="enemy-portrait-frame">' + enemyPortrait(battle.enemy.type, battle.enemy.name) + '</div><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
         view.appendChild(enemyPortraitBox);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
         const breakMax = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
