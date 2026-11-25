@@ -2338,6 +2338,11 @@ OS.registerApp({
       const quartzReward = Math.round(baseQuartz * eventMult());
       save.quartz += quartzReward;
       persist();
+      if (clearedFloor > infiniteBest) {
+        infiniteBest = clearedFloor;
+        OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
+        battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
+      }
       battle.log.unshift("Récompense de l'étage " + clearedFloor + " : +" + quartzReward + " ◆");
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
