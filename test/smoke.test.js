@@ -150,7 +150,7 @@ setTimeout(() => {
   teamTabR.click();
   check("roster de 132 unités possédées", document.querySelectorAll(".roster .unit-card").length === unitIds.length - 1);
   check("portraits autonomes présents sur toutes les cartes du roster", [...document.querySelectorAll(".roster .unit-card .unit-portrait img.hero-art")].length === unitIds.length - 1);
-  check("chemins des portraits autonomes du roster valides", [...document.querySelectorAll(".roster .unit-card .unit-portrait img.hero-art")].every((img) => img.getAttribute("src") && fs.existsSync(path.join(root, img.getAttribute("src").replace(/^\\.\\//, "")))));
+  check("chemins des portraits autonomes du roster valides", [...document.querySelectorAll(".roster .unit-card .unit-portrait img.hero-art")].every((img) => img.getAttribute("src") && fs.existsSync(path.join(root, img.getAttribute("src").replace("./", "")))));
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 
@@ -571,7 +571,7 @@ setTimeout(() => {
   check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
   check("intention ennemie annoncée", !!document.querySelector(".battle-intent"));
-  check("portrait du boss affiché en combat via un SVG autonome", !!document.querySelector(".battle-enemy-art img.enemy-art[src]") && fs.existsSync(path.join(root, document.querySelector(".battle-enemy-art img.enemy-art").getAttribute("src").replace(/^\\.\\//, ""))));
+  check("portrait du boss affiché en combat via un SVG autonome", !!document.querySelector(".battle-enemy-art img.enemy-art[src]") && fs.existsSync(path.join(root, document.querySelector(".battle-enemy-art img.enemy-art").getAttribute("src").replace("./", ""))));
   check("affinité élémentaire de l’ennemi affichée", !!document.querySelector(".battle-affinity"));
   check("jauge de rupture visible", !!document.querySelector(".break-gauge"));
   check("action de garde disponible", [...document.querySelectorAll(".battle-actions button")].some((b) => b.textContent.includes("Garde d'équipe")));
