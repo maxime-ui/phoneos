@@ -518,7 +518,16 @@ setTimeout(() => {
   const firstLine = document.querySelector(".story-line.current");
   check("ligne narrée présente", !!firstLine && firstLine.textContent.length > 0);
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 2; i++) {
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (next) next.click();
+  }
+  const firstSkirmish = document.querySelector(".story-boss");
+  check("chapitre 1 : première escarmouche jouable", !!firstSkirmish && firstSkirmish.textContent.includes("Combattre"));
+  if (firstSkirmish) firstSkirmish.click();
+  check("chapitre 1 : escarmouche lancée dans le moteur de combat", !!document.querySelector(".battle") && document.body.textContent.includes("Escarmouche"));
+  check("chapitre 1 : escarmouche remportée", finishStorySkirmish());
+  for (let i = 0; i < 2; i++) {
     const next = [...document.querySelectorAll(".story-next")].pop();
     if (next) next.click();
   }
