@@ -27,8 +27,8 @@ Les paramètres généraux du système (son, affichage, daltonisme, vitesse) res
 Depuis un environnement disposant de Node.js et de jsdom :
 
 ```bash
-node test/smoke.test.js
-node test/stress.test.js
+npm run check:syntax
+npm test
 ```
 
 La connexion GitHub permet de pousser le code, mais ne fournit pas à elle seule un environnement d'exécution local. Les tests ne sont donc pas déclarés réussis tant qu'ils n'ont pas été exécutés.
