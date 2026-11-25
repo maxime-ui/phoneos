@@ -728,3 +728,6 @@ body.cb .rb-score { color: #0fb3a3; }
 .sheet-portrait { display:flex; justify-content:center; align-items:center; min-height:180px; margin:8px auto 14px; }
 .sheet-portrait .portrait-art { width:min(100%,190px); height:180px; }
 .battle-enemy-art .portrait-art { width:104px; height:120px; flex:0 0 104px; }
+
+.battle-enemy-art .enemy-portrait-frame { display:flex; flex:0 0 104px; align-items:center; justify-content:center; width:104px; height:120px; overflow:hidden; border-radius:10px; background:#0b101b; }
+.battle-enemy-art .enemy-portrait-frame .portrait-art { width:104px; height:120px; }
