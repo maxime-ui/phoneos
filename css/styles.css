@@ -1111,3 +1111,8 @@ body.cb .hand-card.type-V b::before { content: "■ "; color: #d2f5dd; }
 body.cb .hp-track { background: #10141f; border: 1px solid #3a4358; }
 body.cb .hp-fill { border-right: 2px solid #fff; }
 body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }
+
+/* ---------- Reliques v2 (raretés, sous-stats, bonus d'ensemble) ---------- */
+.relic-line .tag-chip { margin-left: 6px; padding: 1px 7px; font-size: 9.5px; }
+.relic-line .forge-req b { color: #dfe4ef; }
+.set-line .forge-req b { color: #3ba75c; }

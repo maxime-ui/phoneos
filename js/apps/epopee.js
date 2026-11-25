@@ -5,8 +5,8 @@
     const CARD = { R: { label: "Brut", color: "#c34a2f", mult: 1.5 }, B: { label: "Arcane", color: "#3b6bd4", mult: 1.0 }, V: { label: "Rapide", color: "#3ba75c", mult: 0.8 } };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
-      normal: { label: "Normal", hp: 14000, atk: 1250, reward: 10 },
-      dur: { label: "Difficile", hp: 26000, atk: 1900, reward: 20 },
+      normal: { label: "Normal", hp: 15000, atk: 1330, reward: 10 },
+      dur: { label: "Difficile", hp: 28000, atk: 2050, reward: 20 },
       infini: { label: "Infini", hp: 7000, atk: 780, reward: 0, infinite: true },
     };
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
@@ -24,11 +24,13 @@
       couronne: { name: "Couronne d'aube", color: "#e3b23c" },
       sceau: { name: "Sceau du dragon", color: "#d33b2f" },
       elixir: { name: "Élixir de raid", color: "#3bd4c4" },
+      poussiere: { name: "Poussière de relique", color: "#b48ce0" },
+      cristal: { name: "Cristal de relique", color: "#7de0e8" },
     };
     const RAID_PHASES = [
-      { name: "Gardien de la trempe", type: "Golem", hp: 60000, atk: 2600, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" } },
-      { name: "Commandant du feu", type: "Capitaine", hp: 90000, atk: 3200, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" } },
-      { name: "Cœur du dragon", type: "Sorcier", hp: 140000, atk: 3800, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" } },
+      { name: "Gardien de la trempe", type: "Golem", hp: 66000, atk: 2730, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" } },
+      { name: "Commandant du feu", type: "Capitaine", hp: 100000, atk: 3360, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" } },
+      { name: "Cœur du dragon", type: "Sorcier", hp: 155000, atk: 3990, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" } },
     ];
     const EVO_REQ = {
       1: [{ eclat: 8 }, { eclat: 12, larme: 5 }, { larme: 5, sceau: 2 }],
@@ -266,10 +268,33 @@
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
     const RELICS = {
-      arme: { name: "Lame du Raid", effect: "ATK +8 % pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
-      armure: { name: "Écaille du Dragon", effect: "PV +8 % pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
-      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ +15 %", cost: { couronne: 12, sceau: 5 } },
+      arme: { name: "Lame du Raid", effect: "ATK pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
+      armure: { name: "Écaille du Dragon", effect: "PV pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
+      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ", cost: { couronne: 12, sceau: 5 } },
     };
+    const RELIC_TIERS = [
+      { key: "N", label: "Normale", color: "#7d869c" },
+      { key: "R", label: "Rare", color: "#4f9eff" },
+      { key: "SR", label: "Épique", color: "#b06ee8" },
+      { key: "SSR", label: "Légendaire", color: "#e3b23c" },
+    ];
+    const RELIC_MAIN = {
+      arme: { stat: "teamAtk", label: "ATK d'équipe", values: [4, 8, 12, 16] },
+      armure: { stat: "hp", label: "PV max", values: [4, 8, 12, 16] },
+      etendard: { stat: "jaugeInit", label: "Jauge de départ", values: [15, 18, 21, 24] },
+    };
+    const RELIC_SUBS = {
+      arme: [{ crit: 3 }, { renvoi: 5 }, { execute: 8 }],
+      armure: [{ heal: 4 }, { esquive: 4 }, { hp: 6 }],
+      etendard: [{ teamAtk: 3 }, { gauge: 2 }, { growth: 2 }],
+    };
+    const RELIC_SETS = [
+      { id: "trio", name: "Pacte du trio", need: 2, fx: { dmg: 4 }, desc: "2 reliques forgées : dégâts +4 %" },
+      { id: "trinite", name: "Trinité du dragon", need: 3, fx: { dmg: 4, jaugeInit: 10 }, desc: "3 reliques forgées : dégâts +4 % et jauge de départ +10 %" },
+      { id: "harmonie", name: "Harmonie parfaite", need: 3, sameTier: 3, fx: { dmg: 8 }, desc: "3 reliques en rang Épique ou + : dégâts +8 %" },
+    ];
+    const RELIC_UP = { 2: { poussiere: 10 }, 3: { poussiere: 20, cristal: 5 }, 4: { poussiere: 40, cristal: 12 } };
+    const RELIC_STAT_LABELS = { dmg: "Dégâts", crit: "Critique", esquive: "Esquive", renvoi: "Renvoi", execute: "Exécution", heal: "Soins", gauge: "Ultime par carte", growth: "Croissance/tour", teamAtk: "ATK d'équipe", hp: "PV max", jaugeInit: "Jauge de départ" };
 /* ---------- Calculs d'unité partagés (snapshot = {owned, evo, relics}) ---------- */
 
 function coreFx(u, sv) {
@@ -293,14 +318,38 @@ function coreFx(u, sv) {
   return fx;
 }
 
+function relicTierOf(sv, k) {
+  return Math.min(Math.max(0, Math.round(Number((sv.relics || {})[k]) || 0)), 4);
+}
+
+function relicFxOf(sv) {
+  const fx = {};
+  const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
+  const tiers = {};
+  Object.keys(RELIC_MAIN).forEach((k) => { tiers[k] = relicTierOf(sv, k); });
+  const forged = Object.keys(tiers).filter((k) => tiers[k] >= 1);
+  forged.forEach((k) => {
+    const main = RELIC_MAIN[k];
+    add(main.stat, main.values[tiers[k] - 1]);
+    RELIC_SUBS[k].slice(0, tiers[k] - 1).forEach((sub) => Object.keys(sub).forEach((s2) => add(s2, sub[s2])));
+  });
+  RELIC_SETS.forEach((set) => {
+    const count = forged.length;
+    if (count < set.need) return;
+    if (set.sameTier && !(count === 3 && forged.every((k) => tiers[k] >= set.sameTier))) return;
+    Object.keys(set.fx).forEach((k) => add(k, set.fx[k]));
+  });
+  return fx;
+}
+
 function corePower(u, sv) {
   const count = (sv.owned && sv.owned[u.id]) || 1;
   const mult = 1 + 0.08 * Math.min(count - 1, 12);
   const evo = (sv.evo && sv.evo[u.id]) || 0;
   const em = 1 + 0.10 * evo;
-  const relics = sv.relics || {};
-  const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (relics.armure ? 1.08 : 1);
-  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (relics.arme ? 1.08 : 1)), hp: Math.round(u.hp * mult * em * hpFx) };
+  const rfx = relicFxOf(sv);
+  const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (1 + (rfx.hp || 0) / 100);
+  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (1 + (rfx.teamAtk || 0) / 100)), hp: Math.round(u.hp * mult * em * hpFx) };
 }
 
 function evoSkillLabelsOf(u, evo) {
@@ -318,7 +367,7 @@ function evoSkillLabelsOf(u, evo) {
 }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.epopeeData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, byId, coreFx, corePower, evoSkillLabelsOf };
+OS.epopeeData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf };
 
 
 OS.registerApp({
@@ -334,7 +383,14 @@ OS.registerApp({
     /* ---------- Données ---------- */
 
 
-    function unitFx(u) { return coreFx(u, save); }
+    function unitFx(u) {
+      const base = coreFx(u, save);
+      const rf = relicFxOf(save);
+      ["dmg", "crit", "esquive", "renvoi", "execute", "heal", "gauge", "growth"].forEach((k) => {
+        if (rf[k]) base[k] = (base[k] || 0) + rf[k];
+      });
+      return base;
+    }
 
 
 
@@ -450,7 +506,11 @@ OS.registerApp({
         chest.className = "pull-btn claim-btn raid-chest";
         chest.textContent = "🎁 Coffre hebdomadaire : +" + 30 * raid.cleared + " ◆ et matières (" + raid.cleared + "/3 phases)";
         chest.addEventListener("click", () => {
-          const gains = [{ couronne: 5 }, { couronne: 10, larme: 3 }, { couronne: 10, larme: 3, sceau: 3 }][Math.min(raid.cleared, 3) - 1];
+          const gains = [
+            { couronne: 5, poussiere: 5 },
+            { couronne: 10, larme: 3, poussiere: 8, cristal: 3 },
+            { couronne: 10, larme: 3, sceau: 3, poussiere: 12, cristal: 5 },
+          ][Math.min(raid.cleared, 3) - 1];
           const qz = 30 * raid.cleared;
           save.quartz += qz;
           const line = gainLoot(gains);
@@ -774,39 +834,96 @@ OS.registerApp({
       content.appendChild(relicPanel());
     }
 
+    function relicTierChip(tier) {
+      if (tier < 1) return "";
+      const t = RELIC_TIERS[tier - 1];
+      return '<span class="tag-chip" style="background:' + t.color + '">' + t.key + " · " + t.label + "</span>";
+    }
+
+    function relicLine(k) {
+      const rel = RELICS[k];
+      const tier = relicTierOf(save, k);
+      const line = document.createElement("div");
+      line.className = "forge-line relic-line" + (tier >= 1 ? " ready" : "");
+
+      const main = RELIC_MAIN[k];
+      let statsTxt = "";
+      if (tier >= 1) {
+        statsTxt += "<div class=\"forge-req\"><b>Principale :</b> " + main.label + " +" + main.values[tier - 1] + " %</div>";
+        const subs = RELIC_SUBS[k].slice(0, tier - 1);
+        if (subs.length) {
+          const txt = subs.map((sub) => RELIC_STAT_LABELS[Object.keys(sub)[0]] + " +" + Object.values(sub)[0] + " %").join(" · ");
+          statsTxt += '<div class="forge-req"><b>Sous-stats :</b> ' + txt + "</div>";
+        } else {
+          statsTxt += '<div class="forge-req"><small>Aucune sous-stat — améliorez la relique pour en débloquer</small></div>';
+        }
+      }
+
+      let actionTxt = "";
+      let btn = null;
+      if (tier < 1) {
+        const cost = rel.cost;
+        const can = Object.keys(cost).every((c) => (save.loot[c] || 0) >= cost[c]);
+        const req = Object.keys(cost).map((c) =>
+          '<span class="' + ((save.loot[c] || 0) >= cost[c] ? "ok" : "ko") + '">' + cost[c] + "× " + (LOOT[c] ? LOOT[c].name : c) + "</span>"
+        ).join(" ");
+        actionTxt = '<div class="forge-req">' + req + "</div>";
+        btn = { label: "⚒ Forger", cost: cost, next: tier + 1 };
+      } else if (tier < 4) {
+        const cost = RELIC_UP[tier + 1];
+        const can = Object.keys(cost).every((c) => (save.loot[c] || 0) >= cost[c]);
+        const req = Object.keys(cost).map((c) =>
+          '<span class="' + ((save.loot[c] || 0) >= cost[c] ? "ok" : "ko") + '">' + cost[c] + "× " + (LOOT[c] ? LOOT[c].name : c) + "</span>"
+        ).join(" ");
+        actionTxt = '<div class="forge-req">' + req + "</div>";
+        btn = { label: "⬆ Améliorer (→ " + RELIC_TIERS[tier].key + ")", cost: cost, next: tier + 1 };
+      } else {
+        actionTxt = '<div class="forge-req"><b>✓ Rang maximal</b></div>';
+      }
+
+      line.innerHTML =
+        '<div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
+        (tier < 1 ? '<div class="forge-evo">' + rel.effect + " (au rang N)</div>" : "<div class='forge-evo'><b>✓ Forgée</b> — active sur l’équipe</div>") +
+        statsTxt + actionTxt;
+
+      if (btn) {
+        const b = document.createElement("button");
+        b.className = "pull-btn";
+        b.textContent = btn.label;
+        b.disabled = !Object.keys(btn.cost).every((c) => (save.loot[c] || 0) >= btn.cost[c]);
+        b.addEventListener("click", () => {
+          Object.keys(btn.cost).forEach((c) => { save.loot[c] = (save.loot[c] || 0) - btn.cost[c]; });
+          save.relics[k] = btn.next;
+          persist();
+          OS.sfx.play(btn.next === 1 ? "unlock" : "ssr");
+          renderTeam();
+        });
+        line.appendChild(b);
+      }
+      return line;
+    }
+
     function relicPanel() {
       const wrap = document.createElement("div");
       wrap.className = "forge-panel relic-panel";
       const h = document.createElement("h3");
       h.textContent = "Reliquaire du raid — bonus communs à toute l'équipe";
       wrap.appendChild(h);
-      Object.keys(RELICS).forEach((k) => {
-        const rel = RELICS[k];
-        const has = save.relics[k];
-        const can = !has && Object.keys(rel.cost).every((c) => (save.loot[c] || 0) >= rel.cost[c]);
+      wrap.appendChild(relicLine("arme"));
+      wrap.appendChild(relicLine("armure"));
+      wrap.appendChild(relicLine("etendard"));
+
+      const h2 = document.createElement("h3");
+      h2.textContent = "Bonus d'ensemble";
+      wrap.appendChild(h2);
+      RELIC_SETS.forEach((set) => {
+        const forged = Object.keys(RELIC_MAIN).filter((k) => relicTierOf(save, k) >= 1);
+        const ok = forged.length >= set.need && (!set.sameTier || forged.every((k) => relicTierOf(save, k) >= set.sameTier));
         const line = document.createElement("div");
-        line.className = "forge-line relic-line" + (has ? " ready" : "");
-        const req = Object.keys(rel.cost).map((c) =>
-          '<span class="' + ((save.loot[c] || 0) >= rel.cost[c] ? "ok" : "ko") + '">' + rel.cost[c] + "× " + LOOT[c].name + "</span>"
-        ).join(" ");
+        line.className = "forge-line relic-line set-line" + (ok ? " ready" : "");
         line.innerHTML =
-          '<div class="unit-name">' + rel.name + "</div>" +
-          '<div class="forge-evo">' + rel.effect + "</div>" +
-          '<div class="forge-req">' + (has ? "✓ Forgée — active sur l'équipe" : req) + "</div>";
-        if (!has) {
-          const b = document.createElement("button");
-          b.className = "pull-btn";
-          b.textContent = "Forger";
-          b.disabled = !can;
-          b.addEventListener("click", () => {
-            Object.keys(rel.cost).forEach((c) => { save.loot[c] = (save.loot[c] || 0) - rel.cost[c]; });
-            save.relics[k] = 1;
-            persist();
-            OS.sfx.play("unlock");
-            renderTeam();
-          });
-          line.appendChild(b);
-        }
+          '<div class="unit-name">' + (ok ? "✓ " : "◇ ") + set.name + "</div>" +
+          '<div class="forge-req">' + set.desc + (ok ? " — <b>actif !</b>" : "") + "</div>";
         wrap.appendChild(line);
       });
       return wrap;
@@ -1012,7 +1129,7 @@ OS.registerApp({
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + ((save.relics || {}).etendard ? 15 : 0));
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0));
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
@@ -1045,7 +1162,7 @@ OS.registerApp({
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
       if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + ((save.relics || {}).etendard ? 15 : 0));
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0));
       OS.sfx.play("ult");
       renderQuests();
     }
@@ -1359,7 +1476,8 @@ OS.registerApp({
         battle.curse = 0;
         battle.burn = 0;
         const wonPhases = battle.raidPhase - 1;
-        battle.log.unshift("Phase " + wonPhases + " franchie ! L'équipe est restaurée.");
+        gainLoot({ cristal: 1 });
+        battle.log.unshift("Phase " + wonPhases + " franchie ! +1 Cristal de relique. L'équipe est restaurée.");
         battle.log.unshift("----- RAID · Phase " + battle.raidPhase + "/3 : " + ph.name + " -----");
         if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
         newHand();
@@ -1404,6 +1522,8 @@ OS.registerApp({
           if (diffIdx >= 4) gains.couronne = 2;
           if (diffIdx >= 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
           if (diffIdx >= 4 && storyState.diff === "enferPlus") gains.sceau = 2;
+          gains.poussiere = 2;
+          if (diffIdx >= 4) gains.cristal = storyState.diff === "enferPlus" ? 2 : 1;
           battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");
@@ -1429,8 +1549,8 @@ OS.registerApp({
         if (win) {
           const gains = { eclat: battle.tier === "facile" ? 1 : battle.tier === "normal" ? 2 : 3 };
           if (battle.tier === "normal" && Math.random() < 0.3) gains.eclat++;
-          if (battle.tier === "dur") gains.couronne = 1;
-          if (battle.tier === "dur") gains.elixir = 1;
+          gains.poussiere = battle.tier === "facile" ? 1 : 2;
+          if (battle.tier === "dur") { gains.couronne = 1; gains.elixir = 1; gains.cristal = 1; }
           battle.log.unshift("Butin : " + gainLoot(gains));
           trackDaily("wins");
         }
@@ -1450,19 +1570,19 @@ OS.registerApp({
     function advanceFloor() {
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
-      const flGain = { coeur: 1 };
-      if (battle.floor % 5 === 0) flGain.elixir = 1;
+      const flGain = { coeur: 1, poussiere: 1 };
+      if (battle.floor % 5 === 0) { flGain.elixir = 1; flGain.cristal = 1; }
       battle.log.unshift("Butin : " + gainLoot(flGain));
       battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
       battle.gauge = Math.min(100, battle.gauge + 15);
       battle.curse = 0;
       battle.burn = 0;
-      const scale = Math.pow(1.16, battle.floor - 1);
+      const scale = Math.pow(1.18, battle.floor - 1);
       const etype = Object.keys(ENEMY_TYPES)[Math.floor(Math.random() * Object.keys(ENEMY_TYPES).length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const golemMult = etype === "Golem" ? 1.15 : 1;
-      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.08, battle.floor)) };
+      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.09, battle.floor)) };
       battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
       newHand();
       renderQuests();
@@ -2122,7 +2242,7 @@ OS.registerApp({
         diffLabel: d.label,
         units: team,
         hp: team.map((u) => u.hp),
-        gauge: Math.min(100, (fx.gauge || 0) + ((save.relics || {}).etendard ? 15 : 0)),
+        gauge: Math.min(100, (fx.gauge || 0) + (relicFxOf(save).jaugeInit || 0)),
         picks: 0,
         curse: 0,
         burn: 0,

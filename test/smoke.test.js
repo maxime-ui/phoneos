@@ -89,12 +89,12 @@ setTimeout(() => {
 
   // Forge d'évolution : butin semé puis 1re évolution de Bron (+8 Éclat d'acier)
   const saveForge = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
-  saveForge.loot = { eclat: 999, coeur: 50, larme: 50, couronne: 50, sceau: 50 };
+  saveForge.loot = { eclat: 999, coeur: 50, larme: 50, couronne: 50, sceau: 50, poussiere: 50, cristal: 20 };
   window.eval('(function(){localStorage.setItem("phoneos:epopee",' + JSON.stringify(JSON.stringify(saveForge)) + ')})()');
   window.eval("OS").openApp("epopee");
   const teamTabF = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabF.click();
-  check("inventaire de butin affiché (6 matières)", document.querySelectorAll(".loot-chip").length === 6);
+  check("inventaire de butin affiché (8 matières)", document.querySelectorAll(".loot-chip").length === 8);
   check("forge d'évolution : lignes présentes", document.querySelectorAll(".forge-line").length >= 100);
   const bronLine = [...document.querySelectorAll(".forge-line")].find((l) => l.querySelector(".unit-name").textContent.startsWith("Bron"));
   check("forge : ligne Bron évolutive et finançable", !!bronLine && !bronLine.querySelector("button").disabled);
@@ -110,7 +110,7 @@ setTimeout(() => {
 
   // Reliquaire du raid : 3 reliques forgees avec le butin, bonus communs a l'equipe
   check("bandeau d'evenement force (fortune)", !!document.querySelector(".event-chip") && document.querySelector(".event-chip").textContent.includes("Week-end de fortune"));
-  check("reliquaire : 3 reliques affichees", document.querySelectorAll(".relic-line").length === 3);
+  check("reliquaire : 3 reliques + 3 ensembles affichés", document.querySelectorAll(".relic-line:not(.set-line)").length === 3 && document.querySelectorAll(".set-line").length === 3);
   const bronAtkOf = () => { const c = [...document.querySelectorAll(".roster .unit-card")].find((x) => x.querySelector(".unit-name").textContent.includes("Bron")); return c ? Number((c.textContent.match(/ATK (\d+)/) || [0, 0])[1]) : 0; };
   const bronAtkBefore = bronAtkOf();
   const armorLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9caille du Dragon"));
@@ -127,7 +127,20 @@ setTimeout(() => {
   const flagLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9tendard des trois phases"));
   check("\u00c9tendard forgerable (Couronnes + Sceaux en stock)", !!flagLine && !flagLine.querySelector("button").disabled);
   if (flagLine) flagLine.querySelector("button").click();
-  check("\u00c9tendard forg\u00e9, 3 reliques actives", JSON.parse(window.localStorage.getItem("phoneos:epopee")).relics.etendard === 1 && [...document.querySelectorAll(".relic-line")].every((l) => l.textContent.includes("Forg\u00e9e")));
+  check("Étendard forgé, 3 reliques actives", JSON.parse(window.localStorage.getItem("phoneos:epopee")).relics.etendard === 1 && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
+
+  // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
+  check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 2 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
+  check("Harmonie parfaite inactive (rang N)", [...document.querySelectorAll(".set-line.ready")].every((l) => !l.textContent.includes("Harmonie parfaite")));
+  const armorLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
+  check("Écaille N : principale affichée, aucune sous-stat", !!armorLine2 && armorLine2.textContent.includes("Principale") && armorLine2.textContent.includes("Aucune sous-stat"));
+  const upBtn = armorLine2 && [...armorLine2.querySelectorAll("button")].find((b) => b.textContent.includes("Améliorer"));
+  check("Écaille améliorable (→ R)", !!upBtn && !upBtn.disabled);
+  if (upBtn) upBtn.click();
+  const saveUp = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  check("Écaille passée en R (−10 Poussières)", saveUp.relics.armure === 2 && saveUp.loot.poussiere === 40);
+  const armorLine3 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
+  check("Écaille R : chip rang, PV max +8 % et 1re sous-stat", !!armorLine3 && armorLine3.textContent.includes("R · Rare") && armorLine3.textContent.includes("PV max +8 %") && armorLine3.textContent.includes("Soins +4 %"));
 
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
   const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
@@ -203,7 +216,7 @@ setTimeout(() => {
   check("bouton quête facile présent", !!tierBtn);
   tierBtn.click();
   check("vue combat affichée", !!document.querySelector(".battle"));
-  check("\u00c9tendard : jauge de d\u00e9part \u00e0 15 %", document.querySelector(".gauge .hp-num") && document.querySelector(".gauge .hp-num").textContent === "15%");
+  check("jauge de d\u00e9part : Étendard N +15 et Trinité +10 = 25 %", document.querySelector(".gauge .hp-num") && document.querySelector(".gauge .hp-num").textContent === "25%");
   const beforeLog = document.querySelectorAll(".battle-log > div").length;
   for (let draws = 0; draws < 3; draws++) {
     const card = document.querySelector(".hand-card:not([disabled])");
@@ -421,7 +434,7 @@ setTimeout(() => {
   check("coffre marqué réclamé", rr1.claimed === true);
   const teamTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR2.click();
-  check("6 matières de butin dont l'Élixir de raid", document.querySelectorAll(".loot-chip").length === 6 && document.body.textContent.includes("Élixir de raid"));
+  check("8 matières de butin dont Élixir et items de reliques", document.querySelectorAll(".loot-chip").length === 8 && document.body.textContent.includes("Élixir de raid") && document.body.textContent.includes("Poussière de relique") && document.body.textContent.includes("Cristal de relique"));
   const questTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   questTabR2.click();
   const enterBtn = [...document.querySelectorAll(".raid-panel .pull-btn")].find((b) => b.textContent.includes("Entrer dans le Raid"));

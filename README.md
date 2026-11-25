@@ -1,5 +1,25 @@
 # PhoneOS 1.0
 
+Émulateur de téléphone complet dans le navigateur, 100 % HTML/CSS/JS vanilla.
+Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
+
+📖 **Guide complet du jeu** : [GUIDE.md](GUIDE.md) — tout y est expliqué (OS, combat, héros, reliques, raid, histoire, stratégies).
+
+## Fonctionnalités
+
+- **Séquence de boot** animée avec barre de progression
+- **Écran de verrouillage** avec code PIN (1234), horloge et date
+- **Écran d'accueil** avec grille d'applications et dock
+- **Barre d'état système** : heure réelle, batterie simulée (décharge lente), mode avion
+- **Boutons physiques simulés** : power (éteindre/redémarrer), volume +/- avec retour visuel
+- **Multitâche** : vue des applications récentes, fermeture individuelle ou globale
+- **Notifications** empilées avec animation d'entrée/sortie
+- **Barre de navigation** système : retour, accueil, multitâche
+
+Applications incluses :
+
+| App | Fonctions |
+|---|---|
 | Épopée | Gacha + combat au tour par tour façon FGO + Mode Histoire + Raid — détail ci-dessous |
 | Personnages | Fiches détaillées des 113 héros (liste complète, non possédés grisés), accessibles depuis la Collection : classe et bonus, cartes de combat, stats réelles (doublons, évolutions, reliques incluses), compétence, **passif**, éveils et talents acquis, coût de la prochaine évolution, indice d'obtention pour les héros non invoqués (Graal → Enfer+) |
 | Trophées | Salle des trophées : étagère des 5 bannières (débloquées/scellées), records des 5 boss (meilleur niveau vaincu, **Enfer+ distingué d'Enfer** avec mise en avant dorée), record du Mode Infini, statut du **Graal** (Astrée, Héritière des braises, SS exclusive débloquée en battant le Dragon des cendres en Enfer+) |
@@ -19,12 +39,12 @@
 - **23 compétences uniques** (à la carte, lors de l'Ultime) + **23 passifs nommés actifs en combat** (renvoi, exécution, soin, jauge, critique, esquive, PV max, ATK d'équipe…)
 - Montée en niveau par doublons (+8 %/copie, plafond +96 %)
 - **Évolutions** (Forge dans l'onglet Équipe) : ★→★★★, +10 % ATK/PV par rang, **éveils par rang** (Éveil I jauge de départ, Éveil II dégâts + talent de classe, Éveil III talent + second talent de classe — 2 talents empilables, 20 talents de classe), **silhouettes évoluées** (aura, halo, couronne d'étoiles dorées, y compris dans les scènes)
-- **6 matières de butin exclusives par mode** : Éclat d'acier (quêtes), Cœur de braise (Infini), Larme de la nuit (boss d'histoire), Couronne d'aube (Difficile→Enfer+), Sceau du dragon (Enfer+), Élixir de raid (Difficile, Infini tous les 5 étages, Enfer/Enfer+)
-- **Reliquaire du raid** : 3 reliques d'équipe forgées avec le butin — Lame du Raid +8 % ATK, Écaille du Dragon +8 % PV, Étendard des trois phases jauge de départ +15 %
+- **8 matières et items de butin** : Éclat d'acier (quêtes), Cœur de braise (Infini), Larme de la nuit (boss d'histoire), Couronne d'aube (Difficile→Enfer+), Sceau du dragon (Enfer+), Élixir de raid (Difficile, Infini tous les 5 étages, Enfer/Enfer+), **Poussière de relique** (toutes les victoires ordinaires) et **Cristal de relique** (boss hauts niveaux, phases du raid, étages multiples de 5)
+- **Reliquaire du raid v2** : 3 reliques d'équipe à **rangs progressifs N → R → SR → SSR** — stat principale croissante (ATK d'équipe, PV max, jauge de départ) et **sous-stats fixes débloquées rang après rang** (critique, renvoi, exécution, soins, esquive, Ultime/carte, croissance/tour), **améliorables avec Poussières (+ Cristaux)** droppées partout en jeu, et **3 bonus d'ensemble passifs** (Pacte du trio +4 % dégâts, Trinité du dragon +4 % dégâts +10 jauge, Harmonie parfaite +8 % dégâts pour 3 reliques Épiques+)
 
 **Modes**
 
-- **Quêtes** à 3 difficultés, **Mode Infini** (+16 %/étage, record sauvegardé)
+- **Quêtes** à 3 difficultés, **Mode Infini** (+18 % PV/étage, +9 % ATQ, record sauvegardé)
 - **Mode Histoire** : 12 chapitres / 3 actes, dialogues machine à écrire (vitesse réglable, option Instantané), scènes SVG procédurales avec votre équipe réelle, 5 boss de récit, choix narratifs + 6 bénédictions persistantes, **6 difficultés de boss (Facile → Enfer+)**, Enfer+ avec 5 compétences de boss élites, +8 ◆ par chapitre
 - **Bannières de gloire** : +25 ◆ chacune, **notification système au déblocage**
 - **Raid hebdomadaire** : 3 phases enchaînées (Gardien de la trempe, Commandant du feu, Cœur du dragon), 1 Élixir pour entrer, équipe restaurée entre les phases, 40 ◆ sur victoire finale, **coffre hebdomadaire** réinitialisé chaque semaine
@@ -32,6 +52,7 @@
 - **Événements de week-end** : Week-end de fortune (récompenses ×2), Week-end des invocateurs (taux SSR doublé)
 - 8 archétypes d'ennemis : **Oracle** (se régénère), **Muraille** (très résistante), **Invocateur** (frappe d'ombre)…
 - Musique chiptune et effets sonores Web Audio sur tout le jeu
+- **Équilibrage v2** : avec des reliques plus fortes, les ennemis montent — quêtes Normal/Difficile (~+7/8 %), Infini et Raid (~+10 %)
 
 **Collection**
 
@@ -43,6 +64,7 @@
 
 ```
 index.html          Point d'entrée
+GUIDE.md            Guide complet du jeu (10 sections)
 css/styles.css      Châssis du téléphone + styles système et apps
 js/os.js            Noyau : couches d'affichage, cycle de vie des apps,
                     notifications (désactivables), état système, persistance
@@ -54,7 +76,7 @@ js/apps/epopee.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (136 vérifications)
+test/smoke.test.js  Test de fumée (142 vérifications)
 test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ```
 
@@ -71,14 +93,30 @@ python3 -m http.server       # puis http://localhost:8000
 Le test de fumée simule boot, déverrouillage, ouverture des 4 apps (Épopée, Personnages, Réglages, Trophées), roster des 112 unités possédées, écran Collection (Graal grisé,
 récompense de complétion réclamée, clic → fiche détaillée dans l'app Personnages, retour, fiche du Graal non invoqué), réglages bonus (mode daltonien persisté,
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
-Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire (3 reliques forgées),
+Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),
 Raid hebdomadaire (3 phases, coffre réclamé, −1 Élixir à l'entrée, silhouettes évoluées),
 Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, et multitâche, via jsdom :
 
 ```bash
 npm install jsdom   # uniquement pour le test
-node test/smoke.test.js    # 136 vérifications
+node test/smoke.test.js    # 142 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
+```
+
+## Ajouter une application
+
+Dans `js/apps/` :
+
+```js
+OS.registerApp({
+  id: "monapp",
+  name: "MonApp",
+  icon: "🚀",           // emoji ou caractère
+  color: "#5b6b94",     // couleur d'icône
+  dock: false,          // true pour l'épingler dans le dock
+  render(body) { /* construire l'UI dans body */ },
+  onBack() {},          // optionnel : interception du bouton retour
+});
 ```
 
 Puis référencez le fichier dans `index.html` (avant `js/main.js`).
