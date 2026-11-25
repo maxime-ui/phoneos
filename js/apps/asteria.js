@@ -1513,7 +1513,7 @@ OS.registerApp({
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const op = {
         name, type,
-        hp: Math.max(9000, Math.round(unit.atk * 20)),
+        hp: Math.max(9000, Math.round(unit.atk * 30)),
         atk: Math.max(120, Math.round(unit.hp * 0.05)),
       };
       battle = {
@@ -3038,7 +3038,11 @@ OS.registerApp({
         const actorCard = document.createElement("div");
         actorCard.className = "story-actor";
         const known = UNITS.find((u) => u.name === actor.name);
-        const portrait = actor.boss ? enemyPortraitMarkup(actor.type, actor.name) : heroPortraitMarkup(known ? known.id : "story-" + artSlug(actor.name));
+        const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === actor.name || actor.name.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(actor.name.toLowerCase())));
+        const isEnemy = actor.boss || !!bossEvent || actor.name === "Gortak";
+        const portrait = isEnemy
+          ? enemyPortraitMarkup(actor.type || (bossEvent && bossEvent.boss.type) || "Brute", actor.name)
+          : heroPortraitMarkup(known ? known.id : "story-" + artSlug(actor.name));
         actorCard.innerHTML = portrait + '<span>' + portraitEscape(actor.name) + '</span>';
         actorStrip.appendChild(actorCard);
       });
@@ -3098,7 +3102,11 @@ OS.registerApp({
           const speaker = document.createElement("div");
           speaker.className = "story-speaker-card";
           const known = UNITS.find((u) => u.name === ev.s);
-          speaker.innerHTML = heroPortraitMarkup(known ? known.id : "story-" + artSlug(ev.s)) + '<span>' + portraitEscape(ev.s) + '</span>';
+          const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === ev.s || ev.s.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(ev.s.toLowerCase())));
+          const speakerPortrait = bossEvent || ev.s === "Gortak"
+            ? enemyPortraitMarkup((bossEvent && bossEvent.boss.type) || "Brute", ev.s)
+            : heroPortraitMarkup(known ? known.id : "story-" + artSlug(ev.s));
+          speaker.innerHTML = speakerPortrait + '<span>' + portraitEscape(ev.s) + '</span>';
           text.appendChild(speaker);
         }
         const line = document.createElement("div");
