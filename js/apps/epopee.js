@@ -21,6 +21,14 @@ OS.registerApp({
     };
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
 
+    const ENEMY_TYPES = {
+      "Brute": { desc: "Frappe fort le membre le plus blessé" },
+      "Assassin": { desc: "Traque l'attaquant le plus dangereux, critiques fréquents" },
+      "Sorcier": { desc: "Brûle toute l'équipe à chaque tour" },
+      "Capitaine": { desc: "Se renforce de 4 % à chacun de ses tours" },
+      "Golem": { desc: "Carapace : subit 20 % de dégâts en moins, frappe plus lentement" },
+    };
+
     const UNITS = [
       /* --- SSR (5 %) --- */
       { id: "gauvin", name: "Sir Gauvin", r: 3, cls: "Chevalier", atk: 1900, hp: 11500, cards: ["R", "B", "B"] },
@@ -111,6 +119,12 @@ OS.registerApp({
       "Rôdeur": "Esquive : 25 % de chance d'éviter une riposte",
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
+
+    function unitPower(u) {
+      const count = save.owned[u.id] || 1;
+      const mult = 1 + 0.08 * Math.min(count - 1, 12);
+      return { ...u, lvl: count, atk: Math.round(u.atk * mult), hp: Math.round(u.hp * mult) };
+    }
 
     function loadSave() {
       const saved = OS.store.get("epopee", null);
@@ -214,14 +228,14 @@ OS.registerApp({
     }
 
     function unitCard(u) {
+      const p = unitPower(u);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
-      const isDup = save.owned[u.id] > 1;
       c.innerHTML =
-        '<div class="unit-rarity">' + RARITY[u.r].label + (isDup ? " · ×" + save.owned[u.id] : "") + "</div>" +
+        '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
         '<div class="unit-name">' + u.name + "</div>" +
-        '<div class="unit-cls">' + u.cls + "</div>" +
-        '<div class="unit-stats">ATK ' + u.atk + " · PV " + u.hp + "</div>";
+        '<div class="unit-cls">' + u.cls + (p.lvl > 1 ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
+        '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
       return c;
     }
 
@@ -265,7 +279,7 @@ OS.registerApp({
       box.className = "roster";
       content.appendChild(box);
 
-      const sorted = UNITS.filter((u) => save.owned[u.id]).sort((a, b) => b.r - a.r || b.atk - a.atk);
+      const sorted = UNITS.filter((u) => save.owned[u.id]).map(unitPower).sort((a, b) => b.r - a.r || b.atk - a.atk);
       sorted.forEach((u) => {
         const card = unitCard(u);
         card.classList.add("selectable");
@@ -288,7 +302,7 @@ OS.registerApp({
     let battle = null;
 
     function teamUnits() {
-      const units = save.team.map(byId).filter(Boolean).filter((u) => save.owned[u.id]);
+      const units = save.team.map(byId).filter(Boolean).filter((u) => save.owned[u.id]).map(unitPower);
       return units.slice(0, 3);
     }
 
@@ -326,15 +340,18 @@ OS.registerApp({
     function startBattle(key) {
       const team = teamUnits();
       const t = TIER[key];
+      const types = Object.keys(ENEMY_TYPES);
+      const etype = types[Math.floor(Math.random() * types.length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
+      const golemMult = etype === "Golem" ? 1.15 : 1;
       battle = {
-        enemy: { name, hp: t.hp, maxHp: t.hp, atk: t.atk },
+        enemy: { name, type: etype, hp: Math.round(t.hp * golemMult), maxHp: Math.round(t.hp * golemMult), atk: t.atk },
         tier: key,
         units: team,
         hp: team.map((u) => u.hp),
         gauge: 0,
         picks: 0,
-        log: ["----- " + name + " apparaît -----"],
+        log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
       newHand();
       renderQuests();
@@ -373,6 +390,7 @@ OS.registerApp({
       if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
       if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
       if (u.cls === "Berserker" && battle.hp[gi] < u.hp / 2) dmg = Math.round(dmg * 1.2);
+      if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
       battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift((crit ? "CRIT ! " : "") + unit.name + " (" + c.label + ") → " + dmg + " dégâts");
@@ -395,23 +413,57 @@ OS.registerApp({
       renderQuests();
     }
 
-    function enemyTurn() {
-      const targets = aliveIdx();
-      if (!targets.length) return endBattle(false);
-      const ti = targets[Math.floor(Math.random() * targets.length)];
+    function attackAlly(ti, raw) {
       const target = battle.units[ti];
       if (target.cls === "Rôdeur" && Math.random() < 0.25) {
         battle.log.unshift(target.name + " esquive la riposte !");
-      } else {
-        let dmg = Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.4));
-        if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
-        battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
-        battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
+        return;
       }
-      if (!aliveIdx().length) endBattle(false);
-      else {
-        newHand();
+      let dmg = raw;
+      if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
+      battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
+      battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
+    }
+
+    function enemyTurn() {
+      const targets = aliveIdx();
+      if (!targets.length) return endBattle(false);
+      const type = battle.enemy.type;
+      let ti;
+      switch (type) {
+        case "Brute":
+          ti = targets.sort((a, b) => battle.hp[a] - battle.hp[b])[0];
+          attackAlly(ti, Math.round(battle.enemy.atk * 1.25 * (0.85 + Math.random() * 0.25)));
+          break;
+        case "Assassin":
+          ti = targets.sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
+          let raw = battle.enemy.atk * (0.8 + Math.random() * 0.3);
+          if (Math.random() < 0.2) {
+            raw *= 1.8;
+            attackAlly(ti, Math.round(raw));
+            battle.log.unshift("Assassinat critique !");
+          } else {
+            attackAlly(ti, Math.round(raw));
+          }
+          break;
+        case "Sorcier":
+          battle.log.unshift("Le Sorcier embrase toute l'équipe !");
+          targets.forEach((i) => {
+            attackAlly(i, Math.round(battle.enemy.atk * 0.55 * (0.9 + Math.random() * 0.25)));
+          });
+          break;
+        case "Capitaine":
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.4)));
+          battle.enemy.atk = Math.round(battle.enemy.atk * 1.04);
+          battle.log.unshift("Le Capitaine joue de la corne : il frappe plus fort au tour suivant (+4 %)");
+          break;
+        default:
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.9 * (0.8 + Math.random() * 0.4)));
       }
+      if (!aliveIdx().length) return endBattle(false);
+      newHand();
     }
 
     function endBattle(win) {
@@ -444,7 +496,7 @@ OS.registerApp({
         done.textContent = battle.enemy.hp <= 0 ? "VICTOIRE" : "DÉFAITE";
         view.appendChild(done);
       } else {
-        view.appendChild(bar(battle.enemy.name, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
+        view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
