@@ -21,7 +21,7 @@
       "Capitaine": "foudre", "Golem": "terre", "Oracle": "eau",
       "Muraille": "terre", "Invocateur": "arcane", "Fantassin": "foudre",
       "Nécromant": "nature", "Banshee": "eau", "Sanguinaire": "feu",
-      "Colosse de givre": "eau", "Duelliste": "vent", "Artilleur": "feu", "Alchimiste": "nature", "Sentinelle": "terre", "Prédateur": "foudre", "Chronomancien": "arcane",
+      "Colosse de givre": "eau", "Duelliste": "vent", "Artilleur": "feu", "Alchimiste": "nature", "Sentinelle": "terre", "Prédateur": "foudre", "Chronomancien": "arcane", "Duelliste": "vent", "Artilleur": "feu", "Alchimiste": "nature", "Sentinelle": "terre", "Prédateur": "foudre", "Chronomancien": "arcane",
     };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
@@ -232,6 +232,12 @@
       "Banshee": { desc: "Hurlement : draine 12 % de la jauge d'Ultime de l'équipe" },
       "Sanguinaire": { desc: "Soif de sang : frappe très fort les membres les plus blessés" },
       "Colosse de givre": { desc: "Carapace de givre : subit 15 % de dégâts en moins" },
+      "Duelliste": { desc: "Frappe le héros le plus rapide et prépare une exécution" },
+      "Artilleur": { desc: "Barrage de zone à dégâts modérés" },
+      "Alchimiste": { desc: "Empoisonne l’équipe et se régénère" },
+      "Sentinelle": { desc: "Armure prismatique et réduction des dégâts" },
+      "Prédateur": { desc: "Traque les héros blessés et monte en puissance" },
+      "Chronomancien": { desc: "Draine la jauge et déforme le rythme du combat" },
       "Duelliste": { desc: "Riposte précise : cible le héros le plus rapide" },
       "Artilleur": { desc: "Barrage : frappe toute l’équipe" },
       "Alchimiste": { desc: "Transmutation : empoisonne et se soigne" },
@@ -1776,6 +1782,12 @@ OS.registerApp({
         "Banshee": ["Hurlement spectral", "Réduit la jauge d'Ultime puis attaque"],
         "Sanguinaire": ["Traque des blessés", "Vise le héros ayant le moins de PV en proportion"],
         "Colosse de givre": ["Onde glaciale", "Frappe une cible"],
+        "Duelliste": ["Danse des lames", "Vise le héros le plus offensif"],
+        "Artilleur": ["Barrage incandescent", "Frappe toute l’équipe"],
+        "Alchimiste": ["Fiole corrosive", "Empoisonne puis se soigne"],
+        "Sentinelle": ["Mur prismatique", "Frappe et se protège"],
+        "Prédateur": ["Bond du chasseur", "Vise le héros le plus blessé"],
+        "Chronomancien": ["Sablier brisé", "Réduit la jauge d’Ultime"],
       };
       return intents[type] || ["Attaque", "Frappe un héros au hasard"];
     }
@@ -1979,6 +1991,7 @@ OS.registerApp({
         }
       });
       mult += battle.valenFury * 0.30;
+      mult += battle.ultAtk || 0;
       return mult;
     }
 
@@ -1999,9 +2012,10 @@ OS.registerApp({
         }
         battle.lastElement = element;
       }
-      if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
+      if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.84);
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
-      else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
+      else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.88);
+      else if (battle.enemy.type === "Sentinelle" && battle.enemy.guardTurns) dmg = Math.round(dmg * 0.82);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       if (battle.mode === "train") battle.trainingDamage = (battle.trainingDamage || 0) + dmg;
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
@@ -2045,12 +2059,14 @@ OS.registerApp({
         battle.log.unshift(target.name + " esquive la riposte !");
         return 0;
       }
+      if (battle.ultDodge > 0) { battle.ultDodge--; battle.log.unshift("Pas spectral : l’attaque est esquivée !"); return 0; }
       const shieldBearer = battle.units.findIndex((u, i) => u.id === "seraphine" && battle.hp[i] > 0);
       if (shieldBearer !== ti && shieldBearer !== -1 && Math.random() < 0.20) {
         battle.log.unshift("Séraphine dévie l'attaque avec son bouclier !");
         return 0;
       }
       let dmg = battle.guard ? Math.round(raw * 0.65) : raw;
+      if (battle.ultShield > 0) dmg = Math.round(dmg * (1 - battle.ultShield));
       const protection = teamSynergies().find((synergy) => synergy.guard);
       if (protection) {
         dmg = Math.round(dmg * (1 - protection.guard));
@@ -2092,9 +2108,83 @@ OS.registerApp({
       return dmg;
     }
 
+    const CLASS_ULTIMATE = {
+      Chevalier: { turns: 4, name: "Serment inébranlable", power: 1.45, shield: 0.12 },
+      Berserker: { turns: 3, name: "Rage du dernier rempart", power: 2.45 },
+      Mage: { turns: 4, name: "Déluge arcanique", power: 2.05, gauge: 16 },
+      Archer: { turns: 3, name: "Pluie perforante", power: 2.1 },
+      "Rôdeur": { turns: 3, name: "Pas du prédateur", power: 1.65, dodge: 1 },
+      "Héros": { turns: 4, name: "Éveil du protagoniste", power: 1.8, gauge: 10 },
+      Soigneur: { turns: 4, name: "Sanctuaire vivant", power: 0.65, heal: 0.16 },
+      Défenseur: { turns: 5, name: "Bastion absolu", power: 1.0, shield: 0.22 },
+      Tueur: { turns: 3, name: "Sentence du géant", power: 2.8, execute: 1.2 },
+      Artificier: { turns: 4, name: "Surcharge de l’atelier", power: 1.55, teamAtk: 0.10 },
+      Druide: { turns: 4, name: "Floraison primordiale", power: 1.0, heal: 0.12 },
+      Occultiste: { turns: 4, name: "Éclipse du voile", power: 1.9, curse: 1 },
+    };
+    function resolveHeroUltimates() {
+      if (!Array.isArray(battle.heroUltimates)) battle.heroUltimates = battle.units.map(() => 0);
+      battle.units.forEach((unit, i) => {
+        if (battle.hp[i] <= 0) return;
+        const spec = CLASS_ULTIMATE[unit.cls] || CLASS_ULTIMATE.Héros;
+        battle.heroUltimates[i] = (battle.heroUltimates[i] || 0) + 1;
+        if (battle.heroUltimates[i] < spec.turns) return;
+        battle.heroUltimates[i] = 0;
+        if (spec.heal) {
+          aliveIdx().forEach(j => { battle.hp[j] = Math.min(battle.units[j].hp, battle.hp[j] + Math.round(battle.units[j].hp * spec.heal)); });
+          battle.log.unshift(unit.name + " déclenche " + spec.name + " : l’équipe récupère des PV.");
+        }
+        if (spec.shield) { battle.ultShield = Math.max(battle.ultShield || 0, spec.shield); battle.log.unshift(unit.name + " déclenche " + spec.name + " : bouclier d’équipe."); }
+        if (spec.dodge) battle.ultDodge = Math.max(battle.ultDodge || 0, spec.dodge);
+        if (spec.teamAtk) battle.ultAtk = Math.max(battle.ultAtk || 0, spec.teamAtk);
+        if (spec.gauge) battle.gauge = Math.min(100, battle.gauge + spec.gauge);
+        if (spec.curse) battle.curse = Math.min(4, (battle.curse || 0) + spec.curse);
+        if (spec.power && battle.enemy.hp > 0) {
+          let mult = spec.power;
+          if (spec.execute && battle.enemy.hp / battle.enemy.maxHp < 0.35) mult *= spec.execute;
+          const dmg = Math.round(unit.atk * mult * teamAtkMult() * (1 + (unitFx(unit).dmg || 0) / 100));
+          hitEnemy(dmg, unit.name, spec.name, unit.cls === "Mage" || unit.cls === "Occultiste" ? "arcane" : unit.cls === "Druide" ? "nature" : unit.cls === "Berserker" ? "feu" : null);
+          OS.sfx.play("ult");
+        }
+      });
+    }
+    function resolveEnemyUltimate() {
+      if (!battle || battle.enemy.hp <= 0) return;
+      const targets = aliveIdx();
+      if (!targets.length) return;
+      const type = battle.enemy.type;
+      const spec = ({
+        Brute: ["Impact sismique", 1.1], Assassin: ["Exécution silencieuse", 1.2],
+        Sorcier: ["Cataclysme", 0.45], Capitaine: ["Ordre de massacre", 0.9],
+        Golem: ["Écrasement tellurique", 1.15], Oracle: ["Jugement des marées", 0.7],
+        Muraille: ["Bélier du bastion", 0.95], Invocateur: ["Légion des ombres", 0.8],
+        Fantassin: ["Frappe de cohorte", 0.85], Nécromant: ["Moisson des âmes", 0.9],
+        Banshee: ["Cri de l’outre-tombe", 0.7], Sanguinaire: ["Festin rouge", 1.2],
+        "Colosse de givre": ["Hiver éternel", 0.75], Duelliste: ["Lame du jugement", 1.1],
+        Artilleur: ["Pluie de braises", 0.5], Alchimiste: ["Grand mélange", 0.65],
+        Sentinelle: ["Prisme inviolable", 0.9], Prédateur: ["Chasse ultime", 1.2],
+        Chronomancien: ["Arrêt du temps", 0.75]
+      })[type] || ["Ravage", 0.9];
+      battle.log.unshift("⚠ ULTIME ENNEMI — " + spec[0] + " !");
+      if (["Sorcier", "Artilleur", "Chronomancien"].includes(type)) {
+        targets.forEach(i => attackAlly(i, Math.round(battle.enemy.atk * spec[1])));
+        if (type === "Chronomancien") battle.gauge = Math.max(0, battle.gauge - 20);
+      } else {
+        const target = targets.slice().sort((a,b) => battle.hp[a] / battle.units[a].hp - battle.hp[b] / battle.units[b].hp)[0];
+        attackAlly(target, Math.round(battle.enemy.atk * spec[1]));
+      }
+      if (["Oracle", "Nécromant", "Alchimiste"].includes(type)) battle.enemy.hp = Math.min(battle.enemy.maxHp, battle.enemy.hp + Math.round(battle.enemy.maxHp * 0.08));
+      OS.sfx.play("ult");
+    }
+
     function enemyTurn() {
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
+      battle.turn = (battle.turn || 0) + 1;
+      resolveHeroUltimates();
+      if (battle.enemy.hp <= 0) return endBattle(true);
+      if (!battle.staggered && battle.turn % 4 === 0) resolveEnemyUltimate();
+      if (!aliveIdx().length) return endBattle(false);
       // Une rupture annule la riposte annoncée, mais n'efface pas les dégâts périodiques.
       if (battle.staggered) {
         battle.staggered = false;
@@ -2197,12 +2287,54 @@ OS.registerApp({
           attackAlly(ti, Math.round(battle.enemy.atk * (0.8 + Math.random() * 0.25)));
           break;
         }
+        case "Duelliste":
+          ti = targets.slice().sort((a,b) => battle.units[b].atk - battle.units[a].atk)[0];
+          attackAlly(ti, Math.round(battle.enemy.atk * 1.05));
+          battle.enemy.critBoost = 1;
+          battle.log.unshift("Danse des lames : le Duelliste prépare une frappe critique.");
+          break;
+        case "Artilleur":
+          battle.log.unshift("Barrage incandescent : toute l’équipe est visée !");
+          targets.forEach(i => attackAlly(i, Math.round(battle.enemy.atk * 0.48)));
+          break;
+        case "Alchimiste": {
+          battle.poison = Math.min(3, (battle.poison || 0) + 1);
+          const heal = Math.round(battle.enemy.maxHp * 0.025);
+          battle.enemy.hp = Math.min(battle.enemy.maxHp, battle.enemy.hp + heal);
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.75));
+          battle.log.unshift("Transmutation : poison ×" + battle.poison + " · +" + heal + " PV.");
+          break;
+        }
+        case "Sentinelle":
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.8));
+          battle.enemy.guardTurns = 1;
+          battle.log.unshift("Formation prismatique : la Sentinelle se protège.");
+          break;
+        case "Prédateur": {
+          const injured = targets.slice().sort((a,b) => battle.hp[a] / battle.units[a].hp - battle.hp[b] / battle.units[b].hp);
+          ti = injured[0];
+          attackAlly(ti, Math.round(battle.enemy.atk * 1.25));
+          battle.enemy.atk = Math.round(battle.enemy.atk * 1.03);
+          break;
+        }
+        case "Chronomancien":
+          battle.gauge = Math.max(0, battle.gauge - 18);
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.82));
+          battle.log.unshift("Distorsion temporelle : −18 % de jauge.");
+          break;
         default: {
           const tk = targets.filter((i) => battle.units[i].cls === "Tueur");
           if (tk.length && Math.random() < 0.6) ti = tk[0];
           else ti = targets[Math.floor(Math.random() * targets.length)];
           attackAlly(ti, Math.round(battle.enemy.atk * 0.9 * (0.8 + Math.random() * 0.4)));
         }
+      }
+      if (battle.poison > 0 && battle.enemy.hp > 0) {
+        aliveIdx().forEach(i => { const pd = Math.round(battle.units[i].hp * 0.025 * battle.poison); battle.hp[i] = Math.max(0, battle.hp[i] - pd); });
+        battle.log.unshift("Poison alchimique : l’équipe subit des dégâts périodiques.");
       }
       if (battle.burn > 0 && battle.enemy.hp > 0) {
         const burnDmg = Math.round(battle.enemy.maxHp * 0.04 * battle.burn);
@@ -2235,6 +2367,8 @@ OS.registerApp({
         }
       }
       if (!aliveIdx().length) return endBattle(false);
+      battle.ultShield = Math.max(0, (battle.ultShield || 0) - 1);
+      if (battle.enemy.guardTurns) battle.enemy.guardTurns--;
       battle.guard = false;
       battle.intent = enemyIntent(battle.enemy.type);
       newHand();
