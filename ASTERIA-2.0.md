@@ -140,3 +140,8 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Les portraits individuels sont raccordés aux cartes de la Collection, de l'Équipe, de l'Entraînement, aux fiches Personnages et au panneau ennemi en combat.
 - Les tests smoke vérifient la présence de chaque identifiant de portrait, l'affichage du roster complet et le rendu du portrait ennemi.
 - Les anciens portraits de classes et d'ennemis restent présents comme ressources de compatibilité ; les nouveaux visuels ne modifient pas les sauvegardes.
+
+
+## Laboratoire d'entraînement libre
+
+Le menu Entraînement permet de sélectionner n'importe lequel des héros du roster, possédé ou non, puis de lancer un combat contre un ennemi choisi aléatoirement parmi les noms et archétypes du bestiaire. La cible possède une réserve de PV de simulation et ne perd jamais de PV : elle est immortelle. Elle ne riposte pas, afin de permettre de tester les compétences sans interruption. Un bouton de sortie reste disponible pendant le combat et ramène immédiatement au menu Entraînement. Aucun gain ni coût de progression n'est appliqué.
