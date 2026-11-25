@@ -1729,11 +1729,11 @@ OS.registerApp({
     function hitEnemy(base, actorName, label, element) {
       let dmg = base;
       const affinity = ENEMY_AFFINITY[battle.enemy.type] || "arcane";
-      if (element && element !== "arcane" && element !== "vent") {
-        if (ELEMENTS[element] && ELEMENTS[element].strong === affinity) {
+      if (element && ELEMENTS[element]) {
+        if (ELEMENTS[element].strong === affinity) {
           dmg = Math.round(dmg * 1.25);
           battle.log.unshift("✧ Faiblesse exploitée : " + ELEMENTS[element].label + " frappe fort contre " + ELEMENTS[affinity].label + " (+25 %)");
-        } else if (ELEMENTS[element] && ELEMENTS[element].weak === affinity) {
+        } else if (ELEMENTS[element].weak === affinity) {
           dmg = Math.round(dmg * 0.80);
           battle.log.unshift("Résistance : " + ELEMENTS[affinity].label + " atténue " + ELEMENTS[element].label + " (−20 %)");
         }
@@ -2213,6 +2213,11 @@ OS.registerApp({
         intentBox.className = "battle-intent";
         intentBox.innerHTML = '<strong>⚠ Prochaine action : ' + intent[0] + '</strong><span>' + intent[1] + '</span>';
         view.appendChild(intentBox);
+        const affinity = ENEMY_AFFINITY[battle.enemy.type] || "arcane";
+        const affinityBox = document.createElement("div");
+        affinityBox.className = "battle-affinity";
+        affinityBox.textContent = ELEMENTS[affinity].icon + " Affinité ennemie : " + ELEMENTS[affinity].label + " · Faiblesse : " + (ELEMENTS[affinity].weak ? ELEMENTS[ELEMENTS[affinity].weak].label : "aucune");
+        view.appendChild(affinityBox);
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
