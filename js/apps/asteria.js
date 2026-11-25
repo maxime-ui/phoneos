@@ -534,8 +534,8 @@ function evoSkillLabelsOf(u, evo) {
   return out;
 }
 
-function heroPortraitMarkup(id) { return '<svg class="portrait-art hero-art" viewBox="0 0 120 140" role="img" aria-label="Portrait de héros"><use href="assets/asteria/heroes/roster.svg#hero-' + id + '"></use></svg>'; }
-    function enemyPortraitMarkup(type, name) { const known = ENEMY_NAMES.includes(name); const key = known ? 'enemy-' + name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : 'enemy-type-' + ({ "Colosse de givre": "colosse-de-givre", "Nécromant": "necromant" }[type] || type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); return '<svg class="portrait-art enemy-art" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + (name || type) + '"><use href="assets/asteria/enemies/bestiary.svg#' + key + '"></use></svg>'; }
+function heroPortraitMarkup(id) { const href = "./assets/asteria/heroes/roster.svg#hero-" + id; return '<svg class="portrait-art hero-art" viewBox="0 0 120 140" width="120" height="140" role="img" aria-label="Portrait de héros" xmlns:xlink="http://www.w3.org/1999/xlink"><use href="' + href + '" xlink:href="' + href + '"></use></svg>'; }
+    function enemyPortraitMarkup(type, name) { const known = ENEMY_NAMES.includes(name); const key = known ? 'enemy-' + name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : 'enemy-type-' + ({ "Colosse de givre": "colosse-de-givre", "Nécromant": "necromant" }[type] || type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); const href = "./assets/asteria/enemies/bestiary.svg#" + key; return '<svg class="portrait-art enemy-art" viewBox="0 0 120 140" width="120" height="140" role="img" aria-label="Portrait de ' + (name || type) + '" xmlns:xlink="http://www.w3.org/1999/xlink"><use href="' + href + '" xlink:href="' + href + '"></use></svg>'; }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
 OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
@@ -950,6 +950,61 @@ OS.registerApp({
       return results;
     }
 
+    function renderPortalDetails(cls, results) {
+      const panel = content.querySelector(".portal-detail") || document.createElement("div");
+      panel.className = "portal-detail";
+      panel.innerHTML = "";
+      const pool = UNITS.filter((u) => u.cls === cls && u.id !== "graal");
+      const weights = { 3: 0.05 * eventSsrBoost(), 2: 0.20, 1: 0.75 - (0.05 * eventSsrBoost() - 0.05) };
+      const actual = { 1: 0, 2: 0, 3: 0 };
+      [3, 2, 1].forEach((wanted) => {
+        const fallback = pool.filter((u) => u.r === wanted).length ? wanted : [2, 1, 3].find((r) => pool.some((u) => u.r === r));
+        if (fallback) actual[fallback] += weights[wanted];
+      });
+      const heading = document.createElement("div");
+      heading.className = "portal-detail-head";
+      heading.innerHTML = "<strong>Portail " + cls + "</strong><span>Personnages disponibles dans ce portail</span>";
+      panel.appendChild(heading);
+      const rates = document.createElement("div");
+      rates.className = "portal-rates";
+      [3, 2, 1].forEach((r) => {
+        const chip = document.createElement("span");
+        chip.className = "portal-rate r" + r;
+        chip.textContent = RARITY[r].label + " · " + (actual[r] * 100).toFixed(1).replace(".", ",") + " %";
+        rates.appendChild(chip);
+      });
+      panel.appendChild(rates);
+      const list = document.createElement("div");
+      list.className = "roster col-grid portal-roster";
+      pool.slice().sort((a,b) => b.r-a.r || a.name.localeCompare(b.name)).forEach((u) => list.appendChild(unitCard(u)));
+      panel.appendChild(list);
+      const actions = document.createElement("div");
+      actions.className = "pull-row";
+      [1, 10].forEach((n) => {
+        const b = document.createElement("button");
+        b.className = "pull-btn";
+        b.textContent = "Invoquer " + (n === 1 ? "×1 — 5 ◆" : "×10 — 45 ◆");
+        b.addEventListener("click", () => {
+          const got = classPull(cls, n);
+          if (!got.length) return;
+          content.querySelector(".quartz-bar").replaceWith(quartzBar());
+          const portalBtn = [...content.querySelectorAll(".portal-btn")].find((x) => x.dataset.portal === cls);
+          if (portalBtn) portalBtn.innerHTML = "Portail " + cls + "<br><small>pity " + (save.pity[cls] || 0) + "/30</small>";
+          OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
+          renderPortalDetails(cls, got);
+        });
+        actions.appendChild(b);
+      });
+      panel.appendChild(actions);
+      if (results && results.length) {
+        const resultBox = document.createElement("div");
+        resultBox.className = "pull-results";
+        results.forEach((u) => resultBox.appendChild(unitCard(u)));
+        panel.appendChild(resultBox);
+      }
+      if (!panel.isConnected) content.appendChild(panel);
+    }
+
     function renderSummon() {
       setActiveTab(tabSummon);
       content.innerHTML = "";
@@ -977,19 +1032,11 @@ OS.registerApp({
       [...new Set(UNITS.map((u) => u.cls))].forEach((cls) => {
         const b = document.createElement("button");
         b.className = "pull-btn portal-btn";
+        b.dataset.portal = cls;
         b.innerHTML = "Portail " + cls + "<br><small>pity " + (save.pity[cls] || 0) + "/30</small>";
         b.addEventListener("click", () => {
-          const got = classPull(cls, 1);
-          if (!got.length) return;
-          content.querySelector(".quartz-bar").replaceWith(quartzBar());
-          OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
-          grid.querySelectorAll(".portal-btn").forEach((btn, i) => {
-            const c = [...new Set(UNITS.map((u) => u.cls))][i];
-            btn.innerHTML = "Portail " + c + "<br><small>pity " + (save.pity[c] || 0) + "/30</small>";
-          });
-          const box = content.querySelector(".pull-results");
-          box.innerHTML = "";
-          got.forEach((u) => box.appendChild(unitCard(u)));
+          grid.querySelectorAll(".portal-btn").forEach((btn) => btn.classList.toggle("active", btn === b));
+          renderPortalDetails(cls);
         });
         grid.appendChild(b);
       });
@@ -1348,7 +1395,7 @@ OS.registerApp({
         card.classList.add("selectable");
         if (!save.owned[u.id]) card.classList.add("locked");
         if (trainPick === u.id) card.classList.add("in-team");
-        card.addEventListener("click", () => { trainPick = u.id; renderTraining(); });
+        card.addEventListener("click", () => { trainPick = u.id; startTrainingBattle(); });
         box.appendChild(card);
       });
 
@@ -1393,7 +1440,7 @@ OS.registerApp({
       battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
       newHand();
       OS.sfx.play("ult");
-      renderQuests();
+      renderBattle();
     }
 
     function recyclePanel() {
@@ -1428,6 +1475,8 @@ OS.registerApp({
     }
 
     /* ---------- Collection ---------- */
+
+    let collectionFilters = { cls: "all", rarity: "all", ownership: "all" };
 
     function renderCollection() {
       setActiveTab(tabCollection);
@@ -1470,13 +1519,33 @@ OS.registerApp({
       });
       content.appendChild(rew);
 
+      const filters = document.createElement("div");
+      filters.className = "collection-filters";
+      const makeFilter = (label, key, options) => {
+        const wrap = document.createElement("label");
+        wrap.className = "collection-filter";
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        const select = document.createElement("select");
+        options.forEach((o) => { const opt = document.createElement("option"); opt.value = o.value; opt.textContent = o.label; select.appendChild(opt); });
+        select.value = collectionFilters[key];
+        select.addEventListener("change", () => { collectionFilters[key] = select.value; renderCollection(); });
+        wrap.append(caption, select);
+        filters.appendChild(wrap);
+      };
+      makeFilter("Classe", "cls", [{value:"all",label:"Toutes les classes"}, ...[...new Set(UNITS.map((u)=>u.cls))].sort().map((v)=>({value:v,label:v}))]);
+      makeFilter("Rareté", "rarity", [{value:"all",label:"Toutes les raretés"}, ...Object.keys(RARITY).sort((a,b)=>Number(b)-Number(a)).map((v)=>({value:v,label:RARITY[v].label}))]);
+      makeFilter("Possession", "ownership", [{value:"all",label:"Tous les héros"}, {value:"owned",label:"Possédés"}, {value:"missing",label:"Non possédés"}]);
+      content.appendChild(filters);
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Tous les héros du jeu — les non possédés sont grisés (touchez un héros pour sa fiche)";
+      hint.textContent = "Tous les héros du jeu — touchez une carte pour ouvrir sa fiche";
       content.appendChild(hint);
       const grid = document.createElement("div");
       grid.className = "roster col-grid";
-      UNITS.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
+      const filteredUnits = UNITS.filter((u) => (collectionFilters.cls === "all" || u.cls === collectionFilters.cls) && (collectionFilters.rarity === "all" || String(u.r) === collectionFilters.rarity) && (collectionFilters.ownership === "all" || (collectionFilters.ownership === "owned" ? !!save.owned[u.id] : !save.owned[u.id])));
+      if (!filteredUnits.length) { const empty = document.createElement("div"); empty.className = "team-hint"; empty.textContent = "Aucun personnage ne correspond à ces filtres."; grid.appendChild(empty); }
+      filteredUnits.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
         if (save.owned[u.id]) {
           const card = unitCard(u);
           card.addEventListener("click", () => OS.heroes.open(u.id));
@@ -1539,6 +1608,11 @@ OS.registerApp({
       content.appendChild(row);
 
       if (battle) content.appendChild(battleView());
+    }
+
+    function renderBattle() {
+      if (battle && battle.mode === "train") renderTraining();
+      else renderQuests();
     }
 
     function enemyPortrait(type, name) { return enemyPortraitMarkup(type, name); }
@@ -1733,7 +1807,7 @@ OS.registerApp({
 
       if (battle.enemy.hp <= 0) return endBattle(true);
       if (battle.picks >= 3) enemyTurn();
-      renderQuests();
+      renderBattle();
     }
 
     function unitName(list) {
@@ -1816,7 +1890,7 @@ OS.registerApp({
       OS.sfx.play("ult");
       if (battle.enemy.hp <= 0) return endBattle(true);
       enemyTurn();
-      renderQuests();
+      renderBattle();
     }
 
     function attackAlly(ti, raw) {
@@ -2058,7 +2132,7 @@ OS.registerApp({
         battle.log.unshift("----- RAID · Phase " + battle.raidPhase + "/3 : " + ph.name + " -----");
         if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
         newHand();
-        renderQuests();
+        renderBattle();
         return;
       }
       let reward;
@@ -2151,7 +2225,7 @@ OS.registerApp({
       persist();
       battle.log.unshift(win ? "Victoire ! +" + reward + " ◆" : "Défaite… +" + reward + " ◆ (réconfort)");
       battle.over = true;
-      renderQuests();
+      renderBattle();
     }
 
     function advanceFloor() {
@@ -2172,7 +2246,7 @@ OS.registerApp({
       battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.09, battle.floor)) };
       battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
       newHand();
-      renderQuests();
+      renderBattle();
     }
 
     function bar(label, cur, max, cls) {
@@ -2342,7 +2416,7 @@ OS.registerApp({
           battle.picks++;
           battle.log.unshift("🛡 L'équipe se met en garde : les dégâts reçus sont réduits de 35 % jusqu'à la fin du tour ennemi.");
           if (battle.picks >= 3) enemyTurn();
-          renderQuests();
+          renderBattle();
         });
         actions.appendChild(guard);
         view.appendChild(actions);
