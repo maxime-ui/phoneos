@@ -72,6 +72,16 @@ OS.registerApp({
       }
       panel.appendChild(stats);
 
+      if (owned) {
+        const worn = Object.keys(D.RELICS || {}).filter((k) => sv.relicsEquip && sv.relicsEquip[k] === id && (sv.relics || {})[k] >= 1);
+        if (worn.length) {
+          const w = document.createElement("div");
+          w.className = "sheet-line";
+          w.innerHTML = "<small>💎 Reliques portées : " + worn.map((k) => D.RELICS[k].name).join(" · ") + "</small>";
+          panel.appendChild(w);
+        }
+      }
+
       const sk = D.SKILL_INFO[id];
       if (sk) {
         const s = document.createElement("div");

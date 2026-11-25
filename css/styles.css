@@ -587,6 +587,18 @@ body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }
 }
 .top-diff:hover { background: rgba(38,44,64,.95); }
 
+/* ---------- Équipement des reliques par héros ---------- */
+.relic-equip { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.relic-equip .relic-equip-select {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(20,25,38,.9);
+  color: #eef1f8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 /* ---------- Classement hebdo du raid ---------- */
 .raid-board { margin-top: 10px; }
 .raid-board-row {

@@ -36,7 +36,7 @@ difficulté en un clic, Enfer+ verrouillé tant que les 5 bannières manquent) e
 - Montée en niveau par doublons (+8 %/copie, plafond +96 %)
 - **Évolutions** (Forge dans l'onglet Équipe) : ★→★★★, +10 % ATK/PV par rang, **éveils par rang** (Éveil I jauge de départ, Éveil II dégâts + talent de classe, Éveil III talent + second talent de classe — 2 talents empilables, 20 talents de classe), **silhouettes évoluées** (aura, halo, couronne d'étoiles dorées, y compris dans les scènes)
 - **8 matières et items de butin** : Éclat d'acier (quêtes), Cœur de braise (Infini), Larme de la nuit (boss d'histoire), Couronne d'aube (Difficile→Enfer+), Sceau du dragon (Enfer+), Élixir de raid (Difficile, Infini tous les 5 étages, Enfer/Enfer+), **Poussière de relique** (toutes les victoires ordinaires) et **Cristal de relique** (boss hauts niveaux, phases du raid, étages multiples de 5)
-- **Reliquaire du raid v2** : 3 reliques d'équipe à **rangs progressifs N → R → SR → SSR** — stat principale croissante (ATK d'équipe, PV max, jauge de départ) et **sous-stats fixes débloquées rang après rang** (critique, renvoi, exécution, soins, esquive, Ultime/carte, croissance/tour), **améliorables avec Poussières (+ Cristaux)** droppées partout en jeu, et **3 bonus d'ensemble passifs** (Pacte du trio +4 % dégâts, Trinité du dragon +4 % dégâts +10 jauge, Harmonie parfaite +8 % dégâts pour 3 reliques Épiques+)
+- **Reliquaire du raid v2** : 3 reliques — Lame du Raid (ATK), Écaille du Dragon (PV), Étendard des trois phases (jauge d'Ultime) — **forgées puis équipées sur le héros de votre choix** (sélecteur par relique dans l'onglet Équipe), à **rangs progressifs N → R → SR → SSR** : stat principale croissante pour le héros porteur (ATK +10 → 30 %, PV +10 → 30 %, jauge de départ +15 → 24 %) et **sous-stats fixes débloquées rang après rang** (critique, renvoi, exécution, soins, esquive, Ultime/carte, croissance/tour, l'ATK d'équipe de l'Étendard), **améliorables avec Poussières (+ Cristaux)** droppées partout en jeu, et **3 bonus d'ensemble passifs** (Pacte du trio +4 % dégâts, Trinité du dragon +4 % dégâts +10 jauge, Harmonie parfaite +8 % dégâts pour 3 reliques Épiques+ — comptées seulement une fois équipées)
 
 **Modes**
 
@@ -72,7 +72,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (146 vérifications)
+test/smoke.test.js  Test de fumée (153 vérifications)
 test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ```
 
@@ -90,12 +90,12 @@ Le test de fumée simule l'ouverture de la page (barre d'apps, Astéria ouverte 
 les 4 apps, roster des 112 unités possédées, écran Collection (Graal grisé,
 récompense de complétion réclamée, clic → fiche détaillée dans l'app Personnages, retour, fiche du Graal non invoqué), réglages bonus (mode daltonien persisté,
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
-Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),
+Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées puis équipées à un héros chacune, ATK/PV du porteur renforcés uniquement une fois équipées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),
 Raid hebdomadaire (3 phases, coffre réclamé, −1 Élixir à l'entrée, silhouettes évoluées),
 Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, notifications, plein écran (bouton + raccourci F), sélecteur de difficulté et classement hebdo du raid, via jsdom :
 
 ```bash
 npm install jsdom   # uniquement pour le test
-node test/smoke.test.js    # 140 vérifications
+node test/smoke.test.js    # 153 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
 ```

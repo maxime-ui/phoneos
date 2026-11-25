@@ -113,17 +113,35 @@ setTimeout(() => {
   check("\u00c9caille du Dragon forgerable", !!armorLine && !armorLine.querySelector("button").disabled);
   if (armorLine) armorLine.querySelector("button").click();
   const saveRelic = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
-  check("\u00c9caille forge\u00e9e : \u221220 \u00c9clats, \u221215 C\u0153urs", saveRelic.relics.armure === 1 && saveRelic.loot.eclat === 971 && saveRelic.loot.coeur === 35);
+  check("Écaille forgée : −20 Éclats, −15 Cœurs", saveRelic.relics.armure === 1 && saveRelic.loot.eclat === 971 && saveRelic.loot.coeur === 35);
+  const armorLineE = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
+  const armorSel = armorLineE && armorLineE.querySelector(".relic-equip-select");
+  check("sélecteur d'équipement sur l'Écaille forgée", !!armorSel);
+  if (armorSel) { armorSel.value = "nerys"; armorSel.dispatchEvent(new window.Event("change")); }
+  check("Écaille équipée sur Nerys persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.armure === "nerys");
+  const nerysCard = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Nerys"));
+  check("Nerys : PV renforcés par l'Écaille portée", !!nerysCard && nerysCard.textContent.includes("PV"));
   const weaponLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("Lame du Raid"));
   check("Lame du Raid forgerable", !!weaponLine && !weaponLine.querySelector("button").disabled);
   if (weaponLine) weaponLine.querySelector("button").click();
   const saveRelic2 = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
   check("Lame forg\u00e9e et persist\u00e9e", saveRelic2.relics.arme === 1);
-  check("Lame : ATK de l'\u00e9quipe renforc\u00e9e (" + bronAtkBefore + " \u2192 " + bronAtkOf() + ")", bronAtkOf() > bronAtkBefore);
+  check("Lame forgée sans porteur : ATK de Bron inchangée (" + bronAtkBefore + ")", bronAtkOf() === bronAtkBefore);
+  const weaponLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Lame du Raid"));
+  const weaponSel = weaponLine2 && weaponLine2.querySelector(".relic-equip-select");
+  check("sélecteur d'équipement sur la Lame", !!weaponSel);
+  if (weaponSel) { weaponSel.value = "bron"; weaponSel.dispatchEvent(new window.Event("change")); }
+  check("Lame équipée sur Bron persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.arme === "bron");
+  check("Lame portée par Bron : ATK renforcée (" + bronAtkBefore + " → " + bronAtkOf() + ")", bronAtkOf() > bronAtkBefore);
   const flagLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9tendard des trois phases"));
   check("\u00c9tendard forgerable (Couronnes + Sceaux en stock)", !!flagLine && !flagLine.querySelector("button").disabled);
   if (flagLine) flagLine.querySelector("button").click();
-  check("Étendard forgé, 3 reliques actives", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relics.etendard === 1 && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
+  const flagLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Étendard des trois phases"));
+  const flagSel = flagLine2 && flagLine2.querySelector(".relic-equip-select");
+  check("sélecteur d'équipement sur l'Étendard", !!flagSel);
+  if (flagSel) { flagSel.value = "edele"; flagSel.dispatchEvent(new window.Event("change")); }
+  const saveFlag = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  check("Étendard forgé et équipé, 3 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
 
   // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
   check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 2 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
@@ -136,7 +154,7 @@ setTimeout(() => {
   const saveUp = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
   check("Écaille passée en R (−10 Poussières)", saveUp.relics.armure === 2 && saveUp.loot.poussiere === 40);
   const armorLine3 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
-  check("Écaille R : chip rang, PV max +8 % et 1re sous-stat", !!armorLine3 && armorLine3.textContent.includes("R · Rare") && armorLine3.textContent.includes("PV max +8 %") && armorLine3.textContent.includes("Soins +4 %"));
+  check("Écaille R : chip rang, PV du héros +16 % et 1re sous-stat", !!armorLine3 && armorLine3.textContent.includes("R · Rare") && armorLine3.textContent.includes("PV du héros +16 %") && armorLine3.textContent.includes("Soins +4 %"));
 
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
   const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
@@ -212,7 +230,7 @@ setTimeout(() => {
   check("bouton quête facile présent", !!tierBtn);
   tierBtn.click();
   check("vue combat affichée", !!document.querySelector(".battle"));
-  check("jauge de d\u00e9part : Étendard N +15 et Trinité +10 = 25 %", document.querySelector(".gauge .hp-num") && document.querySelector(".gauge .hp-num").textContent === "25%");
+  check("jauge de départ : Étendard N portée par Edele (+15) + Trinité +10 = 25 %", document.querySelector(".gauge .hp-num") && document.querySelector(".gauge .hp-num").textContent === "25%");
   const beforeLog = document.querySelectorAll(".battle-log > div").length;
   for (let draws = 0; draws < 3; draws++) {
     const card = document.querySelector(".hand-card:not([disabled])");

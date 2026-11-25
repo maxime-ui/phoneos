@@ -113,9 +113,11 @@ Les jauge de départ viennent des éveils et de l'Étendard (+ max 60 % en quêt
 
 ## 4. Le Reliquaire (système de reliques v2)
 
-Dans l'onglet **Équipe**, après la Forge. Trois reliques **d'équipe** (elles
-touchent tous vos héros) : Lame du Raid, Écaille du Dragon, Étendard des trois
-phases.
+Dans l'onglet **Équipe**, après la Forge. Trois reliques — Lame du Raid, Écaille du Dragon, Étendard des trois
+phases — **forgées puis équipées sur UN héros de votre choix** : une relique n'a
+d'effet que sur son porteur (stats personnelles). Une relique forgée mais non
+équipée ne fait rien ; chaque relique peut être déplacée, retirée, réattribuée à
+volonté via le sélecteur « Équiper sur : ».
 
 ### 4.1 Forger et améliorer
 
@@ -129,23 +131,23 @@ phases.
 
 | Rang | Lame du Raid | Écaille du Dragon | Étendard des trois phases |
 |---|---|---|---|
-| N | ATK d'équipe +4 % | PV max +4 % | Jauge de départ +15 % |
-| R | +8 % **· Critique +3 %** | +8 % **· Soins +4 %** | +18 % **· ATK d'équipe +3 %** |
-| SR | +12 % · Crit +3 % **· Renvoi +5 %** | +12 % · Soins +4 % **· Esquive +4 %** | +21 % · ATK +3 % **· Ultime/carte +2 %** |
-| SSR | +16 % · Crit +3 % · Renvoi +5 % **· Exécution +8 %** | +16 % · Soins +4 % · Esquive +4 % **· PV max +6 %** | +24 % · ATK +3 % · Ultime/carte +2 % **· Croissance +2 %/tour** |
+| N | ATK du héros +10 % | PV du héros +10 % | Jauge du héros +15 % |
+| R | +16 % **· Critique +3 %** | +16 % **· Soins +4 %** | +18 % **· ATK de l'équipe +3 %** |
+| SR | +22 % · Crit +3 % **· Renvoi +5 %** | +22 % · Soins +4 % **· Esquive +4 %** | +21 % · ATK équipe +3 % **· Ultime/carte +2 %** |
+| SSR | +30 % · Crit +3 % · Renvoi +5 % **· Exécution +8 %** | +30 % · Soins +4 % · Esquive +4 % **· PV du héros +6 %** | +24 % · ATK équipe +3 % · Ultime/carte +2 % **· Croissance +2 %/tour** |
 
 Coûts d'amélioration : N→R **10 Poussières** · R→SR **20 Poussières + 5 Cristaux** ·
 SR→SSR **40 Poussières + 12 Cristaux**.
-Un vieux « +8 % » des saves antérieures devient automatiquement un rang N (+4 %
-stat principale) : améliorez pour aller au-delà de l'ancien bonus.
+Les anciennes reliques vénérantes restent forgées au même rang (leurs stats sont
+désormais personnelles au héros équipé — pensez à choisir un porteur).
 
 ### 4.2 Bonus d'ensemble (passifs supplémentaires)
 
 | Ensemble | Condition | Effet |
 |---|---|---|
-| **Pacte du trio** | 2 reliques forgées | Dégâts +4 % |
-| **Trinité du dragon** | 3 reliques forgées | Dégâts +4 % et jauge de départ +10 % |
-| **Harmonie parfaite** | 3 reliques en rang Épique (SR) ou + | Dégâts +8 % |
+| **Pacte du trio** | 2 reliques forgées **et équipées** | Dégâts +4 % |
+| **Trinité du dragon** | 3 reliques forgées **et équipées** | Dégâts +4 % et jauge de départ +10 % |
+| **Harmonie parfaite** | 3 reliques équipées en rang Épique (SR) ou + | Dégâts +8 % |
 
 Le boost maximal : 8 %→16 % ATK, 4 %→14 % PV/via sous-stats, jauges,
 critique, renvoi, exécution, soins… soit environ **+30 % de puissance
@@ -232,8 +234,10 @@ compétiteurs — affichée dans la Salle des trophées.
    pour les Raid : Tueur de boss + Soigneur + Héros.
 4. **Butin** : n'oubliez pas les Cristaux — la Difficile quotidienne (1 Cristal)
    est la manière régulière de faire monter vos reliques au rang SR.
-5. **Bonus d'ensemble** : 3 reliques forgées = Trinité (+4 % dégâts, +10 jauge)
-   même en rang N : faites-les toutes d'abord, améliorez ensuite.
+5. **Bonus d'ensemble** : 3 reliques forgées ET équipées = Trinité (+4 % dégâts,
+   +10 jauge) même en rang N : équipez-les toutes d'abord, améliorez ensuite.
+   Astuce : Lame + Exécution SSR sur votre meilleur DPS, Écaille sur le Défenseur,
+   Étendard sur l'ouvreur (éveil ★ lui aussi).
 6. **Enfer+** : équipe ★★★ + reliques SR est un vrai minimum ; gardez des Élixirs
    de re-change (Échec = phase perdue).
 
@@ -244,6 +248,6 @@ compétiteurs — affichée dans la Salle des trophées.
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
 - Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
-- Tests : `node test/smoke.test.js` (146 vérifications) et
+- Tests : `node test/smoke.test.js` (153 vérifications) et
   `node test/stress.test.js` — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.

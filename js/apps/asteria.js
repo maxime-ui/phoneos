@@ -304,9 +304,9 @@
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
     const RELICS = {
-      arme: { name: "Lame du Raid", effect: "ATK pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
-      armure: { name: "Écaille du Dragon", effect: "PV pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
-      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ", cost: { couronne: 12, sceau: 5 } },
+      arme: { name: "Lame du Raid", effect: "ATK du héros équipé", cost: { couronne: 8, larme: 10 } },
+      armure: { name: "Écaille du Dragon", effect: "PV du héros équipé", cost: { eclat: 20, coeur: 15 } },
+      etendard: { name: "Étendard des trois phases", effect: "Jauge d’Ultime du héros", cost: { couronne: 12, sceau: 5 } },
     };
     const RELIC_TIERS = [
       { key: "N", label: "Normale", color: "#7d869c" },
@@ -315,9 +315,9 @@
       { key: "SSR", label: "Légendaire", color: "#e3b23c" },
     ];
     const RELIC_MAIN = {
-      arme: { stat: "teamAtk", label: "ATK d'équipe", values: [4, 8, 12, 16] },
-      armure: { stat: "hp", label: "PV max", values: [4, 8, 12, 16] },
-      etendard: { stat: "jaugeInit", label: "Jauge de départ", values: [15, 18, 21, 24] },
+      arme: { stat: "atk", label: "ATK du héros", values: [10, 16, 22, 30] },
+      armure: { stat: "hp", label: "PV du héros", values: [10, 16, 22, 30] },
+      etendard: { stat: "jaugeInit", label: "Jauge du héros", values: [15, 18, 21, 24] },
     };
     const RELIC_SUBS = {
       arme: [{ crit: 3 }, { renvoi: 5 }, { execute: 8 }],
@@ -325,12 +325,12 @@
       etendard: [{ teamAtk: 3 }, { gauge: 2 }, { growth: 2 }],
     };
     const RELIC_SETS = [
-      { id: "trio", name: "Pacte du trio", need: 2, fx: { dmg: 4 }, desc: "2 reliques forgées : dégâts +4 %" },
-      { id: "trinite", name: "Trinité du dragon", need: 3, fx: { dmg: 4, jaugeInit: 10 }, desc: "3 reliques forgées : dégâts +4 % et jauge de départ +10 %" },
-      { id: "harmonie", name: "Harmonie parfaite", need: 3, sameTier: 3, fx: { dmg: 8 }, desc: "3 reliques en rang Épique ou + : dégâts +8 %" },
+      { id: "trio", name: "Pacte du trio", need: 2, fx: { dmg: 4 }, desc: "2 reliques forgées et équipées : dégâts +4 %" },
+      { id: "trinite", name: "Trinité du dragon", need: 3, fx: { dmg: 4, jaugeInit: 10 }, desc: "3 reliques forgées et équipées : dégâts +4 % et jauge de départ +10 %" },
+      { id: "harmonie", name: "Harmonie parfaite", need: 3, sameTier: 3, fx: { dmg: 8 }, desc: "3 reliques équipées en rang Épique ou + : dégâts +8 %" },
     ];
     const RELIC_UP = { 2: { poussiere: 10 }, 3: { poussiere: 20, cristal: 5 }, 4: { poussiere: 40, cristal: 12 } };
-    const RELIC_STAT_LABELS = { dmg: "Dégâts", crit: "Critique", esquive: "Esquive", renvoi: "Renvoi", execute: "Exécution", heal: "Soins", gauge: "Ultime par carte", growth: "Croissance/tour", teamAtk: "ATK d'équipe", hp: "PV max", jaugeInit: "Jauge de départ" };
+    const RELIC_STAT_LABELS = { dmg: "Dégâts", crit: "Critique", esquive: "Esquive", renvoi: "Renvoi", execute: "Exécution", heal: "Soins", gauge: "Ultime par carte", growth: "Croissance/tour", teamAtk: "ATK d’équipe", hp: "PV du héros", jaugeInit: "Jauge du héros", atk: "ATK du héros" };
 /* ---------- Calculs d'unité partagés (snapshot = {owned, evo, relics}) ---------- */
 
 function coreFx(u, sv) {
@@ -358,22 +358,39 @@ function relicTierOf(sv, k) {
   return Math.min(Math.max(0, Math.round(Number((sv.relics || {})[k]) || 0)), 4);
 }
 
+function equipOf(sv) {
+  const eq = (sv && sv.relicsEquip) || {};
+  const out = {};
+  Object.keys(RELIC_MAIN).forEach((k) => { out[k] = (eq[k] && sv.owned && sv.owned[eq[k]]) ? eq[k] : null; });
+  return out;
+}
+
 function relicFxOf(sv) {
   const fx = {};
   const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
-  const tiers = {};
-  Object.keys(RELIC_MAIN).forEach((k) => { tiers[k] = relicTierOf(sv, k); });
-  const forged = Object.keys(tiers).filter((k) => tiers[k] >= 1);
-  forged.forEach((k) => {
-    const main = RELIC_MAIN[k];
-    add(main.stat, main.values[tiers[k] - 1]);
-    RELIC_SUBS[k].slice(0, tiers[k] - 1).forEach((sub) => Object.keys(sub).forEach((s2) => add(s2, sub[s2])));
-  });
+  const eq = equipOf(sv);
+  const worn = Object.keys(RELIC_MAIN).filter((k) => relicTierOf(sv, k) >= 1 && eq[k]);
   RELIC_SETS.forEach((set) => {
-    const count = forged.length;
-    if (count < set.need) return;
-    if (set.sameTier && !(count === 3 && forged.every((k) => tiers[k] >= set.sameTier))) return;
+    if (worn.length < set.need) return;
+    if (set.sameTier && !(worn.length === 3 && worn.every((k) => relicTierOf(sv, k) >= set.sameTier))) return;
     Object.keys(set.fx).forEach((k) => add(k, set.fx[k]));
+  });
+  const ft = relicTierOf(sv, "etendard");
+  if (eq.etendard && ft >= 2) RELIC_SUBS.etendard.slice(0, ft - 1).forEach((sub) => { if (sub.teamAtk) add("teamAtk", sub.teamAtk); });
+  return fx;
+}
+
+function heroRelicFx(sv, heroId) {
+  const fx = {};
+  const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
+  const eq = equipOf(sv);
+  Object.keys(RELIC_MAIN).forEach((k) => {
+    if (eq[k] !== heroId) return;
+    const tier = relicTierOf(sv, k);
+    if (tier < 1) return;
+    const main = RELIC_MAIN[k];
+    add(main.stat, main.values[tier - 1]);
+    RELIC_SUBS[k].slice(0, tier - 1).forEach((sub) => Object.keys(sub).forEach((s2) => { if (s2 !== "teamAtk") add(s2, sub[s2]); }));
   });
   return fx;
 }
@@ -384,8 +401,9 @@ function corePower(u, sv) {
   const evo = (sv.evo && sv.evo[u.id]) || 0;
   const em = 1 + 0.10 * evo;
   const rfx = relicFxOf(sv);
-  const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (1 + (rfx.hp || 0) / 100);
-  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (1 + (rfx.teamAtk || 0) / 100)), hp: Math.round(u.hp * mult * em * hpFx) };
+  const hero = heroRelicFx(sv, u.id);
+  const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (1 + (hero.hp || 0) / 100);
+  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (1 + ((rfx.teamAtk || 0) + (hero.atk || 0)) / 100)), hp: Math.round(u.hp * mult * em * hpFx) };
 }
 
 function evoSkillLabelsOf(u, evo) {
@@ -403,7 +421,7 @@ function evoSkillLabelsOf(u, evo) {
 }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard };
 
 
 OS.registerApp({
@@ -420,12 +438,15 @@ OS.registerApp({
 
 
     function unitFx(u) {
-      const base = coreFx(u, save);
-      const rf = relicFxOf(save);
-      ["dmg", "crit", "esquive", "renvoi", "execute", "heal", "gauge", "growth"].forEach((k) => {
-        if (rf[k]) base[k] = (base[k] || 0) + rf[k];
+      const fx = coreFx(u, save);
+      const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
+      const teamDmg = relicFxOf(save).dmg;
+      if (teamDmg) add("dmg", teamDmg);
+      const hero = heroRelicFx(save, u.id);
+      ["jaugeInit", "crit", "esquive", "renvoi", "execute", "heal", "gauge", "growth"].forEach((k) => {
+        if (hero[k]) add(k, hero[k]);
       });
-      return base;
+      return fx;
     }
 
 
@@ -441,6 +462,10 @@ OS.registerApp({
 
 
     function unitPower(u) { return corePower(u, save); }
+
+    function initialGauge(team, cap, extra) {
+      return Math.min(cap, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0) + (extra || 0));
+    }
 
     let infiniteBest = OS.store.get("infinite-best", 0);
 
@@ -459,6 +484,11 @@ OS.registerApp({
     if (!save.loot) save.loot = {};
     if (!save.evo) save.evo = {};
     if (!save.relics) save.relics = {};
+    if (!save.relicsEquip) save.relicsEquip = {};
+    Object.keys(RELIC_MAIN).forEach((k) => {
+      const wornId = save.relicsEquip[k];
+      if (wornId && (!save.owned || !save.owned[wornId])) save.relicsEquip[k] = null;
+    });
     function persist() { OS.store.set("asteria", save); }
 
     let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "moyen" });
@@ -939,8 +969,37 @@ OS.registerApp({
 
       line.innerHTML =
         '<div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
-        (tier < 1 ? '<div class="forge-evo">' + rel.effect + " (au rang N)</div>" : "<div class='forge-evo'><b>✓ Forgée</b> — active sur l’équipe</div>") +
+        (tier < 1 ? '<div class="forge-evo">' + rel.effect + " (au rang N)</div>" : "") +
         statsTxt + actionTxt;
+
+      if (tier >= 1) {
+        const wornId = save.relicsEquip[k] || "";
+        const holder = wornId ? byId(wornId) : null;
+        const status = document.createElement("div");
+        status.className = "forge-evo relic-equip";
+        status.innerHTML = "<b>✓ Forgée</b> — " + (holder ? "💎 " + holder.name : "aucun porteur");
+        const lbl = document.createElement("span");
+        lbl.textContent = "      Équiper sur : ";
+        const sel = document.createElement("select");
+        sel.className = "relic-equip-select";
+        ["", ...Object.keys(save.owned || {})].forEach((id) => {
+          const un = id ? byId(id) : null;
+          if (id && !un) return;
+          const op = document.createElement("option");
+          op.value = id;
+          op.textContent = un ? un.name : "— aucun —";
+          sel.appendChild(op);
+        });
+        sel.value = wornId;
+        sel.addEventListener("change", () => {
+          save.relicsEquip[k] = sel.value || null;
+          persist();
+          renderTeam();
+        });
+        status.appendChild(lbl);
+        status.appendChild(sel);
+        line.appendChild(status);
+      }
 
       if (btn) {
         const b = document.createElement("button");
@@ -963,7 +1022,7 @@ OS.registerApp({
       const wrap = document.createElement("div");
       wrap.className = "forge-panel relic-panel";
       const h = document.createElement("h3");
-      h.textContent = "Reliquaire du raid — bonus communs à toute l'équipe";
+      h.textContent = "Reliquaire du raid — chaque relique s’équipe sur un héros";
       wrap.appendChild(h);
       wrap.appendChild(relicLine("arme"));
       wrap.appendChild(relicLine("armure"));
@@ -973,7 +1032,7 @@ OS.registerApp({
       h2.textContent = "Bonus d'ensemble";
       wrap.appendChild(h2);
       RELIC_SETS.forEach((set) => {
-        const forged = Object.keys(RELIC_MAIN).filter((k) => relicTierOf(save, k) >= 1);
+        const forged = Object.keys(RELIC_MAIN).filter((k) => relicTierOf(save, k) >= 1 && equipOf(save)[k]);
         const ok = forged.length >= set.need && (!set.sameTier || forged.every((k) => relicTierOf(save, k) >= set.sameTier));
         const line = document.createElement("div");
         line.className = "forge-line relic-line set-line" + (ok ? " ready" : "");
@@ -1185,7 +1244,7 @@ OS.registerApp({
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0));
+      battle.gauge = initialGauge(team, 60);
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
@@ -1218,7 +1277,7 @@ OS.registerApp({
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
       if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0));
+      battle.gauge = initialGauge(team, 60);
       OS.sfx.play("ult");
       renderQuests();
     }
@@ -2299,7 +2358,7 @@ OS.registerApp({
         diffLabel: d.label,
         units: team,
         hp: team.map((u) => u.hp),
-        gauge: Math.min(100, (fx.gauge || 0) + (relicFxOf(save).jaugeInit || 0)),
+        gauge: initialGauge(team, 100, fx.gauge || 0),
         picks: 0,
         curse: 0,
         burn: 0,
