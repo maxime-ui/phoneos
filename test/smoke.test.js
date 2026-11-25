@@ -285,6 +285,11 @@ setTimeout(() => {
   check("collection affiche les " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
   check("chaque carte de héros possède un portrait individuel", document.querySelectorAll(".col-grid .unit-card .hero-art use").length === unitIds.length);
   check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
+  check("filtres Collection classe/rareté/possession présents", document.querySelectorAll(".collection-filters select").length === 3);
+  const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
+  ownershipFilter.value = "missing"; ownershipFilter.dispatchEvent(new Event("change"));
+  check("filtre non possédés appliqué", document.querySelectorAll(".col-grid .unit-card").length === 1 && document.querySelector(".col-grid .unit-card.locked"));
+  ownershipFilter.value = "all"; ownershipFilter.dispatchEvent(new Event("change"));
   check("progression 132 / " + (unitIds.length) + " affichée", document.body.textContent.includes("132 / " + unitIds.length));
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
@@ -330,9 +335,13 @@ setTimeout(() => {
   const healerPortal = [...document.querySelectorAll(".portal-grid .portal-btn")].find((b) => b.textContent.includes("Soigneur"));
   check("portail Soigneur présent", !!healerPortal);
   if (healerPortal) healerPortal.click();
+  check("clic portail : aperçu des héros et probabilités affiché", !!document.querySelector(".portal-detail") && document.querySelectorAll(".portal-detail .portal-rate").length === 3 && document.querySelectorAll(".portal-detail .portal-roster .unit-card").length > 0);
+  check("ouvrir un portail ne consomme pas de quartz", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350);
+  const portalSummon = [...document.querySelectorAll(".portal-detail .pull-btn")].find((b) => b.textContent.includes("×1"));
+  if (portalSummon) portalSummon.click();
   const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
-  check("portail : −5 ◆ et pity persistée", saveAfterPortal.quartz === 345 && saveAfterPortal.pity["Soigneur"] >= 1);
-  const portalCard = document.querySelector(".pull-results .unit-card");
+  check("invocation depuis portail : −5 ◆ et pity persistée", saveAfterPortal.quartz === 345 && saveAfterPortal.pity["Soigneur"] >= 1);
+  const portalCard = document.querySelector(".portal-detail .pull-results .unit-card");
   check("portail : personnage Soigneur invoqué", !!portalCard && portalCard.querySelector(".unit-cls").textContent.includes("Soigneur"));
 
   // Missions quotidiennes : seed contrôlé pour aujourd'hui (date réelle, même jour)
@@ -666,6 +675,7 @@ setTimeout(() => {
   check("entraînement : tous les héros affichés", document.querySelectorAll(".roster .unit-card").length === unitIds.length);
   const graalCardT = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.textContent.includes("Astrée, Héritière des braises"));
   if (graalCardT) graalCardT.click();
+  check("clic héros : combat d'entraînement lancé immédiatement", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("cible immortelle"));
   check("héros non possédé sélectionnable", !!document.querySelector(".roster .unit-card.in-team"));
   const startTrain = [...document.querySelectorAll(".pull-row button")].find((b) => b.textContent.includes("mob aléatoire"));
   check("démarrage contre mob aléatoire proposé", !!startTrain && !startTrain.disabled);
