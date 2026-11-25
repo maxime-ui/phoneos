@@ -811,6 +811,13 @@ setTimeout(() => {
   check("duel : les attaques diminuent réellement les PV ennemis", enemyHpBefore > 0 && enemyHpAfter > 0 && enemyHpAfter < enemyHpBefore);
   check("duel : l'ennemi riposte et peut blesser le héros après 3 actions", heroHpBefore > 0 && heroHpAfter < heroHpBefore);
   check("duel : compteur de dégâts cumulés visible", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.toLowerCase().includes("dégâts cumulés"));
+  for (let action = 0; action < 9 && document.querySelector(".battle"); action++) {
+    const card = document.querySelector(".battle .hand-card:not([disabled])");
+    if (card) card.click();
+  }
+  const trainingLog = document.querySelector(".battle-log")?.textContent || "";
+  check("ultime de héros déclenché après son délai de classe", trainingLog.includes("Éveil du protagoniste"));
+  check("ultime ennemi déclenché au quatrième tour", trainingLog.includes("ULTIME ENNEMI"));
   const quitTraining = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Quitter le test"));
   check("sortie disponible pendant le combat", !!quitTraining);
   if (quitTraining) quitTraining.click();
