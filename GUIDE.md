@@ -98,7 +98,7 @@ La jauge de départ vient des éveils et de l'Étendard.
 | ★★★★ (Éveil IV) | **matériau de classe** (3/4/5 selon rareté) | Dégâts +6 % et jauge de départ +5 % |
 
 - +10 % ATK/PV par rang, cumulés aux doublons.
-- **20 talents de classe** au total — deux par classe, empilables.
+- **24 talents de classe** au total — deux par classe, empilables.
 - La silhouette du héros évolue : aura (★), halo (★★), couronne d'étoiles
   dorées (★★★) — visible en combat ET dans les scènes d'histoire.
 
@@ -106,7 +106,7 @@ La jauge de départ vient des éveils et de l'Étendard.
 
 Chaque classe a son **matériau d'éveil IV** : Insigne de Chevalier, Croc de
 Berserker, Rune de Mage, Plume d'Archer, Fleur de Rôdeur, Étoile du Héros,
-Baume de Soigneur, Rivet de Défenseur, Lame du Tueur.
+Baume de Soigneur, Rivet de Défenseur, Lame du Tueur, Noyau d’Artificier, Sève de Druide et Voile d’Occultiste.
 
 | Source | Gain |
 |---|---|
