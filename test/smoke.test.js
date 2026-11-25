@@ -302,6 +302,11 @@ setTimeout(() => {
   check("rangée vitesse des dialogues présente", speedBtns.length >= 2);
   if (instantBtn) instantBtn.click();
   check("vitesse des dialogues persistée (instant)", window.localStorage.getItem("phoneos:story-speed") === JSON.stringify("instant"));
+  const volumeSlider = document.querySelector(".settings-group input[type=range]");
+  check("curseur de volume présent", !!volumeSlider);
+  if (volumeSlider) { volumeSlider.value = "42"; volumeSlider.dispatchEvent(new window.Event("input", { bubbles: true })); }
+  check("curseur : volume persisté et appliqué au moteur", window.localStorage.getItem("phoneos:volume") === "42" && window.eval("OS").sfx.volume === 42);
+  check("curseur : valeur affichée actualisée", !!volumeSlider && volumeSlider.parentElement.textContent.includes("42 %"));
   window.eval("OS").openApp("asteria");
 
   // Portail de classe : coût 5 ◆ + pity persistée
@@ -663,14 +668,6 @@ setTimeout(() => {
   check("retour à la liste d'entraînement", document.body.textContent.includes("Adversaire d'entraînement") && !document.querySelector(".battle"));
 
   // Volume : réglage borné, persisté et transmis au moteur audio.
-  window.eval("OS").setVolume(37);
-  check("volume : valeur appliquée au moteur audio", window.eval("OS").sfx.volume === 37);
-  check("volume : valeur persistée", window.localStorage.getItem("phoneos:volume") === "37");
-  window.eval("OS").setVolume(140);
-  check("volume : valeur plafonnée à 100 %", window.eval("OS").sfx.volume === 100);
-  window.eval("OS").setVolume(60);
-
-  // Le contrôle du volume doit réellement piloter le gain maître audio.
   window.eval("OS").setVolume(37);
   check("volume : valeur appliquée au moteur audio", window.eval("OS").sfx.volume === 37);
   check("volume : valeur persistée", window.localStorage.getItem("phoneos:volume") === "37");
