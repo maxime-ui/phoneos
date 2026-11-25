@@ -2705,7 +2705,8 @@ OS.registerApp({
           const locked = i > storyState.done;
           const done = i < storyState.done;
           c.className = "story-chapter" + (locked ? " locked" : "") + (done ? " done" : "");
-          c.innerHTML = "<b>" + (i + 1) + ". " + ch.title + "</b><small>" + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small>";
+          const regionArt = ["foret", "volcan", "ruines"][i % 3];
+          c.innerHTML = '<span class="story-chapter-art"><img loading="lazy" alt="" src="assets/asteria/scenes/' + regionArt + '.svg"></span><span class="story-chapter-copy"><b>' + (i + 1) + ". " + ch.title + '</b><small>' + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small></span>";
           if (!locked) c.addEventListener("click", () => { OS.sfx.play("page"); openScene(i); });
           list.appendChild(c);
         });
