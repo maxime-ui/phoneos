@@ -100,17 +100,17 @@ setTimeout(() => {
   let bossTurns = 0;
   try {
     window.localStorage.setItem("phoneos:epopee-story", JSON.stringify({ done: 3, music: false }));
+    window.eval("OS").closeApp();
     for (let attempt = 0; attempt < 4; attempt++) {
-      if (!document.querySelector(".story-boss") && !document.querySelector(".battle")) {
-        OSref().openApp("epopee");
-        const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-        storyTab.click();
-        const chapter4 = [...document.querySelectorAll(".story-chapter")].find((b) => b.textContent.includes("Gortak"));
-        if (chapter4) chapter4.click();
-        for (let i = 0; i < 3; i++) { const next = [...document.querySelectorAll(".story-next")].pop(); if (next) next.click(); }
-      }
+      OSref().openApp("epopee");
+      const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+      storyTab.click();
+      const chapter4 = [...document.querySelectorAll(".story-chapter")].find((b) => b.textContent.includes("Gortak"));
+      if (chapter4) chapter4.click();
+      for (let i = 0; i < 3; i++) { const next = [...document.querySelectorAll(".story-next")].pop(); if (next) next.click(); }
       const bossBtn = document.querySelector(".story-boss");
       if (bossBtn) bossBtn.click();
+      if (!document.querySelector(".battle")) continue;
       for (let i = 0; i < 40 && document.querySelector(".battle") && !document.querySelector(".battle-result"); i++) {
         const card = document.querySelector(".hand-card");
         if (card) { card.dispatchEvent(new window.MouseEvent("click", { bubbles: true })); bossTurns++; }

@@ -459,7 +459,8 @@ OS.registerApp({
       }
       if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
 
-      battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8));
+      const gaugeGain = card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8;
+      battle.gauge = Math.min(100, battle.gauge + (battle.elite && battle.elite.id === "oriflamme" ? Math.round(gaugeGain * 0.8) : gaugeGain));
       if (u.id === "morgane") battle.gauge = Math.min(100, battle.gauge + 5);
       if (u.id === "ravenne" && card.type === "B") {
         battle.curse++;
@@ -519,17 +520,22 @@ OS.registerApp({
       const dodgeChance = target.id === "okatsuro" ? 0.40 : target.cls === "Rôdeur" ? 0.25 : 0;
       if (Math.random() < dodgeChance) {
         battle.log.unshift(target.name + " esquive la riposte !");
-        return;
+        return 0;
       }
       const shieldBearer = battle.units.findIndex((u, i) => u.id === "seraphine" && battle.hp[i] > 0);
       if (shieldBearer !== ti && shieldBearer !== -1 && Math.random() < 0.20) {
         battle.log.unshift("Séraphine dévie l'attaque avec son bouclier !");
-        return;
+        return 0;
       }
       let dmg = raw;
       if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
       battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
       battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
+      if (battle.elite && battle.elite.id === "siphon" && dmg > 0) {
+        const heal = Math.round(dmg * 0.5);
+        battle.enemy.hp = Math.min(battle.enemy.maxHp, battle.enemy.hp + heal);
+        battle.log.unshift("Siphon d'âmes : le boss absorbe " + heal + " PV");
+      }
 
       if (target.id === "gauvin" && battle.enemy.hp > 0) {
         hitEnemy(Math.round(dmg * 0.30), target.name, "serment d'acier (renvoi)");
@@ -544,6 +550,7 @@ OS.registerApp({
           battle.log.unshift("Valen rugit de douleur : +" + (battle.valenFury * 30) + " % d'ATK pour lui");
         }
       }
+      return dmg;
     }
 
     function enemyTurn() {
@@ -589,6 +596,27 @@ OS.registerApp({
         battle.log.unshift("Brûlure → " + burnDmg + " dégâts");
         if (battle.enemy.hp <= 0) return endBattle(true);
       }
+      if (battle.enemy.hp > 0 && battle.elite) {
+        if (battle.elite.id === "meute") {
+          const remaining = aliveIdx();
+          if (remaining.length) {
+            const t2 = remaining[Math.floor(Math.random() * remaining.length)];
+            attackAlly(t2, Math.round(battle.enemy.atk * 0.6 * (0.8 + Math.random() * 0.4)));
+            battle.log.unshift("Chasse en meute : un second prédateur bondit !");
+          }
+        } else if (battle.elite.id === "massue") {
+          battle.enemy.atk = Math.round(battle.enemy.atk * 1.06);
+          battle.log.unshift("Massue écrasante : +6 % d'ATK (cumul)");
+        } else if (battle.elite.id === "oriflamme") {
+          battle.log.unshift("L'oriflamme maudite opprime vos cartes…");
+        } else if (battle.elite.id === "souffle") {
+          battle.log.unshift("Souffle de cendres : l'équipe étouffe sous les braises !");
+          aliveIdx().forEach((i) => {
+            battle.hp[i] = Math.max(0, battle.hp[i] - Math.round(battle.units[i].hp * 0.03));
+            if (battle.hp[i] === 0) battle.log.unshift(battle.units[i].name + " tombe K.O.");
+          });
+        }
+      }
       if (!aliveIdx().length) return endBattle(false);
       newHand();
     }
@@ -608,7 +636,17 @@ OS.registerApp({
         if (win) {
           battle.freshWin = storyState.done <= battle.storyChapter;
           storyState.done = Math.max(storyState.done, battle.storyChapter + 1);
+          storyState.bossBeaten = storyState.bossBeaten || {};
+          const diffIdx = Math.min(Object.keys(STORY_DIFFS).indexOf(storyState.diff), 4);
+          const before = bannersUnlockedCount();
+          storyState.bossBeaten[battle.storyChapter] = Math.max(storyState.bossBeaten[battle.storyChapter] || 0, diffIdx + 1);
           persistStory();
+          const after = bannersUnlockedCount();
+          if (after > before) {
+            save.quartz += 25;
+            persist();
+            battle.log.unshift("✦ Bannière débloquée : " + BANNERS[after - 1].name + " (+25 ◆)");
+          }
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
         }
       } else {
@@ -765,7 +803,35 @@ OS.registerApp({
       difficile: { label: "Difficile", hp: 1.6, atk: 1.45, rw: 1.5 },
       impossible: { label: "Impossible", hp: 2.3, atk: 1.9, rw: 2.5 },
       enfer: { label: "Enfer", hp: 3.2, atk: 2.4, rw: 4 },
+      enferPlus: { label: "Enfer+", hp: 4.2, atk: 3, rw: 6, elite: true },
     };
+
+    const BANNERS = [
+      { name: "Bannière du Chemin", color: "#2f7a4f" },
+      { name: "Bannière des Trois Volontaires", color: "#2f5f8f" },
+      { name: "Bannière du Serment", color: "#a06a2c" },
+      { name: "Bannière de la Caldeira", color: "#8c2f39" },
+      { name: "Bannière du Dragon Rouge", color: "#d33b2f" },
+    ];
+    const BOSS_IDX = [1, 3, 6, 9, 11];
+
+    function bannersUnlockedCount() {
+      const beaten = storyState.bossBeaten || {};
+      let n = 0;
+      for (let t = 0; t < BANNERS.length; t++) {
+        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= t + 1)) n = t + 1;
+      }
+      return n;
+    }
+
+    function bannerSvg(color, dim) {
+      return '<svg class="mini-banner" viewBox="0 0 40 56" preserveAspectRatio="xMidYMid meet">' +
+        '<path d="M6 2 H34 V44 L20 34 L6 44 Z" fill="' + color + '" opacity="' + (dim ? "0.28" : "1") + '"/>' +
+        '<path d="M6 2 H34 V44 L20 34 L6 44 Z" fill="none" stroke="#0e1322"/>' +
+        '<rect x="6" y="8" width="28" height="3" fill="#e3b23c" opacity="' + (dim ? "0.15" : "0.85") + '"/>' +
+        '<circle cx="20" cy="20" r="5.5" fill="#e3b23c" opacity="' + (dim ? "0.15" : "0.9") + '"/>' +
+        '</svg>';
+    }
 
     const STORY = [
       /* --- Acte I --- */
@@ -793,7 +859,7 @@ OS.registerApp({
         events: [
           { t: "À la lisière du bois, les corbeaux se taisent d'un seul coup. Des ombres encerclent le chemin, lourdes de chaînes." },
           { s: "Orwen", t: "Ce ne sont pas des loups. Ces ombres portaient des chaînes — quelqu'un les envoie sur nous." },
-          { boss: { name: "Meute d'ombre", type: "Brute", hp: 9000, atk: 1050, reward: 12, intro: "La meute se jette sur vous. Premier vrai combat." } },
+          { boss: { name: "Meute d'ombre", type: "Brute", hp: 9000, atk: 1050, reward: 12, elite: { id: "meute", name: "Chasse en meute", desc: "un second prédateur frappe chaque tour" }, intro: "La meute se jette sur vous. Premier vrai combat." } },
         ],
       },
       {
@@ -823,7 +889,7 @@ OS.registerApp({
           { s: "Dame Elise", t: "Voilà qui menait la meute. Un chef de guerre ceinturé de chaînes brisées, congédié des guerres du sud." },
           { s: "Gortak", t: "PETITS SEIGNEURS. VOTRE ROI VOUS A VENDUS. MOI, JE VOUS OFFRE LA GUERRE." },
           { s: "Orwen", t: "Il annonce ça comme un cadeau. Répondons-lui." },
-          { boss: { name: "Gortak, chef de guerre", type: "Brute", hp: 14000, atk: 1350, reward: 18, intro: "Gortak lève sa masse de fer. Le sol en tremble." } },
+          { boss: { name: "Gortak, chef de guerre", type: "Brute", hp: 14000, atk: 1350, reward: 18, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" }, intro: "Gortak lève sa masse de fer. Le sol en tremble." } },
         ],
       },
       /* --- Acte II --- */
@@ -866,7 +932,7 @@ OS.registerApp({
         events: [
           { t: "Les urnes du sanctuaire se fissurent. Une voix froide monte de la poussière — une voix qui a oublié d'être humaine." },
           { s: "Séraphine", t: "Un gardien corrompu. Il a veillé ici pendant des siècles, et il ne supporte plus d'être réveillé." },
-          { boss: { name: "Spectre des urnes", type: "Sorcier", hp: 24000, atk: 1800, reward: 25, intro: "Le spectre embrase le parvis de runes bleues." } },
+          { boss: { name: "Spectre des urnes", type: "Sorcier", hp: 24000, atk: 1800, reward: 25, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" }, intro: "Le spectre embrase le parvis de runes bleues." } },
         ],
       },
       {
@@ -906,7 +972,7 @@ OS.registerApp({
         events: [
           { s: "Sir Gauvin", t: "Un chevalier de nos couleurs, figé face à la montagne. Il contemple le dragon depuis cent ans." },
           { s: "Le chevalier de cendres", t: "NI L'ORAGE, NI LA LAVE, NI LE DRAGON. VOUS SEULS RESSEMBLEZ À UNE MENACE." },
-          { boss: { name: "Chevalier de cendres", type: "Capitaine", hp: 30000, atk: 2050, reward: 30, intro: "Le chevalier lève son oriflamme brûlée : il gagnera en force à chaque tour." } },
+          { boss: { name: "Chevalier de cendres", type: "Capitaine", hp: 30000, atk: 2050, reward: 30, elite: { id: "oriflamme", name: "Oriflamme maudite", desc: "votre Ultime se charge 20 % moins vite" }, intro: "Le chevalier lève son oriflamme brûlée : il gagnera en force à chaque tour." } },
         ],
       },
       {
@@ -937,7 +1003,7 @@ OS.registerApp({
         ] },
         events: [
           { t: "Les ailes se déploient au-dessus du nuage de cendres. Chaque battement fait trembler le sol comme un tambour de guerre." },
-          { boss: { name: "Dragon des cendres", type: "Brute", hp: 42000, atk: 2250, reward: 40, intro: "Le boss final. Toute la légende tient dans ce combat." } },
+          { boss: { name: "Dragon des cendres", type: "Brute", hp: 42000, atk: 2250, reward: 40, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" }, intro: "Le boss final. Toute la légende tient dans ce combat." } },
           { t: "Le dragon s'effondre en une pluie de braises. Sur l'horizon, pour la première fois depuis un an, le ciel se lève clair." },
           { s: "Dame Elise", t: "La route du nord est ouverte. Qu'on raconte que trois volontaires l'ont faite." },
           { t: "FIN — La légende du dragon des cendres, qu'un village nomme encore celle des Trois Volontaires." },
@@ -1013,18 +1079,33 @@ OS.registerApp({
       hint.textContent = "Mode Histoire — trois volontaires sur la route du nord.";
       content.appendChild(hint);
 
+      const shelf = document.createElement("div");
+      shelf.className = "story-banners";
+      BANNERS.forEach((bn, t) => {
+        const slot = document.createElement("div");
+        const unlocked = bannersUnlockedCount() > t;
+        slot.className = "banner-slot" + (unlocked ? " unlocked" : " locked");
+        slot.innerHTML = bannerSvg(bn.color, !unlocked) + "<span>" + (unlocked ? bn.name : "Bannière scellée") + "</span>";
+        shelf.appendChild(slot);
+      });
+      content.appendChild(shelf);
+
       const diffTitle = document.createElement("div");
       diffTitle.className = "team-hint";
       diffTitle.textContent = "Difficulté des boss d'histoire :";
       content.appendChild(diffTitle);
       const diffRow = document.createElement("div");
       diffRow.className = "pull-row diff-row";
+      const banners = bannersUnlockedCount();
       Object.keys(STORY_DIFFS).forEach((key) => {
         const d = STORY_DIFFS[key];
         const b = document.createElement("button");
-        b.className = "pull-btn tier-" + key + (storyState.diff === key ? " active-diff" : "");
-        b.innerHTML = d.label + "<br><small>boss ×" + String(d.hp).replace(".", ",") + " · ◆ ×" + String(d.rw).replace(".", ",") + "</small>";
-        b.addEventListener("click", () => {
+        const locked = key === "enferPlus" && banners < BANNERS.length;
+        b.className = "pull-btn tier-" + key + (storyState.diff === key ? " active-diff" : "") + (locked ? " locked" : "");
+        b.innerHTML = locked
+          ? d.label + "<br><small>🔒 les 5 boss en Enfer</small>"
+          : d.label + "<br><small>boss ×" + String(d.hp).replace(".", ",") + " · ◆ ×" + String(d.rw).replace(".", ",") + "</small>";
+        if (!locked) b.addEventListener("click", () => {
           storyState.diff = key;
           persistStory();
           OS.sfx.play("ui");
@@ -1227,9 +1308,12 @@ OS.registerApp({
         valenFury: 0,
         log: [],
       };
+      if (d.elite && cfg.elite) battle.elite = cfg.elite;
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       battle.log.unshift("----- " + cfg.name + " [Boss d'histoire · " + d.label + "] · récompense : " + battle.enemy.reward + " ◆ -----");
+      if (battle.elite) battle.log.unshift("[Enfer+] " + battle.elite.name + " : " + battle.elite.desc);
+      if (battle.elite) OS.sfx.play("arcane");
       OS.sfx.play("ult");
       renderQuests();
     }

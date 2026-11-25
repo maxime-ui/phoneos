@@ -114,11 +114,17 @@ setTimeout(() => {
   check("trois actes affichés", document.querySelectorAll(".story-act").length === 3);
   check("toggle musique présent", !!document.querySelector(".music-toggle"));
 
-  check("5 difficultés affichées", document.querySelectorAll(".diff-row .pull-btn").length === 5);
+  check("6 difficultés affichées (Enfer+ inclus)", document.querySelectorAll(".diff-row .pull-btn").length === 6);
+  check("étagère de 5 bannières", document.querySelectorAll(".banner-slot").length === 5);
+  check("aucune bannière au départ", document.querySelectorAll(".banner-slot.locked").length === 5);
   const enferBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer"));
   check("bouton Enfer présent", !!enferBtn);
   if (enferBtn) enferBtn.click();
   check("difficulté Enfer persistée", (JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}").diff) === "enfer");
+  const epBtn0 = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
+  check("Enfer+ verrouillé au départ", epBtn0 && epBtn0.classList.contains("locked"));
+  if (epBtn0) epBtn0.click();
+  check("clic sur Enfer+ verrouillé sans effet", (JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}").diff) === "enfer");
 
   document.querySelector(".story-chapter").click();
   check("scène SVG visible", !!document.querySelector(".story-art"));
@@ -199,6 +205,31 @@ setTimeout(() => {
   const dragonHp = document.querySelector(".hp-row.enemy .hp-num");
   check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
+
+  // Bannières + déblocage d'Enfer+
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.bossBeaten={"1":5,"3":5,"6":5,"9":5,"11":5};localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  window.eval("OS").openApp("epopee");
+  const storyTab4 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+  storyTab4.click();
+  check("5 bannières débloquées", document.querySelectorAll(".banner-slot.unlocked").length === 5);
+  const epBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
+  check("Enfer+ débloqué", epBtn && !epBtn.classList.contains("locked"));
+  if (epBtn) epBtn.click();
+  check("Enfer+ sélectionné et persisté", (JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}").diff) === "enferPlus");
+
+  // Boss Gortak en Enfer+ : stats scalées + compétence élite
+  const chapter4p = [...document.querySelectorAll(".story-chapter")][3];
+  chapter4p.click();
+  for (let i = 0; i < 3; i++) {
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (next) next.click();
+  }
+  const bossBtnP = document.querySelector(".story-boss");
+  check("bouton boss Gortak (Enfer+) présent", !!bossBtnP);
+  if (bossBtnP) bossBtnP.click();
+  const bossHp = document.querySelector(".hp-row.enemy .hp-num");
+  check("boss Enfer+ scalé ×4,2 (> 50 000 PV)", !!bossHp && Number(bossHp.textContent.split("/")[0]) > 50000);
+  check("compétence élite affichée", document.body.textContent.includes("Massue écrasante"));
 
   window.eval("OS").closeApp();
 
