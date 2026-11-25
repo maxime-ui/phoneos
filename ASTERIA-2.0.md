@@ -169,9 +169,10 @@ Le menu Entraînement permet de sélectionner n'importe lequel des héros du ros
 
 ## Correctifs visuels et ergonomie — portraits, histoire et laboratoire
 
-- Les portraits utilisés par les cartes et le combat reposent désormais sur des fichiers SVG autonomes par classe et par archétype ennemi, plutôt que sur des références de symboles SVG externes.
-- Le Mode Histoire affiche les personnages présents dans chaque scène, un portrait associé au nom du locuteur et le portrait de l'ennemi avant l'engagement d'un boss.
-- Le laboratoire d'entraînement passe sur un écran de combat dédié après le choix du héros : il n'est plus nécessaire de faire défiler le roster complet pour atteindre le combat. Le retour au choix et la sortie du test restent accessibles.
-- Un compteur de dégâts cumulés rend les actions visibles pendant le test, tout en conservant la cible immortelle et l'absence de riposte/récompense.
+- Chaque héros et chaque ennemi dispose d'un portrait SVG individualisé, généré à partir de son identité : visage, coiffure, couleurs, tenue, ornements et détails propres. Les classes influencent l'équipement et les palettes ; les ennemis ont des silhouettes et des traits monstrueux spécifiques.
+- Le Mode Histoire affiche le casting de chaque chapitre avec les portraits des personnages qui prennent la parole, un portrait ennemi pour les antagonistes et des décors associés au lieu et à l'atmosphère du dialogue.
+- Le laboratoire passe sur un écran de duel dédié après le choix du héros. Les PV ennemis diminuent réellement, l'adversaire utilise ses attaques et ses mécaniques d'archétype, et le héros peut gagner ou être mis K.O.
+- Les statistiques adverses sont calibrées sur le héros sélectionné. Un compteur affiche les dégâts cumulés et les PV restants jusqu'au résultat.
+- Le duel n'accorde ni quartz, ni butin, ni progression de mission et ne modifie pas la sauvegarde. Le bouton de sortie reste accessible.
 - Les portails disposent d'un filtre Tous / Possédés / Non possédés, indépendant des filtres de la Collection.
-- Les tests smoke vérifient les chemins des portraits autonomes, le compteur du laboratoire et le filtre de possession des portails.
+- Les tests smoke vérifient l'unicité des portraits, les visuels de l'histoire, les dégâts réellement appliqués et la riposte de l'adversaire.
