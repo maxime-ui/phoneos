@@ -1841,6 +1841,7 @@ OS.registerApp({
     }
 
     function renderQuests() {
+      OS.sfx.setTheme("battle");
       setActiveTab(tabBattle);
       content.innerHTML = "";
       content.appendChild(quartzBar());
