@@ -280,7 +280,7 @@ setTimeout(() => {
   check("Étendard forgé et équipé, 8 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && document.querySelectorAll(".relic-line:not(.set-line)").length === 8 && [...document.querySelectorAll(".relic-line:not(.set-line)")].filter((l) => l.textContent.includes("Forgée")).length === 5);
 
   // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
-  check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 3 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
+  check("bonus d'ensemble : Pacte, Trinité et Cycle actifs", [...document.querySelectorAll(".set-line.ready")].length === 3 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
   check("Harmonie parfaite inactive (rang N)", [...document.querySelectorAll(".set-line.ready")].every((l) => !l.textContent.includes("Harmonie parfaite")));
   const armorLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
   check("Écaille N : principale affichée, aucune sous-stat", !!armorLine2 && armorLine2.textContent.includes("Principale") && armorLine2.textContent.includes("Aucune sous-stat"));
@@ -376,7 +376,7 @@ setTimeout(() => {
   // Portail de classe : coût 5 ◆ + pity persistée
   const summonTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
   summonTab.click();
-  check("portails de classe affichés (12)", document.querySelectorAll(".portal-grid .portal-btn").length === 9);
+  check("portails de classe affichés (12)", document.querySelectorAll(".portal-grid .portal-btn").length === 12);
   const healerPortal = [...document.querySelectorAll(".portal-grid .portal-btn")].find((b) => b.textContent.includes("Soigneur"));
   check("portail Soigneur présent", !!healerPortal);
   if (healerPortal) healerPortal.click();
