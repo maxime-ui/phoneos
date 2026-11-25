@@ -581,15 +581,22 @@ function heroRelicFx(sv, heroId) {
   return fx;
 }
 
+const HERO_CLASS_BALANCE = {
+  Chevalier: [1.00, 1.02], Berserker: [1.02, 0.96], Mage: [0.96, 1.02],
+  Archer: [0.98, 0.98], "Rôdeur": [0.98, 1.00], "Héros": [0.96, 1.00],
+  Soigneur: [1.00, 1.04], Défenseur: [1.00, 1.05], Tueur: [0.94, 0.96],
+  Artificier: [1.00, 1.00], Druide: [0.94, 1.06], Occultiste: [1.02, 0.96],
+};
 function corePower(u, sv) {
   const count = (sv.owned && sv.owned[u.id]) || 1;
+  const classBalance = HERO_CLASS_BALANCE[u.cls] || [1, 1];
   const mult = 1 + 0.08 * Math.min(count - 1, 12);
   const evo = Math.min((sv.evo && sv.evo[u.id]) || 0, 4);
   const em = 1 + 0.10 * evo;
   const rfx = relicFxOf(sv);
   const hero = heroRelicFx(sv, u.id);
   const hpFx = (1 + ((coreFx(u, sv).hp || 0) / 100)) * (1 + (hero.hp || 0) / 100);
-  return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (1 + ((rfx.teamAtk || 0) + (hero.atk || 0)) / 100)), hp: Math.round(u.hp * mult * em * hpFx) };
+  return { ...u, lvl: count, evo, atk: Math.round(u.atk * classBalance[0] * mult * em * (1 + ((rfx.teamAtk || 0) + (hero.atk || 0)) / 100)), hp: Math.round(u.hp * classBalance[1] * mult * em * hpFx) };
 }
 
 function evoSkillLabelsOf(u, evo) {
@@ -1298,6 +1305,7 @@ OS.registerApp({
       const p = unitPower(u);
       const stars = "★".repeat(p.evo || 0);
       const passive = PASSIVE_INFO[u.id];
+      const ultimate = CLASS_ULTIMATE[u.cls] || CLASS_ULTIMATE.Héros;
       const evoLines = evoSkillLabels(u, p.evo || 0);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
@@ -1308,6 +1316,7 @@ OS.registerApp({
         '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
         (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + '</div>' : "") +
         (passive ? '<div class="unit-passive">✧ Passif : ' + passive[0] + " — " + passive[1] + "</div>" : "") +
+        '<div class="unit-ultimate">✦ Ultime de classe : ' + ultimate.name + " · tous les " + ultimate.turns + " tours</div>" +
         (evoLines.length ? '<div class="unit-evo">' + evoLines.join("<br>") + "</div>" : "") +
         '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
       return c;
@@ -1994,13 +2003,13 @@ OS.registerApp({
       const gi = aliveIdx().includes(card.idx) ? card.idx : aliveIdx()[0];
       const unit = battle.units[gi];
 
-      if (u.cls === "Soigneur") {
+      if (u.cls === "Soigneur" || (u.cls === "Druide" && card.type === "B")) {
         trackDaily("cards");
         trackDaily("heals");
         const fdxHeal = (unitFx(u).heal || 0) / 100;
         const needy = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b]);
         const wi = needy[0];
-        const heal = Math.round(unit.atk * 0.30 * (u.id === "edele" ? 1.5 : 1) * (1 + fdxHeal) * (0.9 + Math.random() * 0.2));
+        const heal = Math.round(unit.atk * (u.cls === "Druide" ? 0.22 : 0.30) * (u.id === "edele" ? 1.5 : 1) * (1 + fdxHeal) * (0.9 + Math.random() * 0.2));
         const healed = Math.min(battle.units[wi].hp - battle.hp[wi], heal);
         battle.hp[wi] = Math.min(battle.units[wi].hp, battle.hp[wi] + heal);
         battle.log.unshift(unit.name + " soigne " + battle.units[wi].name + " (+" + healed + " PV)");
@@ -2021,18 +2030,19 @@ OS.registerApp({
       const critBase = (u.cls === "Archer" ? 0.35 : 0.25) + (fx.crit || 0) / 100;
       const critChance = card.type === "V" ? (u.id === "aelis" ? 0.5 + (fx.crit || 0) / 100 : critBase) : 0;
       if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
-      if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
+      if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.25);
+      if (u.cls === "Occultiste" && card.type === "B") { battle.curse = Math.min(4, (battle.curse || 0) + 1); battle.log.unshift(u.name + " tisse une marque du voile."); }
       if (u.cls === "Berserker") {
         const threshold = u.id === "draven" ? 0.7 : 0.5;
         const rage = (u.id === "draven" ? 1.3 : 1.2) + (fx.rage || 0) / 100;
         if (battle.hp[gi] < u.hp * threshold) dmg = Math.round(dmg * rage);
       }
-      if (u.cls === "Tueur") dmg = Math.round(dmg * (u.id === "orlan" ? 1.45 : 1.30));
+      if (u.cls === "Tueur") dmg = Math.round(dmg * (u.id === "orlan" ? 1.35 : 1.22));
       if (u.id === "raiden" && battle.enemy.hp / battle.enemy.maxHp < 0.25) dmg = Math.round(dmg * 2);
       const execBonus = ((fx.execute || 0) + (fx.fureur || 0)) / 100;
       if (execBonus && battle.enemy.hp / battle.enemy.maxHp < 0.5) dmg = Math.round(dmg * (1 + execBonus));
       if (u.cls === "Héros" && battle.heroStacks && battle.heroStacks[gi] > 1) {
-        const heroGrowth = ((u.id === "rin" || u.id === "graal") ? 0.08 : 0.05) + (fx.growth || 0) / 100;
+        const heroGrowth = ((u.id === "rin" || u.id === "graal") ? 0.05 : 0.04) + (fx.growth || 0) / 100;
         dmg = Math.round(dmg * (1 + heroGrowth * (battle.heroStacks[gi] - 1)));
       }
       if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
@@ -2056,7 +2066,7 @@ OS.registerApp({
       }
       if (u.id === "graal" && totalDealt > 0 && battle.enemy.hp > 0) {
         const graalTarget = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b])[0];
-        const healedD = Math.min(battle.units[graalTarget].hp - battle.hp[graalTarget], Math.round(totalDealt * 0.15 * (1 + (fx.heal || 0) / 100)));
+        const healedD = Math.min(battle.units[graalTarget].hp - battle.hp[graalTarget], Math.round(totalDealt * 0.08 * (1 + (fx.heal || 0) / 100)));
         if (healedD > 0) {
           battle.hp[graalTarget] += healedD;
           battle.log.unshift(unit.name + " canalise les braises : soigne " + battle.units[graalTarget].name + " (+" + healedD + " PV)");
@@ -2197,7 +2207,7 @@ OS.registerApp({
         gauvin: ["serment d'acier (renvoi)", 0.30],
         barrok: ["poing élastique (renvoi)", 0.35],
         takumi: ["garde-rapprochée (renvoi)", 0.20],
-        graal: ["héritage des braises (renvoi)", 0.35],
+        graal: ["héritage des braises (renvoi)", 0.20],
       };
       const renvoiPct = RENVOI[target.id] ? RENVOI[target.id][1] + (unitFx(target).renvoi || 0) / 100 : (unitFx(target).renvoi || 0) / 100;
       if (renvoiPct > 0 && battle.enemy.hp > 0) {
@@ -2784,6 +2794,12 @@ OS.registerApp({
           synergyBox.innerHTML = "<strong>Synergie active</strong><span>" + synergies.map((x) => x.name + " · " + x.desc).join(" / ") + "</span>";
           view.appendChild(synergyBox);
         }
+
+        const ultimateStatus = document.createElement("div");
+        ultimateStatus.className = "team-hint ultimate-status";
+        const charge = Array.isArray(battle.heroUltimates) ? battle.heroUltimates : battle.units.map(() => 0);
+        ultimateStatus.textContent = "Ultimes de classe : " + battle.units.map((unit, i) => { const spec = CLASS_ULTIMATE[unit.cls] || CLASS_ULTIMATE.Héros; return unit.name + " " + Math.min(charge[i] || 0, spec.turns) + "/" + spec.turns; }).join(" · ") + " | Ultime ennemi : " + (4 - ((battle.turn || 0) % 4)) + " tour(s)";
+        view.appendChild(ultimateStatus);
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
