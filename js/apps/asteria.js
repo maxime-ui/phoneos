@@ -955,7 +955,8 @@ OS.registerApp({
       panel.className = "portal-detail";
       panel.innerHTML = "";
       const pool = UNITS.filter((u) => u.cls === cls && u.id !== "graal");
-      const weights = { 3: 0.05 * eventSsrBoost(), 2: 0.20, 1: 0.75 - (0.05 * eventSsrBoost() - 0.05) };
+      const ssrRate = 0.05 * eventSsrBoost();
+      const weights = { 3: ssrRate, 2: 0.25 - ssrRate, 1: 0.75 };
       const actual = { 1: 0, 2: 0, 3: 0 };
       [3, 2, 1].forEach((wanted) => {
         const fallback = pool.filter((u) => u.r === wanted).length ? wanted : [2, 1, 3].find((r) => pool.some((u) => u.r === r));
@@ -974,6 +975,10 @@ OS.registerApp({
         rates.appendChild(chip);
       });
       panel.appendChild(rates);
+      const pity = document.createElement("div");
+      pity.className = "team-hint";
+      pity.textContent = "Pity du portail : " + (save.pity[cls] || 0) + "/30" + ((save.pity[cls] || 0) >= 29 ? " · prochain tirage SSR garanti" : " · SSR garanti au 30e tirage");
+      panel.appendChild(pity);
       const list = document.createElement("div");
       list.className = "roster col-grid portal-roster";
       pool.slice().sort((a,b) => b.r-a.r || a.name.localeCompare(b.name)).forEach((u) => list.appendChild(unitCard(u)));
@@ -1746,7 +1751,7 @@ OS.registerApp({
         if (u.id === "nadila") battle.gauge = Math.min(100, battle.gauge + 5);
         OS.sfx.play("heal");
         if (battle.picks >= 3) enemyTurn();
-        renderQuests();
+        renderBattle();
         return;
       }
 
@@ -2107,7 +2112,7 @@ OS.registerApp({
         battle.over = true;
         battle.log.unshift(win ? "Mannequin détruit ! Entraînement réussi (aucun gain)." : "Le mannequin tient bon… (aucun gain)");
         OS.sfx.play(win ? "victory" : "defeat");
-        renderQuests();
+        renderBattle();
         return;
       }
       if (win && battle.mode === "infini") return advanceFloor();
