@@ -169,7 +169,8 @@ OS.registerApp({
     let save = loadSave();
     function persist() { OS.store.set("epopee", save); }
 
-    let storyState = OS.store.get("epopee-story", { done: 0, music: false });
+    let storyState = OS.store.get("epopee-story", { done: 0, music: false, diff: "moyen" });
+    if (!storyState.diff) storyState.diff = "moyen";
     function persistStory() { OS.store.set("epopee-story", storyState); }
 
     /* ---------- Squelette UI ---------- */
@@ -684,7 +685,7 @@ OS.registerApp({
           view.appendChild(row);
         }
       } else {
-        const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor : battle.mode === "histoire" ? " · Boss d'histoire" : "";
+        const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
 
@@ -756,6 +757,14 @@ OS.registerApp({
       courage: { gauge: 50 },
       nuit: { gauge: 50 },
       os: { hpMult: 0.90 },
+    };
+
+    const STORY_DIFFS = {
+      facile: { label: "Facile", hp: 0.55, atk: 0.60, rw: 0.5 },
+      moyen: { label: "Moyen", hp: 1, atk: 1, rw: 1 },
+      difficile: { label: "Difficile", hp: 1.6, atk: 1.45, rw: 1.5 },
+      impossible: { label: "Impossible", hp: 2.3, atk: 1.9, rw: 2.5 },
+      enfer: { label: "Enfer", hp: 3.2, atk: 2.4, rw: 4 },
     };
 
     const STORY = [
@@ -1004,6 +1013,27 @@ OS.registerApp({
       hint.textContent = "Mode Histoire — trois volontaires sur la route du nord.";
       content.appendChild(hint);
 
+      const diffTitle = document.createElement("div");
+      diffTitle.className = "team-hint";
+      diffTitle.textContent = "Difficulté des boss d'histoire :";
+      content.appendChild(diffTitle);
+      const diffRow = document.createElement("div");
+      diffRow.className = "pull-row diff-row";
+      Object.keys(STORY_DIFFS).forEach((key) => {
+        const d = STORY_DIFFS[key];
+        const b = document.createElement("button");
+        b.className = "pull-btn tier-" + key + (storyState.diff === key ? " active-diff" : "");
+        b.innerHTML = d.label + "<br><small>boss ×" + String(d.hp).replace(".", ",") + " · ◆ ×" + String(d.rw).replace(".", ",") + "</small>";
+        b.addEventListener("click", () => {
+          storyState.diff = key;
+          persistStory();
+          OS.sfx.play("ui");
+          renderStory();
+        });
+        diffRow.appendChild(b);
+      });
+      content.appendChild(diffRow);
+
       if (storyState.blessing) {
         const bl = document.createElement("div");
         bl.className = "story-blessing";
@@ -1175,7 +1205,8 @@ OS.registerApp({
       const team = teamUnits();
       if (!team.length) { renderStory(); return; }
       const fx = BLESSING_FX[storyState.blessing] || {};
-      const hp = Math.round(cfg.hp * (fx.hpMult || 1));
+      const d = STORY_DIFFS[storyState.diff || "moyen"];
+      const hp = Math.round(cfg.hp * (fx.hpMult || 1) * d.hp);
       storyScene = { idx: storyScene ? storyScene.idx : 0, step: storyScene ? storyScene.step : 0 };
       battle = {
         mode: "histoire",
@@ -1185,7 +1216,8 @@ OS.registerApp({
         bossCfg: cfg,
         storyMult: fx.mult || 1,
         floor: storyScene.idx + 1,
-        enemy: { name: cfg.name, type: cfg.type, hp, maxHp: hp, atk: cfg.atk, reward: cfg.reward },
+        enemy: { name: cfg.name, type: cfg.type, hp, maxHp: hp, atk: Math.round(cfg.atk * d.atk), reward: Math.max(2, Math.round(cfg.reward * d.rw)) },
+        diffLabel: d.label,
         units: team,
         hp: team.map((u) => u.hp),
         gauge: fx.gauge || 0,
@@ -1197,7 +1229,7 @@ OS.registerApp({
       };
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
-      battle.log.unshift("----- " + cfg.name + " [Boss d'histoire] · récompense : " + cfg.reward + " ◆ -----");
+      battle.log.unshift("----- " + cfg.name + " [Boss d'histoire · " + d.label + "] · récompense : " + battle.enemy.reward + " ◆ -----");
       OS.sfx.play("ult");
       renderQuests();
     }

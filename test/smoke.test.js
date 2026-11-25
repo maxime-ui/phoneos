@@ -114,6 +114,12 @@ setTimeout(() => {
   check("trois actes affichés", document.querySelectorAll(".story-act").length === 3);
   check("toggle musique présent", !!document.querySelector(".music-toggle"));
 
+  check("5 difficultés affichées", document.querySelectorAll(".diff-row .pull-btn").length === 5);
+  const enferBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer"));
+  check("bouton Enfer présent", !!enferBtn);
+  if (enferBtn) enferBtn.click();
+  check("difficulté Enfer persistée", (JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}").diff) === "enfer");
+
   document.querySelector(".story-chapter").click();
   check("scène SVG visible", !!document.querySelector(".story-art"));
   check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
@@ -190,6 +196,9 @@ setTimeout(() => {
   check("bouton boss dragon présent", !!dragonBtn);
   if (dragonBtn) dragonBtn.click();
   check("boss final lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
+  const dragonHp = document.querySelector(".hp-row.enemy .hp-num");
+  check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
+  check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
 
   window.eval("OS").closeApp();
 

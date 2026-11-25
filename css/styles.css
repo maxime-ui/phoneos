@@ -690,6 +690,14 @@ button { font-family: inherit; }
 }
 .pull-btn small { color: rgba(255,255,255,.75); }
 .pull-btn.tier-infini { background: linear-gradient(135deg, #6b4f9e, #3d2f66); }
+.pull-btn.tier-facile { background: linear-gradient(135deg, #2f7a4f, #1b3a2a); }
+.pull-btn.tier-normal { background: linear-gradient(135deg, #2f5f8f, #1b2a44); }
+.pull-btn.tier-dur { background: linear-gradient(135deg, #a06a2c, #4a2f10); }
+.pull-btn.tier-difficile { background: linear-gradient(135deg, #a06a2c, #4a2f10); }
+.pull-btn.tier-impossible { background: linear-gradient(135deg, #8c2f39, #3a1420); }
+.pull-btn.tier-enfer { background: linear-gradient(135deg, #d33b2f, #2a0808); }
+.diff-row .pull-btn { flex: 1; font-size: 11px; padding: 8px 4px; }
+.pull-btn.active-diff { outline: 2px solid #e3b23c; }
 .unit-skill { font-size: 11px; color: #b9a5e8; font-style: italic; margin: 2px 0; }
 .pull-btn:active { filter: brightness(1.15); }
 .pull-btn.disabled { opacity: .45; pointer-events: none; }
