@@ -131,3 +131,12 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Les attaques ultimes utilisent le même pipeline de dégâts que les cartes : résistances d'archétype, malédiction et jauge de rupture sont appliquées de façon cohérente.
 - Le test de fumée couvre le bornage, la persistance et le raccord du volume au moteur audio.
 - Le moteur audio ignore les demandes répétées d'activation/désactivation de la musique et du mute ; cela évite de lancer plusieurs boucles lors des re-rendus du Mode Histoire. L'initialisation AudioContext échouée reste non bloquante.
+
+
+## Pack de portraits individuels — roster complet
+
+- Sprite vectoriel `assets/asteria/heroes/roster.svg` : un symbole SVG unique par héros (133 portraits distincts), indexé par identifiant stable.
+- Sprite vectoriel `assets/asteria/enemies/bestiary.svg` : 14 ennemis nommés et 13 archétypes de combat, chacun avec son propre symbole.
+- Les portraits individuels sont raccordés aux cartes de la Collection, de l'Équipe, de l'Entraînement, aux fiches Personnages et au panneau ennemi en combat.
+- Les tests smoke vérifient la présence de chaque identifiant de portrait, l'affichage du roster complet et le rendu du portrait ennemi.
+- Les anciens portraits de classes et d'ennemis restent présents comme ressources de compatibilité ; les nouveaux visuels ne modifient pas les sauvegardes.
