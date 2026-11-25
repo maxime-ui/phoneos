@@ -64,3 +64,15 @@ Aucun workflow GitHub Actions n'est configuré sur la branche au moment de la v�
 
 - Réinitialisation de la jauge de rupture, de l'état déséquilibré et de la garde entre les phases du raid.
 - Test de fumée : une ancienne sauvegarde est injectée avant le démarrage et son absence est vérifiée après le lancement v2.
+
+
+## Combat 2.0 — affinités et réactions élémentaires
+
+- Les trois familles de cartes portent désormais une signature élémentaire : Brut = Feu, Arcane = Arcane, Rapide = Vent.
+- Chaque type d'ennemi possède une affinité fixe et affichée pendant le combat, afin de rendre la préparation lisible.
+- Le cycle d'affinités Feu/Eau/Foudre/Nature/Terre applique +25 % sur une faiblesse et −20 % face à une résistance.
+- Enchaîner deux éléments différents déclenche une réaction (+15 % sur la frappe qui déclenche la réaction).
+- Arcane et Vent sont des éléments neutres dans le cycle : ils permettent de varier les cartes sans subir de pénalité.
+- Le système expose ses données via `OS.asteriaData.elementInfo()` et les tests de fumée vérifient la cohérence du catalogue.
+
+**Note d'équilibrage :** les cartes existantes n'utilisent actuellement que Feu, Arcane et Vent. Les autres éléments sont le socle des futures compétences, personnages et effets de terrain ; ils ne sont pas artificiellement attribués aux unités existantes.
