@@ -41,6 +41,11 @@ OS.registerApp({
       { id: "ravenne", name: "Ravenne", r: 3, cls: "Mage", atk: 1820, hp: 10000, cards: ["B", "B", "V"] },
       { id: "aelis", name: "Aelis aux mille flèches", r: 3, cls: "Archer", atk: 1900, hp: 9400, cards: ["V", "V", "R"] },
       { id: "kargan", name: "Kargan", r: 3, cls: "Berserker", atk: 2050, hp: 9200, cards: ["R", "R", "V"] },
+      /* --- Faction manga : légendes inspirées des archétypes --- */
+      { id: "kairo", name: "Kairo, l'enfant des dragons", r: 3, cls: "Héros", atk: 2000, hp: 10600, cards: ["R", "R", "B"] },
+      { id: "okatsuro", name: "Okatsuro", r: 3, cls: "Rôdeur", atk: 1920, hp: 9600, cards: ["V", "V", "B"] },
+      { id: "barrok", name: "Barrok le Caoutchouc", r: 3, cls: "Héros", atk: 1880, hp: 11200, cards: ["R", "V", "B"] },
+      { id: "enzo", name: "Enzo le Pyromane", r: 3, cls: "Mage", atk: 1850, hp: 9900, cards: ["B", "R", "R"] },
       /* --- SR (20 %) --- */
       { id: "elise", name: "Dame Elise", r: 2, cls: "Chevalier", atk: 1450, hp: 9500, cards: ["R", "B", "V"] },
       { id: "orwen", name: "Orwen", r: 2, cls: "Berserker", atk: 1700, hp: 8500, cards: ["R", "R", "V"] },
@@ -62,6 +67,10 @@ OS.registerApp({
       { id: "yvain", name: "Yvain", r: 2, cls: "Chevalier", atk: 1490, hp: 10000, cards: ["B", "B", "R"] },
       { id: "maeva", name: "Maéva", r: 2, cls: "Rôdeur", atk: 1510, hp: 8800, cards: ["V", "V", "B"] },
       { id: "coralie", name: "Coralie", r: 2, cls: "Mage", atk: 1380, hp: 9600, cards: ["V", "B", "B"] },
+      { id: "koharu", name: "Koharu", r: 2, cls: "Mage", atk: 1450, hp: 9500, cards: ["B", "V", "B"] },
+      { id: "daichi", name: "Daichi le briseur de titans", r: 2, cls: "Chevalier", atk: 1580, hp: 10200, cards: ["R", "B", "V"] },
+      { id: "akemi", name: "Akemi la Lame Rouge", r: 2, cls: "Rôdeur", atk: 1600, hp: 8400, cards: ["V", "R", "R"] },
+      { id: "ryoji", name: "Ryoji", r: 2, cls: "Berserker", atk: 1720, hp: 8600, cards: ["R", "R", "V"] },
       /* --- R (75 %) --- */
       { id: "bron", name: "Bron", r: 1, cls: "Berserker", atk: 1100, hp: 7000, cards: ["R", "R", "V"] },
       { id: "tilia", name: "Tilia", r: 1, cls: "Mage", atk: 950, hp: 7500, cards: ["B", "B", "V"] },
@@ -109,6 +118,10 @@ OS.registerApp({
       { id: "thea", name: "Théa", r: 1, cls: "Mage", atk: 970, hp: 7700, cards: ["B", "V", "V"] },
       { id: "ulric", name: "Ulric", r: 1, cls: "Berserker", atk: 1150, hp: 7300, cards: ["V", "R", "R"] },
       { id: "victoire", name: "Victoire", r: 1, cls: "Chevalier", atk: 1080, hp: 8000, cards: ["B", "V", "R"] },
+      { id: "isao", name: "Isao", r: 1, cls: "Chevalier", atk: 1060, hp: 8400, cards: ["B", "R", "V"] },
+      { id: "mei", name: "Mei", r: 1, cls: "Mage", atk: 980, hp: 7700, cards: ["B", "V", "B"] },
+      { id: "kenji", name: "Kenji", r: 1, cls: "Archer", atk: 1090, hp: 6800, cards: ["V", "R", "R"] },
+      { id: "sora", name: "Sora Takeda", r: 1, cls: "Rôdeur", atk: 1010, hp: 7300, cards: ["V", "V", "B"] },
     ];
 
     const CLASS_BONUS = {
@@ -117,6 +130,7 @@ OS.registerApp({
       Mage: "Arcane : dégâts +30 % et Ultime recharge plus vite",
       Archer: "Viseur : critiques à 35 % (au lieu de 25 %)",
       "Rôdeur": "Esquive : 25 % de chance d'éviter une riposte",
+      "Héros": "Protagoniste : +5 % de dégâts à chaque tour qui passe (montée en puissance)",
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
@@ -354,6 +368,7 @@ OS.registerApp({
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
       newHand();
+      battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
     }
 
@@ -366,6 +381,11 @@ OS.registerApp({
       }
       battle.hand = deck.slice(0, 5);
       battle.picks = 0;
+      if (battle.heroStacks) {
+        aliveIdx().forEach((i) => {
+          if (battle.heroStacks[i] >= 0) battle.heroStacks[i]++;
+        });
+      }
     }
 
     function aliveIdx() {
@@ -390,6 +410,7 @@ OS.registerApp({
       if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
       if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
       if (u.cls === "Berserker" && battle.hp[gi] < u.hp / 2) dmg = Math.round(dmg * 1.2);
+      if (battle.heroStacks && battle.heroStacks[gi] > 1) dmg = Math.round(dmg * (1 + 0.05 * (battle.heroStacks[gi] - 1)));
       if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
       battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
@@ -402,8 +423,10 @@ OS.registerApp({
 
     function useUltimate() {
       if (!battle || battle.gauge < 100 || battle.picks >= 3) return;
-      const strongest = battle.units[aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0]];
-      const dmg = Math.round(strongest.atk * 2.4 * (0.95 + Math.random() * 0.1));
+      const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
+      const strongest = battle.units[si];
+      const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + 0.05 * (battle.heroStacks[si] - 1)) : 1;
+      const dmg = Math.round(strongest.atk * 2.4 * heroMult * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
       battle.picks = 3;
