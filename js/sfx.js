@@ -16,6 +16,7 @@ OS.sfx = (() => {
       try {
         ctx = new AC();
       } catch {
+        ctx = null;
         return null;
       }
     }
@@ -134,7 +135,8 @@ OS.sfx = (() => {
     },
     get volume() { return volume; },
     setMuted(v) {
-      muted = v;
+      if (muted === !!v) return;
+      muted = !!v;
       OS.store.set("sound-muted", v);
       if (v && musicVoice) {
         clearTimeout(musicVoice);
@@ -144,6 +146,8 @@ OS.sfx = (() => {
       }
     },
     setMusic(on) {
+      on = !!on;
+      if (musicOn === on) return;
       musicOn = on;
       if (!on && musicVoice) {
         clearTimeout(musicVoice);
