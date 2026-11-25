@@ -1368,6 +1368,33 @@ OS.registerApp({
       hint.textContent = "Mode Entraînement — testez tous les héros, même non possédés. Aucun gain, aucune perte : pure simulation.";
       content.appendChild(hint);
 
+      const inTrain = !!(battle && battle.mode === "train" && !battle.over);
+      if (battle && battle.mode === "train") content.appendChild(battleView());
+
+      const pickHint = document.createElement("div");
+      pickHint.className = "team-hint" + (trainPick ? " picked-hero" : "");
+      pickHint.textContent = inTrain
+        ? "Combat d'entraînement en cours — la liste ci-dessous sera de retour à la fin du duel :"
+        : trainPick
+        ? "Héros testé : " + byId(trainPick).name + " — choisissez l'adversaire :"
+        : "Choisissez d'abord un héros dans la liste ci-dessous :";
+      content.appendChild(pickHint);
+
+      const oppTitle = document.createElement("h3");
+      oppTitle.textContent = "Adversaire d'entraînement";
+      content.appendChild(oppTitle);
+
+      const oppRow = document.createElement("div");
+      oppRow.className = "pull-row";
+      TRAIN_OPPONENTS.forEach((op) => {
+        const b = document.createElement("button");
+        b.className = "pull-btn tier-infini" + (inTrain || !trainPick ? " disabled" : "");
+        b.innerHTML = op.name + "<br><small>" + op.type + " · " + op.hp + " PV · atk " + op.atk + "</small>";
+        b.addEventListener("click", () => startTrainingBattle(op));
+        oppRow.appendChild(b);
+      });
+      content.appendChild(oppRow);
+
       const box = document.createElement("div");
       box.className = "roster";
       content.appendChild(box);
@@ -1381,21 +1408,6 @@ OS.registerApp({
         box.appendChild(card);
       });
 
-      const oppHint = document.createElement("div");
-      oppHint.className = "team-hint";
-      oppHint.textContent = "Adversaire d'entraînement :";
-      content.appendChild(oppHint);
-      const row = document.createElement("div");
-      row.className = "pull-row";
-      TRAIN_OPPONENTS.forEach((op) => {
-        const b = document.createElement("button");
-        b.className = "pull-btn tier-infini";
-        b.innerHTML = op.name + "<br><small>" + op.type + " · " + op.hp + " PV · atk " + op.atk + "</small>";
-        b.addEventListener("click", () => startTrainingBattle(op));
-        row.appendChild(b);
-      });
-      content.appendChild(row);
-      if (battle && battle.mode === "train" && battle.over) content.appendChild(battleView());
     }
 
     function startTrainingBattle(op) {
@@ -1426,7 +1438,7 @@ OS.registerApp({
       battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
       newHand();
       OS.sfx.play("ult");
-      renderQuests();
+      renderTraining();
     }
 
     function recyclePanel() {
@@ -2247,7 +2259,7 @@ OS.registerApp({
         battle.over = true;
         battle.log.unshift(win ? "Mannequin détruit ! Entraînement réussi (aucun gain)." : "Le mannequin tient bon… (aucun gain)");
         OS.sfx.play(win ? "victory" : "defeat");
-        renderQuests();
+        renderTraining();
         return;
       }
       if (win && battle.mode === "infini") return advanceFloor();

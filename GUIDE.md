@@ -298,8 +298,12 @@ compétiteurs — affichée dans la Salle des trophées.
 
 ## 8. Systèmes connexes
 
-- **Collection** (Astéria) : tout le roster, héros manquants grisés ; paliers de
-  25/50/75/100 % → +50/+100/+200/+500 ◆ ; touchez un héros → fiche détaillée.
+- **Collection** (Astéria) : tout le roster (154 héros), héros manquants grisés ; paliers de
+  25/50/75/100 % → +50/+100/+200/+500 ◆ ; touchez un héros → fiche détaillée. La page
+  **défile** dans son propre volet sous la barre d'apps — tous les héros sont atteignables.
+- **Entraînement** : choisissez le héros à tester dans la liste (même non possédés, sélection
+  rappelée en haut), puis lancez un duel face aux mannequins **affichés en haut de la page** ;
+  le combat se joue dans l'onglet lui-même (aucun gain, aucune perte, bouton d'abandon dédié).
 - **App Personnages** : fiche de chaque héros (portrait SVG unique, stats réelles, compétence, passif,
   éveils, talents, doublons, coût d'évolution suivante, comment invoquer les absents).
 - **Missions quotidiennes** : 3 missions par jour réel (cartes jouées, invocations,
