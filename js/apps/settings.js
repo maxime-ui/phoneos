@@ -109,6 +109,9 @@ OS.registerApp({
       vol.addEventListener("input", () => OS.setVolume(Number(vol.value)));
       rowV.appendChild(vol);
       sound.appendChild(rowV);
+      sound.appendChild(toggle("Musique de fond", "Une mélodie différente pour chaque menu", OS.sfx.musicPlaying, (v) => {
+        OS.sfx.setMusic(v);
+      }));
 
       const sys = group("Système");
       const about = document.createElement("div");

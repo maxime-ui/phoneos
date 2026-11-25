@@ -71,6 +71,18 @@ OS.art = (() => {
         weapon = `<rect x="${x + 13 * dir}" y="${y - 48}" width="3" height="36" fill="${color}" transform="rotate(${10 * dir} ${x + 14 * dir} ${y - 30})"/>
           <path d="M ${x - 2} ${y - 24} L ${x + 8 * dir} ${y - 10} L ${x - 2} ${y - 4} Z" fill="${color}" opacity="0.55"/>`;
         break;
+      case "Invocateur":
+        weapon = `<rect x="${x + 11 * dir}" y="${y - 34}" width="9" height="12" rx="1" fill="${color}" transform="rotate(${-8 * dir} ${x + 15 * dir} ${y - 28})"/>
+          <line x1="${x + 12 * dir}" y1="${y - 34}" x2="${x + 12 * dir}" y2="${y - 22}" stroke="#0e1420" stroke-width="0.8" transform="rotate(${-8 * dir} ${x + 15 * dir} ${y - 28})"/>
+          <circle cx="${x + 17 * dir}" cy="${y - 28}" r="2.2" fill="#b48cff"/>
+          <path d="M ${x - 4} ${y} Q ${x - 8 * dir} ${y - 14} ${x - 2 * dir} ${y - 24} Q ${x + 2 * dir} ${y - 16} ${x - 4} ${y} Z" fill="#3b2d63" opacity="0.75"/>`;
+        break;
+      case "Valkyrie":
+        weapon = `<line x1="${x + 12 * dir}" y1="${y - 56}" x2="${x + 12 * dir}" y2="${y - 4}" stroke="${color}" stroke-width="1.8"/>
+          <polygon points="${x + 12 * dir},${y - 62} ${x + 9.5 * dir},${y - 53} ${x + 14.5 * dir},${y - 53}" fill="${color}"/>
+          <path d="M ${x + 6 * dir} ${y - 44} Q ${x - 6 * dir} ${y - 50} ${x - 9 * dir} ${y - 36} Q ${x - 2 * dir} ${y - 40} ${x + 6 * dir} ${y - 40} Z" fill="${color}" opacity="0.45"/>
+          <path d="M ${x + 6 * dir} ${y - 40} Q ${x - 5 * dir} ${y - 42} ${x - 7 * dir} ${y - 32} Q ${x - 1 * dir} ${y - 36} ${x + 6 * dir} ${y - 36} Z" fill="#ffffff" opacity="0.28"/>`;
+        break;
       default:
         weapon = "";
     }

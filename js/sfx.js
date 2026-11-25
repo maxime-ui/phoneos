@@ -3,7 +3,7 @@
 
 OS.sfx = (() => {
   let ctx = null;
-  let musicOn = false;
+  let musicOn = !!(OS.store && OS.store.get("asteria-story", {}).music);
   let musicVoice = null;
   let muted = OS.store.get("sound-muted", false);
 
@@ -96,24 +96,49 @@ OS.sfx = (() => {
     }
   }
 
-  /* Musique : boucle chiptune pentatonique */
-  const SCALE = [220, 261.6, 293.7, 329.6, 392, 440, 523.3];
-  const MELODY = [0, 3, 5, 3, 7, 5, 3, 2, 0, 2, 3, 5, 3, 7, 10, 7, 5, 3, 2, 0, 2, 3, 7, 5];
-  const BASS = [110, 110, 130.8, 98];
+  /* Musique : une piste par menu (boucle chiptune pentatonique) */
+  const TRACKS = {
+    asteria: {
+      scale: [220, 261.6, 293.7, 329.6, 392, 440, 523.3],
+      melody: [0, 3, 5, 3, 7, 5, 3, 2, 0, 2, 3, 5, 3, 7, 10, 7, 5, 3, 2, 0, 2, 3, 7, 5],
+      bass: [110, 110, 130.8, 98],
+      tempo: 0.14,
+    },
+    heroes: {
+      scale: [261.6, 293.7, 329.6, 392, 440, 523.3, 587.3],
+      melody: [0, 2, 4, 2, 5, 4, 2, 1, 0, 1, 2, 4, 6, 4, 5, 2, 4, 2, 1, 0, 1, 2, 4, 6],
+      bass: [130.8, 130.8, 98, 87.3],
+      tempo: 0.12,
+    },
+    trophies: {
+      scale: [196, 233.1, 261.6, 311.1, 349.2, 392, 466.2],
+      melody: [0, 0, 3, 3, 5, 5, 3, 2, null, 0, 0, 3, 3, 5, 7, 5, null, 3, 2, 1, 0, 2, 3, 1],
+      bass: [98, 98, 116.5, 78],
+      tempo: 0.16,
+    },
+    settings: {
+      scale: [220, 246.9, 293.7, 329.6, 392, 440, 493.9],
+      melody: [5, null, 4, null, 2, null, 4, 5, null, 5, 4, null, 2, null, 1, 0, null, null, 5, null, 4, null, 2, null],
+      bass: [110, 87.3, 98, 110],
+      tempo: 0.18,
+    },
+  };
+  let currentTrack = "asteria";
   let bar = 0;
 
   function scheduleBar() {
     if (!musicOn || muted) return;
     const c = ac();
     if (!c) return;
-    const beat = 0.14 / Math.max(0.5, OS.store.get("game-speed", 1));
+    const tr = TRACKS[currentTrack] || TRACKS.asteria;
+    const beat = tr.tempo / Math.max(0.5, OS.store.get("game-speed", 1));
     for (let i = 0; i < 8; i++) {
-      const step = MELODY[(bar * 8 + i) % MELODY.length];
+      const step = tr.melody[(bar * 8 + i) % tr.melody.length];
       if (step !== null) {
-        beep({ freq: SCALE[step % SCALE.length] * (step >= 7 ? 2 : 1), dur: beat * 0.9, type: "triangle", vol: 0.045, music: true, delay: i * beat });
+        beep({ freq: tr.scale[step % tr.scale.length] * (step >= 7 ? 2 : 1), dur: beat * 0.9, type: "triangle", vol: 0.045, music: true, delay: i * beat });
       }
     }
-    beep({ freq: BASS[bar % BASS.length], dur: beat * 6, type: "sine", vol: 0.07, music: true });
+    beep({ freq: tr.bass[bar % tr.bass.length], dur: beat * 6, type: "sine", vol: 0.07, music: true });
     bar++;
     musicVoice = setTimeout(scheduleBar, beat * 8 * 1000);
   }
@@ -132,10 +157,23 @@ OS.sfx = (() => {
     },
     setMusic(on) {
       musicOn = on;
+      const st = OS.store.get("asteria-story", {});
+      st.music = on;
+      OS.store.set("asteria-story", st);
       if (!on && musicVoice) {
         clearTimeout(musicVoice);
         musicVoice = null;
       } else if (on) {
+        scheduleBar();
+      }
+    },
+    setTrack(id) {
+      if (!TRACKS[id] || id === currentTrack) return;
+      currentTrack = id;
+      bar = 0;
+      if (musicOn && musicVoice) {
+        clearTimeout(musicVoice);
+        musicVoice = null;
         scheduleBar();
       }
     },

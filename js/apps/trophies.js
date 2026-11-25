@@ -15,9 +15,17 @@ OS.registerApp({
       { name: "Bannière du Serment", color: "#a06a2c" },
       { name: "Bannière de la Caldeira", color: "#8c2f39" },
       { name: "Bannière du Dragon Rouge", color: "#d33b2f" },
+      { name: "Bannière du Général", color: "#4a4f60" },
+      { name: "Bannière de la Vouivre", color: "#3b6b6f" },
+      { name: "Bannière de l'Archonte", color: "#7d3bd4" },
     ];
-    const BOSS_IDX = [1, 3, 6, 9, 11];
+    const BOSS_IDX = [1, 3, 6, 9, 11, 12, 20, 21];
     const DIFFS = ["Facile", "Moyen", "Difficile", "Impossible", "Enfer", "Enfer+"];
+
+    function bannerUnlockedAt(t, b) {
+      if (t >= 5) return (b[BOSS_IDX[t]] || 0) >= 6;
+      return BOSS_IDX.every((i) => (b[i] || 0) >= t + 1);
+    }
 
     const story = OS.store.get("asteria-story", {});
     const gacha = OS.store.get("asteria", {});
@@ -50,7 +58,7 @@ OS.registerApp({
     shelf.className = "story-banners";
     let unlockedCount = 0;
     BANNERS.forEach((bn, t) => {
-      const unlocked = BOSS_IDX.every((i) => (beaten[i] || 0) >= t + 1);
+      const unlocked = bannerUnlockedAt(t, beaten);
       if (unlocked) unlockedCount++;
       const slot = document.createElement("div");
       slot.className = "banner-slot" + (unlocked ? " unlocked" : " locked");
@@ -60,7 +68,7 @@ OS.registerApp({
     wrap.appendChild(shelf);
     const shelfNote = document.createElement("div");
     shelfNote.className = "team-hint";
-    shelfNote.textContent = unlockedCount + " / " + BANNERS.length + " bannières — battez les 5 boss d'histoire au niveau affiché pour débloquer la suivante.";
+    shelfNote.textContent = unlockedCount + " / " + BANNERS.length + " bannières — les 5 bannières d'âge demandent tous les " + BOSS_IDX.length + " boss d'histoire à un palier de difficulté ; la bannière du Général, de la Vouivre et de l'Archonte demandent leur boss en Enfer+.";
     wrap.appendChild(shelfNote);
 
     const h2 = document.createElement("h3");
@@ -71,7 +79,7 @@ OS.registerApp({
     BOSS_IDX.forEach((i) => {
       const lvl = beaten[i] || 0;
       const line = document.createElement("div");
-      line.className = "trophies-record" + (lvl === DIFFS.length ? " top" : "");
+      line.className = "trophies-record" + (lvl >= DIFFS.length ? " top" : "");
       line.innerHTML = "<b>Chapitre " + (i + 1) + "</b> — " + (lvl ? DIFFS[Math.min(lvl - 1, DIFFS.length - 1)] : "<i>jamais vaincu</i>");
       rec.appendChild(line);
     });
@@ -90,7 +98,7 @@ OS.registerApp({
       '<div class="graal-name">✦ Astrée, Héritière des braises</div>' +
       '<div class="unit-rarity">SS · exclusif</div>' +
       '<div class="team-hint">' + (graalOwned
-        ? "Rejointe ! La descendante du dragon des cendres combat à vos côtés (+8 %/tour, renvoi 35 %, soin 15 % des dégâts)."
+        ? "Rejointe ! La descendante du dragon des cendres combat à vos côtés (dégâts +16 %, jauge +22 % au départ, renvoi 32 %, soin 18 % des dégâts)."
         : "Verrouillée — battez le Dragon des cendres (chapitre 12) en difficulté Enfer+ pour la faire rejoindre votre collection.") +
       "</div>";
     wrap.appendChild(graal);

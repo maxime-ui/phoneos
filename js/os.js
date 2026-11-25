@@ -79,6 +79,7 @@ const OS = (() => {
     if (previous && typeof previous.onClose === "function") previous.onClose();
 
     state.currentApp = id;
+    if (OS.sfx && typeof OS.sfx.setTrack === "function") OS.sfx.setTrack(id);
     const body = $("#app-body");
     body.innerHTML = "";
     body.classList.remove("padend");
