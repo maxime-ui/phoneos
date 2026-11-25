@@ -1001,6 +1001,47 @@ OS.registerApp({
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    const FEATURED_BANNERS = [
+      { id: "forge", name: "Les maîtres de la forge", hero: "elyndra", color: "#b47b42", desc: "Elyndra en vedette · Artificier" },
+      { id: "saison", name: "Le pacte de la sève-lune", hero: "maelis", color: "#398f6b", desc: "Maélis en vedette · Druide" },
+      { id: "voile", name: "Les secrets du crépuscule", hero: "nyxar", color: "#7551b8", desc: "Nyxar en vedette · Occultiste" },
+    ];
+    function featuredPull(banner, n) {
+      const cost = n === 1 ? 3 : 30;
+      if (save.quartz < cost) { notifyGacha("Pas assez de quartz pour cette bannière."); return []; }
+      save.quartz -= cost;
+      trackDaily("pulls", n);
+      const results = [];
+      const ssrPool = UNITS.filter(u => u.r === 3 && u.id !== "graal");
+      for (let i = 0; i < n; i++) {
+        const pityKey = "featured-" + banner.id;
+        const guaranteeKey = pityKey + "-guarantee";
+        save.pity[pityKey] = (save.pity[pityKey] || 0) + 1;
+        let unit;
+        if (save.pity[pityKey] >= 100) {
+          unit = byId(banner.hero);
+          save.pity[pityKey] = 0;
+          save.pity[guaranteeKey] = 0;
+        } else {
+          unit = rollUnit();
+          if (unit.r === 3) {
+            if ((save.pity[guaranteeKey] || 0) > 0 || Math.random() < 0.5) {
+              unit = byId(banner.hero);
+              save.pity[guaranteeKey] = 0;
+            } else {
+              save.pity[guaranteeKey] = 1;
+            }
+          }
+        }
+        if (!unit) unit = ssrPool[Math.floor(Math.random() * ssrPool.length)];
+        save.owned[unit.id] = (save.owned[unit.id] || 0) + 1;
+        results.push(unit);
+      }
+      if (save.team.filter(id => save.owned[id]).length < 3) save.team = Object.keys(save.owned).slice(0, 3);
+      persist();
+      return results;
+    }
+
     function classPull(cls, n) {
       const cost = n === 1 ? 5 : 45;
       if (save.quartz < cost) {
@@ -1152,6 +1193,44 @@ OS.registerApp({
       const multi = pullBtn("Invoquer ×10 — 30 ◆", 10);
       buttons.append(single, multi);
       content.appendChild(buttons);
+
+      const featuredTitle = document.createElement("div");
+      featuredTitle.className = "team-hint";
+      featuredTitle.textContent = "Bannières thématiques — héros SSR en vedette · pity SSR 50 · héros vedette garanti à 100";
+      content.appendChild(featuredTitle);
+      const featuredGrid = document.createElement("div");
+      featuredGrid.className = "featured-banner-grid";
+      FEATURED_BANNERS.forEach((fb) => {
+        const card = document.createElement("section");
+        card.className = "featured-banner";
+        card.style.borderColor = fb.color;
+        const hero = byId(fb.hero);
+        const title = document.createElement("strong");
+        title.textContent = fb.name;
+        const desc = document.createElement("small");
+        desc.textContent = fb.desc + " · " + (save.pity["featured-" + fb.id] || 0) + "/100";
+        card.append(title, desc);
+        if (hero) card.appendChild(unitCard(hero));
+        [1, 10].forEach((n) => {
+          const btn = document.createElement("button");
+          btn.className = "pull-btn";
+          btn.textContent = "Invoquer ×" + n + " · " + (n === 1 ? "3" : "30") + " ◆";
+          btn.addEventListener("click", () => {
+            const got = featuredPull(fb, n);
+            if (!got.length) return;
+            content.querySelector(".quartz-bar").replaceWith(quartzBar());
+            let resultBox = card.querySelector(".featured-results");
+            if (!resultBox) { resultBox = document.createElement("div"); resultBox.className = "featured-results"; card.appendChild(resultBox); }
+            resultBox.innerHTML = "";
+            got.forEach(unit => resultBox.appendChild(unitCard(unit)));
+            desc.textContent = fb.desc + " · " + (save.pity["featured-" + fb.id] || 0) + "/100";
+            OS.sfx.play(got.some(u => u.r === 3) ? "ssr" : "gacha");
+          });
+          card.appendChild(btn);
+        });
+        featuredGrid.appendChild(card);
+      });
+      content.appendChild(featuredGrid);
 
       const portalTitle = document.createElement("div");
       portalTitle.className = "team-hint";
