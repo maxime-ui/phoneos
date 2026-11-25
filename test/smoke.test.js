@@ -16,6 +16,9 @@ const artFiles = [
   "assets/asteria/heroes/berserker.svg",
   "assets/asteria/heroes/rodeur.svg",
   "assets/asteria/heroes/heros.svg",
+  "assets/asteria/heroes/soigneur.svg",
+  "assets/asteria/heroes/defenseur.svg",
+  "assets/asteria/heroes/tueur.svg",
   "assets/asteria/enemies/loup-ombre.svg",
   "assets/asteria/enemies/golem-runique.svg",
   "assets/asteria/enemies/sorciere-cendre.svg",
@@ -129,6 +132,8 @@ setTimeout(() => {
   const teamTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR.click();
   check("roster de 132 unités possédées", document.querySelectorAll(".roster .unit-card").length === unitIds.length - 1);
+  check("portraits présents sur toutes les cartes du roster", [...document.querySelectorAll(".roster .unit-card .unit-portrait img")].length === unitIds.length - 1);
+  check("aucun portrait de héros en erreur de chemin", [...document.querySelectorAll(".roster .unit-card .unit-portrait img")].every((img) => img.getAttribute("src") && fs.existsSync(path.join(root, img.getAttribute("src")))));
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 
@@ -526,6 +531,7 @@ setTimeout(() => {
   check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
   check("intention ennemie annoncée", !!document.querySelector(".battle-intent"));
+  check("portrait du boss affiché en combat", !!document.querySelector(".battle-enemy-art img") && fs.existsSync(path.join(root, document.querySelector(".battle-enemy-art img").getAttribute("src"))));
   check("affinité élémentaire de l’ennemi affichée", !!document.querySelector(".battle-affinity"));
   check("jauge de rupture visible", !!document.querySelector(".break-gauge"));
   check("action de garde disponible", [...document.querySelectorAll(".battle-actions button")].some((b) => b.textContent.includes("Garde d'équipe")));
