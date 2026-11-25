@@ -535,8 +535,55 @@ function evoSkillLabelsOf(u, evo) {
 }
 
 function artSlug(value) { return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-    function heroPortraitMarkup(id) { const unit = UNITS.find((u) => u.id === id); const cls = unit ? unit.cls : "Héros"; const files = { "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" }; const src = "./assets/asteria/heroes/" + (files[cls] || "heros") + ".svg"; return '<img class="portrait-art hero-art" src="' + src + '" alt="Portrait de ' + (unit ? unit.name : "héros") + '" loading="lazy">'; }
-    function enemyPortraitMarkup(type, name) { const file = type === "Colosse de givre" ? "colosse-givre" : artSlug(type); const src = "./assets/asteria/enemies/types/" + file + ".svg"; return '<img class="portrait-art enemy-art" src="' + src + '" alt="Portrait de ' + (name || type) + '" loading="lazy">'; }
+    function portraitEscape(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+    function characterPortraitMarkup(id, name, cls, rarity) {
+      const seed = String(id || name || "asteria");
+      const h = hashStr(seed + "|" + name + "|" + cls);
+      const pick = (arr, shift) => arr[Math.floor((h / Math.pow(2, shift)) % arr.length)];
+      const skin = pick(["#f1c7a2","#d99b73","#f4d8bd","#a9684e","#e8b88e","#c98768","#f0c5a0"], 0);
+      const hair = pick(["#241d2c","#493027","#b87935","#d8c18a","#e7e0d2","#8e3542","#253b50","#6b7891","#171923","#c65c32"], 4);
+      const eye = pick(["#65c8d8","#8eaf72","#a78be8","#c58a43","#d8dce8","#d65b69"], 8);
+      const cloth = pick(["#344b72","#684b82","#315c58","#7b3d42","#4a5368","#87653c","#26364e","#725f9c"], 12);
+      const accent = ({ "Chevalier":"#e4b85e", "Mage":"#a88af0", "Archer":"#72c995", "Berserker":"#e4774f", "Rôdeur":"#68b9a2", "Héros":"#e8c66c", "Soigneur":"#72d6bd", "Défenseur":"#9db4cf", "Tueur":"#d96a8c" })[cls] || "#d6b77a";
+      const skin2 = pick(["#f7d8c2","#c98768","#e7b28d","#b9785b"], 16);
+      const hairShape = Math.floor((h / 65536) % 5);
+      const fringe = [
+        "M29 54 Q24 19 59 17 Q94 18 91 55 L79 47 Q68 31 54 42 L42 58 Z",
+        "M27 58 Q17 22 51 15 Q88 12 94 48 L81 43 Q74 55 58 45 Q42 37 27 58 Z",
+        "M25 62 Q20 31 39 20 Q73 4 91 34 L89 62 L76 45 Q60 54 48 43 L34 65 Z",
+        "M30 48 Q37 12 65 17 Q94 19 91 50 Q75 35 65 41 Q47 34 30 48 Z",
+        "M24 59 Q21 16 59 13 Q100 17 96 62 L83 53 Q72 40 60 48 Q42 39 24 59 Z"
+      ][hairShape];
+      const classGear = cls === "Mage" ? '<path d="M25 44 L60 5 L95 44 L82 39 L60 19 L38 39 Z" fill="' + accent + '" opacity=".9"/><circle cx="60" cy="27" r="5" fill="#d9c8ff"/>' :
+        cls === "Archer" || cls === "Rôdeur" ? '<path d="M15 37 Q-1 67 19 94 Q27 102 29 89 Q12 65 28 46" fill="none" stroke="' + accent + '" stroke-width="4"/><path d="M15 37 L30 47" stroke="#f2e7c7" stroke-width="2"/>' :
+        cls === "Berserker" || cls === "Tueur" ? '<path d="M27 82 L8 55 L28 61 L36 48 L42 75 Z M93 82 L112 55 L92 61 L84 48 L78 75 Z" fill="' + accent + '"/>' :
+        cls === "Soigneur" ? '<circle cx="60" cy="19" r="14" fill="none" stroke="' + accent + '" stroke-width="3"/><path d="M60 10 V28 M51 19 H69" stroke="' + accent + '" stroke-width="3"/>' :
+        '<path d="M25 81 L35 62 L47 72 L60 61 L73 72 L85 62 L96 82 L88 111 L32 111 Z" fill="' + accent + '" opacity=".85"/>';
+      const idSafe = portraitEscape(artSlug(seed));
+      return '<svg class="portrait-art hero-art" data-portrait-id="' + idSafe + '" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + portraitEscape(name) + '" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bg-' + idSafe + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="' + cloth + '"/><stop offset="1" stop-color="#111827"/></linearGradient><linearGradient id="cape-' + idSafe + '" x1="0" y1="0" x2="0" y2="1"><stop stop-color="' + accent + '"/><stop offset="1" stop-color="' + cloth + '"/></linearGradient></defs><rect x="2" y="2" width="116" height="136" rx="18" fill="url(#bg-' + idSafe + ')"/><path d="M7 111 Q60 71 113 111 V136 H7Z" fill="#101827" opacity=".6"/><circle cx="60" cy="55" r="43" fill="' + accent + '" opacity=".13"/><path d="M13 140 Q15 103 38 94 L60 104 L83 94 Q107 104 108 140Z" fill="url(#cape-' + idSafe + ')"/><path d="M39 89 L60 103 L81 89 L92 140 H28Z" fill="' + cloth + '" stroke="' + accent + '" stroke-width="2"/>' + classGear + '<path d="M43 83 L77 83 L80 101 Q60 116 40 101Z" fill="' + skin2 + '"/><path d="M30 52 Q28 26 60 23 Q91 25 90 56 L84 81 Q76 99 60 99 Q43 98 35 80Z" fill="' + skin + '" stroke="#342b36" stroke-width="2"/><path d="M29 58 Q19 47 28 39 Q20 12 55 13 Q93 8 94 42 Q99 51 90 64 L82 43 Q65 35 51 42 Q40 48 29 58Z" fill="' + hair + '"/><path d="' + fringe + '" fill="' + hair + '"/><path d="M42 63 Q49 58 55 63 M66 63 Q73 58 79 63" fill="none" stroke="#4a2d2b" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="49" cy="68" rx="3.2" ry="2.4" fill="' + eye + '"/><ellipse cx="72" cy="68" rx="3.2" ry="2.4" fill="' + eye + '"/><path d="M60 69 L57 79 L63 80" fill="none" stroke="#a56f5d" stroke-width="2"/><path d="M52 87 Q60 ' + (90 + Math.floor((h / 1024) % 5)) + ' 69 86" fill="none" stroke="#7d3f48" stroke-width="2.4" stroke-linecap="round"/><path d="M31 61 Q23 69 35 81 M89 61 Q97 69 85 81" fill="none" stroke="' + hair + '" stroke-width="7" stroke-linecap="round"/><path d="M38 104 L60 116 L82 104" fill="none" stroke="' + accent + '" stroke-width="3"/><path d="M16 121 L31 111 L37 140 H12Z M104 121 L89 111 L83 140 H108Z" fill="' + accent + '" opacity=".85"/><circle cx="' + (pick([27,93,60,37,83], 20)) + '" cy="' + (pick([115,122,128], 24)) + '" r="3" fill="' + eye + '"/><rect x="5" y="5" width="110" height="130" rx="15" fill="none" stroke="' + accent + '" stroke-width="' + (rarity >= 3 ? 3 : 1.5) + '" opacity=".9"/></svg>';
+    }
+    function heroPortraitMarkup(id) {
+      const unit = UNITS.find((u) => u.id === id);
+      return characterPortraitMarkup(id, unit ? unit.name : String(id || "Héros"), unit ? unit.cls : "Héros", unit ? unit.r : 1);
+    }
+    function enemyPortraitMarkup(type, name) {
+      const seed = "enemy-" + String(type || "monstre") + "-" + String(name || type || "ennemi");
+      const h = hashStr(seed);
+      const pick = (arr, shift) => arr[Math.floor((h / Math.pow(2, shift)) % arr.length)];
+      const hide = pick(["#7d9b8a","#4b7890","#8e658f","#9a6548","#6f7a9e","#a18c58","#536b58","#a94d50"], 0);
+      const dark = pick(["#17212b","#24202d","#32231e","#1d293b","#302b24"], 4);
+      const eye = pick(["#ffcf68","#ff6f61","#9df4ff","#dca6ff","#d7f47b"], 8);
+      const horn = pick(["#d5c3a0","#b9d1db","#e4a36f","#b4a1db","#d7d9c9"], 12);
+      const spikes = Math.floor((h / 65536) % 4);
+      const horns = [
+        '<path d="M37 48 Q10 39 17 12 Q34 24 43 39 M82 48 Q110 36 102 10 Q84 24 77 40" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M39 44 L27 9 L52 34 M80 44 L94 8 L68 34" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M40 43 Q18 18 36 5 Q42 23 55 33 M78 43 Q100 18 84 5 Q77 23 64 33" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M38 46 L12 30 L31 58 M82 46 L108 30 L89 58" fill="' + horn + '" stroke="' + dark + '" stroke-width="4"/>'
+      ][spikes];
+      const idSafe = portraitEscape(artSlug(seed));
+      return '<svg class="portrait-art enemy-art" data-portrait-id="' + idSafe + '" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + portraitEscape(name || type) + '" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="enemy-' + idSafe + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="' + hide + '"/><stop offset="1" stop-color="' + dark + '"/></linearGradient></defs><rect x="2" y="2" width="116" height="136" rx="17" fill="url(#enemy-' + idSafe + ')"/><circle cx="60" cy="63" r="48" fill="' + eye + '" opacity=".1"/>' + horns + '<path d="M14 140 Q16 99 37 94 L60 105 L84 94 Q105 100 108 140Z" fill="' + dark + '" stroke="' + horn + '" stroke-width="2"/><path d="M31 51 Q27 23 60 20 Q94 23 90 55 L83 92 Q74 111 60 111 Q43 110 36 91Z" fill="' + hide + '" stroke="' + dark + '" stroke-width="4"/><path d="M35 55 Q25 31 48 25 L60 34 L73 22 Q97 34 86 57 L79 46 L68 53 L60 44 L48 55Z" fill="' + dark + '"/><path d="M38 65 L55 61 L51 74Z M82 65 L65 61 L69 74Z" fill="' + eye + '" stroke="' + dark + '" stroke-width="2"/><ellipse cx="48" cy="67" rx="3" ry="4" fill="#1b1720"/><ellipse cx="72" cy="67" rx="3" ry="4" fill="#1b1720"/><path d="M60 69 L54 88 L66 88Z" fill="' + dark + '"/><path d="M43 91 Q60 ' + (99 + Math.floor((h / 1024) % 7)) + ' 77 91 L72 103 L48 103Z" fill="#211923" stroke="' + horn + '" stroke-width="2"/><path d="M49 93 L54 101 L59 93 L64 101 L70 93" fill="none" stroke="' + horn + '" stroke-width="2"/><path d="M25 112 L39 98 L45 140 H13Z M95 112 L81 98 L75 140 H107Z" fill="' + hide + '"/><path d="M22 117 L33 110 M98 117 L87 110" stroke="' + horn + '" stroke-width="4"/><rect x="5" y="5" width="110" height="130" rx="14" fill="none" stroke="' + eye + '" stroke-width="2.5"/></svg>';
+    }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
 OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
@@ -694,6 +741,7 @@ OS.registerApp({
       }
     }
     function trackDaily(type, amt, absolute) {
+      if (battle && battle.mode === "train") return;
       if (!daily) return;
       daily.missions.forEach((m) => {
         if (m.t !== type || m.claimed) return;
@@ -1406,7 +1454,7 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Entraînement — testez tous les héros, même non possédés. Aucun gain, aucune perte : pure simulation.";
+      hint.textContent = "Mode Entraînement — testez chaque héros, même non possédé, dans un vrai duel contre un adversaire équilibré. Aucun gain ni perte sur votre sauvegarde.";
       content.appendChild(hint);
 
       // Une fois un héros choisi, le laboratoire devient un écran de combat dédié.
@@ -1442,7 +1490,7 @@ OS.registerApp({
 
       const oppHint = document.createElement("div");
       oppHint.className = "team-hint";
-      oppHint.textContent = trainPick ? "Héros sélectionné : " + byId(trainPick).name + " · Lancez un test contre un adversaire aléatoire et immortel." : "Choisissez un héros pour commencer le test.";
+      oppHint.textContent = trainPick ? "Héros sélectionné : " + byId(trainPick).name + " · Lancez un duel réel contre un adversaire aléatoire." : "Choisissez un héros pour commencer le test.";
       content.appendChild(oppHint);
       const row = document.createElement("div");
       row.className = "pull-row";
@@ -1463,7 +1511,11 @@ OS.registerApp({
       const types = Object.keys(ENEMY_TYPES);
       const type = types[Math.floor(Math.random() * types.length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
-      const op = { name, type, hp: 1000000000, atk: 0 };
+      const op = {
+        name, type,
+        hp: Math.max(9000, Math.round(unit.atk * 14)),
+        atk: Math.max(180, Math.round(unit.hp * 0.12)),
+      };
       battle = {
         mode: "train",
         trainingDamage: 0,
@@ -1477,7 +1529,10 @@ OS.registerApp({
         guard: false,
         curse: 0,
         burn: 0,
-        log: ["----- LABORATOIRE : " + unit.name + " contre " + op.name + " [" + type + "] · cible immortelle · aucun gain/perte -----"],
+        valenFury: 0,
+        breakGauge: 0,
+        intent: enemyIntent(type),
+        log: ["----- DUEL D'ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [" + type + "] · combat réel · aucun gain/perte -----"],
       };
       battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
       newHand();
@@ -1902,8 +1957,8 @@ OS.registerApp({
       else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       if (battle.mode === "train") battle.trainingDamage = (battle.trainingDamage || 0) + dmg;
-      else battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
-      battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts" + (battle.mode === "train" ? " · cible immortelle" : ""));
+      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
 
       // Jauge de rupture : les assauts coordonnés peuvent interrompre la riposte.
       if (battle.enemy.hp > 0 && !battle.staggered) {
@@ -1991,13 +2046,6 @@ OS.registerApp({
     }
 
     function enemyTurn() {
-      if (battle.mode === "train") {
-        battle.log.unshift("Le mannequin observe votre démonstration et ne riposte pas.");
-        battle.guard = false;
-        battle.intent = ["Observation", "Cible d'entraînement inoffensive"];
-        newHand();
-        return;
-      }
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
       // Une rupture annule la riposte annoncée, mais n'efface pas les dégâts périodiques.
@@ -2148,7 +2196,7 @@ OS.registerApp({
     function endBattle(win) {
       if (battle.mode === "train") {
         battle.over = true;
-        battle.log.unshift(win ? "Mannequin détruit ! Entraînement réussi (aucun gain)." : "Le mannequin tient bon… (aucun gain)");
+        battle.log.unshift(win ? "Adversaire vaincu ! Test réussi — aucun gain ni progression enregistrée." : "Votre héros est K.O. — test terminé, aucune perte ni progression enregistrée.");
         OS.sfx.play(win ? "victory" : "defeat");
         renderBattle();
         return;
@@ -2369,11 +2417,11 @@ OS.registerApp({
           view.appendChild(exitRow);
           const lab = document.createElement("div");
           lab.className = "team-hint";
-          lab.textContent = "Mode laboratoire · cible immortelle · aucune riposte · quittez quand vous voulez.";
+          lab.textContent = "Duel réel · l'adversaire riposte après vos 3 actions. Victoire et K.O. possibles ; aucune récompense ni perte de progression.";
           view.appendChild(lab);
           const score = document.createElement("div");
           score.className = "training-score";
-          score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " dégâts infligés · " + battle.picks + "/3 actions ce tour</span>";
+          score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " infligés · Ennemi : " + Math.max(0, battle.enemy.hp).toLocaleString("fr-FR") + " PV · Héros : " + Math.max(0, battle.hp[0]).toLocaleString("fr-FR") + " PV · " + battle.picks + "/3 actions</span>";
           view.appendChild(score);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
@@ -2979,11 +3027,17 @@ OS.registerApp({
       content.appendChild(art);
       const actorStrip = document.createElement("div");
       actorStrip.className = "story-actor-strip";
-      (ch.scene.actors || []).forEach((actor) => {
+      const cast = [];
+      ch.events.forEach((event) => {
+        if (event.s && !cast.some((entry) => entry.name === event.s)) cast.push({ name: event.s, boss: false });
+        if (event.boss && !cast.some((entry) => entry.name === event.boss.name)) cast.push({ name: event.boss.name, boss: true, type: event.boss.type });
+      });
+      cast.forEach((actor) => {
         const actorCard = document.createElement("div");
         actorCard.className = "story-actor";
-        const file = ({ "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" })[actor.cls] || "heros";
-        actorCard.innerHTML = '<img src="./assets/asteria/heroes/' + file + '.svg" alt="" loading="lazy"><span>' + actor.cls + '</span>';
+        const known = UNITS.find((u) => u.name === actor.name);
+        const portrait = actor.boss ? enemyPortraitMarkup(actor.type, actor.name) : heroPortraitMarkup(known ? known.id : "story-" + artSlug(actor.name));
+        actorCard.innerHTML = portrait + '<span>' + portraitEscape(actor.name) + '</span>';
         actorStrip.appendChild(actorCard);
       });
       if (actorStrip.childElementCount) content.appendChild(actorStrip);
@@ -3041,10 +3095,8 @@ OS.registerApp({
         if (ev.s) {
           const speaker = document.createElement("div");
           speaker.className = "story-speaker-card";
-          const known = UNITS.find((u) => u.name === ev.s || (ev.s === "Dame Elise" && u.id === "elise") || (ev.s === "Orwen" && u.id === "orwen") || (ev.s === "Kaeren" && u.id === "kaeren"));
-          const fallbackClass = ev.s === "Gortak" ? "defenseur" : "heros";
-          const classFile = known ? ({ "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" })[known.cls] : fallbackClass;
-          speaker.innerHTML = '<img src="./assets/asteria/heroes/' + classFile + '.svg" alt="" loading="lazy"><span>' + ev.s + '</span>';
+          const known = UNITS.find((u) => u.name === ev.s);
+          speaker.innerHTML = heroPortraitMarkup(known ? known.id : "story-" + artSlug(ev.s)) + '<span>' + portraitEscape(ev.s) + '</span>';
           text.appendChild(speaker);
         }
         const line = document.createElement("div");
