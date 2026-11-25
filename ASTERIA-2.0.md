@@ -107,3 +107,10 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Le test de fumée vérifie aussi la présence des 13 portraits de bestiaire et des trois paysages.
 
 - Cinq icônes de reliques (arme, armure, étendard, anneau, orbe) sont ajoutées et intégrées aux lignes du reliquaire. Le test de fumée vérifie leurs fichiers.
+
+## Contrôle qualité et classes complètes
+
+- Trois portraits manquants ont été ajoutés (Soigneur, Défenseur, Tueur) ; les neuf classes de gameplay ont maintenant une correspondance explicite vers leur portrait.
+- Le test de fumée vérifie la présence et la structure de chaque SVG, le nombre de portraits affichés dans le roster et la résolution du portrait de boss en combat.
+- Le test est désormais portable : chemins calculés depuis le dossier du projet et dépendance jsdom déclarée dans package.json.
+- Le workflow GitHub Actions `.github/workflows/asteria-quality.yml` contrôle la syntaxe JavaScript puis exécute le test de fumée sur les pushes de la branche et les pull requests.
