@@ -59,7 +59,7 @@ artFiles.forEach((file) => {
   const fullPath = path.join(root, file);
   if (!fs.existsSync(fullPath)) throw new Error("Illustration manquante : " + file);
   const svg = fs.readFileSync(fullPath, "utf8");
-  if (!/<svg\\b/.test(svg) || !/<\\/svg>\\s*$/.test(svg)) throw new Error("SVG invalide : " + file);
+  if (!/<svg\b/.test(svg) || !/<\/svg>\s*$/.test(svg)) throw new Error("SVG invalide : " + file);
 });
 const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/asteria.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 
