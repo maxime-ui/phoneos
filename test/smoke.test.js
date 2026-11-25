@@ -46,6 +46,8 @@ function check(name, cond) { results.push((cond ? "PASS" : "FAIL") + "  " + name
 check("DOMOSS existe", typeof window.eval("OS") === "object");
 const elementInfo = window.eval("OS").asteriaData.elementInfo();
 check("système élémentaire : 7 affinités déclarées", Object.keys(elementInfo.elements).length === 7);
+const synergyInfo = window.eval("OS").asteriaData.teamSynergyInfo();
+check("synergies tactiques : 3 combinaisons documentées", synergyInfo.length === 3 && synergyInfo.some((x) => x.name === "Serment protecteur"));
 check("cartes : Brut/Arcane/Rapide ont une affinité", elementInfo.cards.R.element === "feu" && elementInfo.cards.B.element === "arcane" && elementInfo.cards.V.element === "vent");
 check("ennemis : affinités fixes connues", Object.keys(elementInfo.enemyAffinity).length >= 13 && elementInfo.enemyAffinity.Golem === "terre");
 
