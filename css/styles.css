@@ -798,3 +798,11 @@ body.cb .rb-score { color: #0fb3a3; }
 .story-boss-portrait { display:flex; align-items:center; gap:12px; margin:8px 0; color:#f2d48a; font-weight:700; }
 .story-boss-portrait img { width:86px; height:100px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,.06); }
 @media(max-width:520px) { .collection-filters { grid-template-columns:1fr; } .portal-owned-filter { align-items:stretch; flex-direction:column; } }
+
+/* Portraits Astéria générés individuellement : chaque identifiant possède son dessin SVG */
+.unit-portrait .portrait-art { width:100%; height:124px; display:block; object-fit:contain; }
+.battle-enemy-art .portrait-art { width:108px; height:124px; display:block; object-fit:contain; }
+.story-actor .portrait-art { width:54px; height:62px; display:block; object-fit:contain; flex:0 0 auto; }
+.story-speaker-card .portrait-art { width:68px; height:78px; display:block; object-fit:contain; flex:0 0 auto; border-radius:8px; background:rgba(255,255,255,.06); }
+.story-boss-portrait .portrait-art { width:96px; height:108px; display:block; object-fit:contain; flex:0 0 auto; border-radius:10px; background:rgba(255,255,255,.06); }
+.training-score { gap:5px; }
