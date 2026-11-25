@@ -789,6 +789,33 @@ button { font-family: inherit; }
 
 /* Mode Histoire */
 .story-list { display: flex; flex-direction: column; gap: 8px; }
+.story-act {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #97a0b8;
+}
+.story-blessing { font-size: 12px; color: #4caf7d; }
+.story-choices { display: flex; flex-direction: column; gap: 8px; }
+.story-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e3b23c;
+  background: #1b2236;
+  color: #c9d0e2;
+  cursor: pointer;
+  font-size: 13px;
+}
+.story-choice b { color: #e3b23c; }
+.story-choice small { color: #97a0b8; }
+.story-speaker { font-weight: 700; color: #e3b23c; font-size: 12px; }
+.story-line.narration { font-style: italic; }
 .story-chapter {
   display: flex;
   flex-direction: column;

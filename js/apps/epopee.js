@@ -442,7 +442,7 @@ OS.registerApp({
       const unit = battle.units[gi];
 
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
-      dmg = Math.round(dmg * teamAtkMult());
+      dmg = Math.round(dmg * teamAtkMult() * (battle.storyMult || 1));
       let crit = false;
       const critBase = u.cls === "Archer" ? 0.35 : 0.25;
       const critChance = card.type === "V" ? (u.id === "aelis" ? 0.5 : critBase) : 0;
@@ -502,7 +502,7 @@ OS.registerApp({
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + 0.05 * (battle.heroStacks[si] - 1)) : 1;
-      const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (0.95 + Math.random() * 0.1));
+      const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
       battle.picks = 3;
@@ -603,11 +603,12 @@ OS.registerApp({
           battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
         }
       } else if (battle.mode === "histoire") {
-        reward = win ? 30 : 2;
+        reward = win ? battle.enemy.reward : 2;
         if (win) {
-          storyState.done = Math.max(storyState.done, 4);
+          battle.freshWin = storyState.done <= battle.storyChapter;
+          storyState.done = Math.max(storyState.done, battle.storyChapter + 1);
           persistStory();
-          battle.log.unshift("La légende du dragon des cendres est écrite !");
+          battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
         }
       } else {
         reward = win ? TIER[battle.tier].reward : 2;
@@ -654,10 +655,34 @@ OS.registerApp({
       view.className = "battle";
 
       if (battle.over) {
+        const won = battle.enemy.hp <= 0;
         const done = document.createElement("div");
-        done.className = "battle-result " + (battle.enemy.hp <= 0 ? "win" : "lose");
-        done.textContent = battle.enemy.hp <= 0 ? "VICTOIRE" : "DÉFAITE";
+        done.className = "battle-result " + (won ? "win" : "lose");
+        done.textContent = won ? "VICTOIRE" : "DÉFAITE";
         view.appendChild(done);
+        if (battle.mode === "histoire") {
+          const row = document.createElement("div");
+          row.className = "battle-actions";
+          if (won) {
+            const cont = document.createElement("button");
+            cont.className = "pull-btn story-next";
+            cont.textContent = "Continuer l'histoire ▸";
+            cont.addEventListener("click", onStoryContinue);
+            row.appendChild(cont);
+          } else {
+            const retry = document.createElement("button");
+            retry.className = "pull-btn tier-infini story-boss";
+            retry.textContent = "⚔ Réessayer";
+            retry.addEventListener("click", onStoryRetry);
+            row.appendChild(retry);
+            const quit = document.createElement("button");
+            quit.className = "pull-btn";
+            quit.textContent = "↩ Renoncer";
+            quit.addEventListener("click", renderStory);
+            row.appendChild(quit);
+          }
+          view.appendChild(row);
+        }
       } else {
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor : battle.mode === "histoire" ? " · Boss d'histoire" : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
@@ -716,71 +741,197 @@ OS.registerApp({
 
     /* ---------- Mode Histoire ---------- */
 
-    const CHAPTERS = [
+    const BLESSINGS = {
+      fleches: "Lames affûtées (+10 % de dégâts en boss)",
+      runes: "Runes allumées (+25 % d'Ultime au début des boss)",
+      courage: "Vœu de courage (Ultime à 50 % au début des boss)",
+      os: "Médaillon d'os (boss à −10 % de PV)",
+      charge: "Charge frontale (+15 % de dégâts en boss)",
+      nuit: "Tactique nocturne (Ultime à 50 % au début des boss)",
+    };
+    const BLESSING_FX = {
+      fleches: { mult: 1.10 },
+      charge: { mult: 1.15 },
+      runes: { gauge: 25 },
+      courage: { gauge: 50 },
+      nuit: { gauge: 50 },
+      os: { hpMult: 0.90 },
+    };
+
+    const STORY = [
+      /* --- Acte I --- */
       {
-        title: "Chapitre 1 — L'appel du village",
-        scene: {
-          sky: "dawn", ground: "village", sunX: 60,
-          actors: [
-            { cls: "Chevalier", color: "#e3b23c", x: 210 },
-            { cls: "Berserker", color: "#c34a2f", x: 252, flip: true },
-          ],
-        },
-        lines: [
-          "Le village de Hautefeuille s'éveille sous une aube de lave. L'an dernier, le roi a rappelé ses chevaliers : plus personne ne protège la frontière.",
-          "Orwen — « Les bêtes du nord s'agitent, et quelque chose de plus grand brûle là-bas. Le ciel sent le soufre jusqu'ici. »",
-          "Dame Elise — « Alors nous irons nous-mêmes. Trois volontaires, une route, et pas un denier du roi. »",
-          "Vous regardez vos trois compagnons : la force, l'arcane, la vitesse. La route du nord commence ici.",
+        act: "Acte I — La route du nord",
+        title: "L'appel du village",
+        scene: { sky: "dawn", ground: "village", sunX: 60, actors: [
+          { cls: "Chevalier", color: "#e3b23c", x: 205 },
+          { cls: "Berserker", color: "#c34a2f", x: 248, flip: true },
+        ] },
+        events: [
+          { t: "Le village de Hautefeuille s'éveille sous une aube de lave. L'an dernier, le roi a rappelé ses chevaliers : plus personne ne protège la frontière du nord." },
+          { s: "Orwen", t: "Les bêtes descendent des collines chaque nuit. Et quelque chose de plus grand brûle là-haut — le ciel sent le soufre jusqu'ici." },
+          { s: "Dame Elise", t: "Alors nous irons nous-mêmes. Trois volontaires, une route, et pas un denier du roi." },
+          { t: "Vous regardez vos compagnons : la force, l'arcane, la vitesse. La route du nord commence." },
         ],
       },
       {
-        title: "Chapitre 2 — La forêt des mille flèches",
-        scene: {
-          sky: "forest", ground: "canopee2", sunX: 250,
-          actors: [
-            { cls: "Archer", color: "#3ba75c", x: 150 },
-            { cls: "Mage", color: "#3b6bd4", x: 196, flip: true },
-            { cls: "Rôdeur", color: "#4f9eff", x: 238 },
-          ],
-        },
-        lines: [
-          "La forêt avale le bruit. Des milliers de flèches anciennes hérissent les troncs, plantées là par des rôdeurs oubliés.",
-          "Lia — « Chaque flèche pointe une direction sûre. Suivez les pointes, jamais les yeux. »",
-          "Kaeren — « Les archers d'autrefois veillaient encore, il y a un mois. Maintenant, il n'y a plus que nous. »",
-          "Une dernière volée claque au-dessus de la canopée. La forêt vous laisse passer — elle vous a reconnus.",
+        act: "Acte I — La route du nord",
+        title: "La patrouille des ombres",
+        scene: { sky: "night", ground: "foret", stars: true, sunX: 250, actors: [
+          { cls: "Berserker", color: "#c34a2f", x: 120 },
+          { cls: "Archer", color: "#3ba75c", x: 160, flip: true },
+        ] },
+        events: [
+          { t: "À la lisière du bois, les corbeaux se taisent d'un seul coup. Des ombres encerclent le chemin, lourdes de chaînes." },
+          { s: "Orwen", t: "Ce ne sont pas des loups. Ces ombres portaient des chaînes — quelqu'un les envoie sur nous." },
+          { boss: { name: "Meute d'ombre", type: "Brute", hp: 9000, atk: 1050, reward: 12, intro: "La meute se jette sur vous. Premier vrai combat." } },
         ],
       },
       {
-        title: "Chapitre 3 — Le sanctuaire des murmures",
-        scene: {
-          sky: "night", ground: "sanctuaire", stars: true, sunX: 160,
-          actors: [
-            { cls: "Mage", color: "#6b4f9e", x: 180 },
-            { cls: "Mage", color: "#e3b23c", x: 222, flip: true },
-          ],
-        },
-        lines: [
-          "Au sommet des marches, un sanctuaire qu'aucun cartographe n'a nommé. Dans la pierre, des runes murmurent dans une langue morte.",
-          "Morgane — « Les murmures disent : le dragon des cendres dort sous la montagne. Nos ancêtres l'ont scellé, et le sceau faiblit. »",
-          "Séraphine — « Alors le silence n'est plus une option. Qu'il nous voie venir. »",
-          "Les portes s'ouvrent sur un escalier de lave. L'air brûle, et le murmure se tait enfin.",
+        act: "Acte I — La route du nord",
+        title: "La croix des rôdeurs",
+        scene: { sky: "forest", ground: "canopee2", sunX: 250, actors: [
+          { cls: "Rôdeur", color: "#4f9eff", x: 160 },
+          { cls: "Mage", color: "#3b6bd4", x: 205, flip: true },
+        ] },
+        events: [
+          { t: "Au carrefour des chasseurs, une croix de flèches plantées dans un tronc marque la route sûre. Les rôdeurs d'autrefois y laissaient toujours un don." },
+          { s: "Kaeren", t: "La forêt donne sa protection à qui laisse un don. Choisissons le nôtre." },
+          { q: "Quel don laissez-vous au carrefour ?", opts: [
+            { label: "Affûter les lames", blessing: "fleches" },
+            { label: "Allumer les runes", blessing: "runes" },
+          ] },
         ],
       },
       {
-        title: "Chapitre 4 — Le dragon des cendres",
-        scene: {
-          sky: "ash", ground: "vulkan", sunX: 250, dragon: [176, 96], dragonColor: "#5c3b2e",
-          actors: [
-            { cls: "Berserker", color: "#c34a2f", x: 110 },
-            { cls: "Chevalier", color: "#e3b23c", x: 150 },
-            { cls: "Mage", color: "#6b4f9e", x: 188, flip: true },
-          ],
-        },
-        lines: [
-          "Un ciel de braises. Aucun soleil n'éclaire ce versant : seule la caldeira rouge arrose la montagne d'une lumière fauve.",
-          "Une ombre immense déplie ses ailes au-dessus du nuage de cendres. Chaque battement fait trembler le sol comme un tambour de guerre.",
-          "DRAGON DES CENDRES — « PETITS RÔDEURS. VOUS AVEZ RALLUMÉ LES RUNES. VENEZ DONC JOUER. »",
-          "Draven — « Enfin quelque chose à ma taille. »",
+        act: "Acte I — La route du nord",
+        title: "Le chef de guerre Gortak",
+        scene: { sky: "dawn", ground: "foret", sunX: 60, actors: [
+          { cls: "Chevalier", color: "#e3b23c", x: 120 },
+          { cls: "Berserker", color: "#c34a2f", x: 160, flip: true },
+        ] },
+        events: [
+          { s: "Dame Elise", t: "Voilà qui menait la meute. Un chef de guerre ceinturé de chaînes brisées, congédié des guerres du sud." },
+          { s: "Gortak", t: "PETITS SEIGNEURS. VOTRE ROI VOUS A VENDUS. MOI, JE VOUS OFFRE LA GUERRE." },
+          { s: "Orwen", t: "Il annonce ça comme un cadeau. Répondons-lui." },
+          { boss: { name: "Gortak, chef de guerre", type: "Brute", hp: 14000, atk: 1350, reward: 18, intro: "Gortak lève sa masse de fer. Le sol en tremble." } },
+        ],
+      },
+      /* --- Acte II --- */
+      {
+        act: "Acte II — La forêt des mille flèches",
+        title: "La forêt qui parle",
+        scene: { sky: "forest", ground: "canopee2", sunX: 250, actors: [
+          { cls: "Mage", color: "#3b6bd4", x: 160 },
+          { cls: "Archer", color: "#3ba75c", x: 205, flip: true },
+        ] },
+        events: [
+          { t: "La forêt avale le bruit. Des milliers de flèches anciennes hérissent les troncs, plantées là par des rôdeurs oubliés." },
+          { s: "Lia", t: "Chaque flèche pointe une direction sûre. Suivez les pointes, jamais les yeux." },
+          { s: "Kaeren", t: "Les archers d'autrefois veillaient encore, il y a un mois. Maintenant, il n'y a plus que nous." },
+        ],
+      },
+      {
+        act: "Acte II — La forêt des mille flèches",
+        title: "Le sanctuaire des murmures",
+        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 160, actors: [
+          { cls: "Mage", color: "#6b4f9e", x: 170 },
+          { cls: "Mage", color: "#e3b23c", x: 215, flip: true },
+        ] },
+        events: [
+          { t: "Au sommet des marches, un sanctuaire qu'aucun cartographe n'a nommé. Dans la pierre, des runes murmurent dans une langue morte." },
+          { s: "Morgane", t: "Les murmures disent : le dragon des cendres dort sous la montagne. Nos ancêtres l'ont scellé, et le sceau faiblit." },
+          { s: "Morgane", t: "Le sanctuaire aide qui lui laisse une offrande. Dépêchez-vous : le sceau agonise." },
+          { q: "Quelle offrande déposez-vous ?", opts: [
+            { label: "Le médaillon d'os", blessing: "os" },
+            { label: "Le vœu de courage", blessing: "courage" },
+          ] },
+        ],
+      },
+      {
+        act: "Acte II — La forêt des mille flèches",
+        title: "Le spectre des urnes",
+        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 250, actors: [
+          { cls: "Mage", color: "#6b4f9e", x: 170 },
+        ] },
+        events: [
+          { t: "Les urnes du sanctuaire se fissurent. Une voix froide monte de la poussière — une voix qui a oublié d'être humaine." },
+          { s: "Séraphine", t: "Un gardien corrompu. Il a veillé ici pendant des siècles, et il ne supporte plus d'être réveillé." },
+          { boss: { name: "Spectre des urnes", type: "Sorcier", hp: 24000, atk: 1800, reward: 25, intro: "Le spectre embrase le parvis de runes bleues." } },
+        ],
+      },
+      {
+        act: "Acte II — La forêt des mille flèches",
+        title: "Le serment",
+        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 60, actors: [
+          { cls: "Chevalier", color: "#e3b23c", x: 130 },
+          { cls: "Archer", color: "#3ba75c", x: 175 },
+          { cls: "Mage", color: "#6b4f9e", x: 220, flip: true },
+        ] },
+        events: [
+          { s: "Séraphine", t: "Nous avons survécu au pire. Ce qui nous attend dort sous la montagne." },
+          { s: "Sir Gauvin", t: "Alors gravez-le. Sur la pierre, sur les mains, partout où la peur pourra le lire." },
+          { t: "Chacun grave trois mots sur le porche du sanctuaire : avancer, ou mourir en chemin." },
+        ],
+      },
+      /* --- Acte III --- */
+      {
+        act: "Acte III — Le dragon des cendres",
+        title: "L'escalier de lave",
+        scene: { sky: "ash", ground: "vulkan", sunX: 250, actors: [
+          { cls: "Berserker", color: "#c34a2f", x: 140 },
+          { cls: "Chevalier", color: "#e3b23c", x: 185, flip: true },
+        ] },
+        events: [
+          { t: "Mille marches taillées dans la roche chaude. À chaque palier, l'air brûle un peu plus, et le murmure des runes s'éteint." },
+          { s: "Draven", t: "Enfin quelque chose d'honnête. Ici, au moins, on verra l'ennemi venir." },
+        ],
+      },
+      {
+        act: "Acte III — Le dragon des cendres",
+        title: "Le chevalier de cendres",
+        scene: { sky: "ash", ground: "vulkan", sunX: 250, actors: [
+          { cls: "Chevalier", color: "#c34a2f", x: 170 },
+          { cls: "Chevalier", color: "#e3b23c", x: 215, flip: true },
+        ] },
+        events: [
+          { s: "Sir Gauvin", t: "Un chevalier de nos couleurs, figé face à la montagne. Il contemple le dragon depuis cent ans." },
+          { s: "Le chevalier de cendres", t: "NI L'ORAGE, NI LA LAVE, NI LE DRAGON. VOUS SEULS RESSEMBLEZ À UNE MENACE." },
+          { boss: { name: "Chevalier de cendres", type: "Capitaine", hp: 30000, atk: 2050, reward: 30, intro: "Le chevalier lève son oriflamme brûlée : il gagnera en force à chaque tour." } },
+        ],
+      },
+      {
+        act: "Acte III — Le dragon des cendres",
+        title: "Le dragon des cendres",
+        scene: { sky: "ash", ground: "vulkan", sunX: 250, dragon: [176, 96], actors: [
+          { cls: "Berserker", color: "#c34a2f", x: 110 },
+          { cls: "Chevalier", color: "#e3b23c", x: 150 },
+          { cls: "Mage", color: "#6b4f9e", x: 188, flip: true },
+        ] },
+        events: [
+          { t: "Un ciel de braises. Aucun soleil n'éclaire ce versant : seule la caldeira rouge arrose la montagne d'une lumière fauve." },
+          { s: "Le dragon des cendres", t: "PETITS RÔDEURS. VOUS AVEZ RALLUMÉ LES RUNES. VENEZ DONC JOUER." },
+          { s: "Draven", t: "Enfin quelque chose à ma taille." },
+          { q: "Comment entrez-vous dans la caldeira ?", opts: [
+            { label: "Charger d'un coup", blessing: "charge" },
+            { label: "Attendre la nuit", blessing: "nuit" },
+          ] },
+        ],
+      },
+      {
+        act: "Acte III — Le dragon des cendres",
+        title: "Le vent du sud",
+        scene: { sky: "ash", ground: "vulkan", sunX: 250, dragon: [176, 96], actors: [
+          { cls: "Berserker", color: "#c34a2f", x: 110 },
+          { cls: "Chevalier", color: "#e3b23c", x: 150 },
+          { cls: "Mage", color: "#6b4f9e", x: 188, flip: true },
+        ] },
+        events: [
+          { t: "Les ailes se déploient au-dessus du nuage de cendres. Chaque battement fait trembler le sol comme un tambour de guerre." },
+          { boss: { name: "Dragon des cendres", type: "Brute", hp: 42000, atk: 2250, reward: 40, intro: "Le boss final. Toute la légende tient dans ce combat." } },
+          { t: "Le dragon s'effondre en une pluie de braises. Sur l'horizon, pour la première fois depuis un an, le ciel se lève clair." },
+          { s: "Dame Elise", t: "La route du nord est ouverte. Qu'on raconte que trois volontaires l'ont faite." },
+          { t: "FIN — La légende du dragon des cendres, qu'un village nomme encore celle des Trois Volontaires." },
         ],
       },
     ];
@@ -800,21 +951,6 @@ OS.registerApp({
       return b;
     }
 
-    function storyChapterList() {
-      const list = document.createElement("div");
-      list.className = "story-list";
-      CHAPTERS.forEach((ch, i) => {
-        const c = document.createElement("button");
-        const locked = i > storyState.done;
-        const done = i < storyState.done;
-        c.className = "story-chapter" + (locked ? " locked" : "") + (done ? " done" : "");
-        c.innerHTML = "<b>" + ch.title + "</b><small>" + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small>";
-        if (!locked) c.addEventListener("click", () => { OS.sfx.play("page"); openScene(i); });
-        list.appendChild(c);
-      });
-      return list;
-    }
-
     function storyMusicToggle() {
       const b = document.createElement("button");
       b.className = "music-toggle";
@@ -828,6 +964,34 @@ OS.registerApp({
       return b;
     }
 
+    function storyChapterList() {
+      const acts = [];
+      STORY.forEach((ch, i) => {
+        if (!acts.length || acts[acts.length - 1].name !== ch.act) acts.push({ name: ch.act, heads: [], first: i });
+      });
+      const wrap = document.createElement("div");
+      acts.forEach((act) => {
+        const head = document.createElement("div");
+        head.className = "story-act";
+        head.textContent = act.name;
+        wrap.appendChild(head);
+        const list = document.createElement("div");
+        list.className = "story-list";
+        STORY.forEach((ch, i) => {
+          if (ch.act !== act.name) return;
+          const c = document.createElement("button");
+          const locked = i > storyState.done;
+          const done = i < storyState.done;
+          c.className = "story-chapter" + (locked ? " locked" : "") + (done ? " done" : "");
+          c.innerHTML = "<b>" + (i + 1) + ". " + ch.title + "</b><small>" + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small>";
+          if (!locked) c.addEventListener("click", () => { OS.sfx.play("page"); openScene(i); });
+          list.appendChild(c);
+        });
+        wrap.appendChild(list);
+      });
+      return wrap;
+    }
+
     function renderStory() {
       clearTyping();
       setActiveTab(tabStory);
@@ -837,14 +1001,22 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Histoire — suivez le chemin du nord, chapitre après chapitre.";
+      hint.textContent = "Mode Histoire — trois volontaires sur la route du nord.";
       content.appendChild(hint);
+
+      if (storyState.blessing) {
+        const bl = document.createElement("div");
+        bl.className = "story-blessing";
+        bl.textContent = "✧ Bénédiction : " + BLESSINGS[storyState.blessing];
+        content.appendChild(bl);
+      }
+
       content.appendChild(storyMusicToggle());
       content.appendChild(storyChapterList());
     }
 
-    function openScene(i) {
-      storyScene = { idx: i, line: 0 };
+    function openScene(i, step) {
+      storyScene = { idx: i, step: step || 0 };
       renderScene();
     }
 
@@ -864,7 +1036,8 @@ OS.registerApp({
 
     function renderScene() {
       clearTyping();
-      const ch = CHAPTERS[storyScene.idx];
+      const ch = STORY[storyScene.idx];
+      const ev = ch.events[storyScene.step];
       content.innerHTML = "";
       content.appendChild(quartzBar());
       content.appendChild(storyBackBtn());
@@ -876,31 +1049,62 @@ OS.registerApp({
 
       const title = document.createElement("div");
       title.className = "story-title";
-      title.textContent = ch.title;
+      title.textContent = (storyScene.idx + 1) + ". " + ch.title;
       content.appendChild(title);
 
-      const text = document.createElement("div");
-      text.className = "story-text";
-      ch.lines.slice(0, storyScene.line).forEach((l) => {
-        const p = document.createElement("div");
-        p.className = "story-line";
-        p.textContent = l;
-        text.appendChild(p);
-      });
-      const cur = document.createElement("div");
-      cur.className = "story-line current";
-      text.appendChild(cur);
-      content.appendChild(text);
-      typeCurrentLine(cur, ch.lines[storyScene.line]);
+      if (ev.q) {
+        const text = document.createElement("div");
+        text.className = "story-text";
+        const line = document.createElement("div");
+        line.className = "story-line current";
+        text.appendChild(line);
+        content.appendChild(text);
+        typeCurrentLine(line, ev.q);
 
-      const isBossScene = storyScene.idx === 3 && storyScene.line >= ch.lines.length - 1;
-      if (isBossScene) {
+        const box = document.createElement("div");
+        box.className = "story-choices";
+        ev.opts.forEach((o) => {
+          const opt = document.createElement("button");
+          opt.className = "story-choice";
+          opt.innerHTML = "<b>" + o.label + "</b><small>" + BLESSINGS[o.blessing] + "</small>";
+          opt.addEventListener("click", () => {
+            storyState.blessing = o.blessing;
+            persistStory();
+            OS.sfx.play("unlock");
+            advanceScene();
+          });
+          box.appendChild(opt);
+        });
+        content.appendChild(box);
+      } else if (ev.boss) {
+        const text = document.createElement("div");
+        text.className = "story-text";
+        const line = document.createElement("div");
+        line.className = "story-line current";
+        text.appendChild(line);
+        content.appendChild(text);
+        typeCurrentLine(line, ev.boss.intro);
+
         const boss = document.createElement("button");
         boss.className = "pull-btn tier-infini story-boss";
-        boss.textContent = "⚔ Affronter le dragon des cendres";
-        boss.addEventListener("click", startStoryBattle);
+        boss.textContent = "⚔ Engager : " + ev.boss.name;
+        boss.addEventListener("click", () => startStoryBattle(ev.boss));
         content.appendChild(boss);
       } else {
+        const text = document.createElement("div");
+        text.className = "story-text";
+        if (ev.s) {
+          const sp = document.createElement("div");
+          sp.className = "story-speaker";
+          sp.textContent = ev.s;
+          text.appendChild(sp);
+        }
+        const line = document.createElement("div");
+        line.className = "story-line current" + (ev.s ? "" : " narration");
+        text.appendChild(line);
+        content.appendChild(text);
+        typeCurrentLine(line, ev.t);
+
         const next = document.createElement("button");
         next.className = "pull-btn story-next";
         next.textContent = "Suivant ▸";
@@ -910,14 +1114,14 @@ OS.registerApp({
     }
 
     function advanceScene() {
-      const ch = CHAPTERS[storyScene.idx];
-      if (storyScene.line < ch.lines.length - 1) {
-        storyScene.line++;
+      const ch = STORY[storyScene.idx];
+      if (storyScene.step < ch.events.length - 1) {
+        storyScene.step++;
         OS.sfx.play("page");
         renderScene();
-      } else if (storyScene.idx < 3) {
+      } else {
         const gained = completeChapter(storyScene.idx);
-        renderDoneChapter(storyScene.idx, gained > 0);
+        renderDoneChapter(storyScene.idx, gained > 0 ? "+8 ◆ gagnés" : "déjà lu");
       }
     }
 
@@ -933,9 +1137,9 @@ OS.registerApp({
       return 0;
     }
 
-    function renderDoneChapter(i, fresh) {
+    function renderDoneChapter(i, subtitle) {
       clearTyping();
-      const ch = CHAPTERS[i];
+      const ch = STORY[i];
       content.innerHTML = "";
       content.appendChild(quartzBar());
 
@@ -946,10 +1150,10 @@ OS.registerApp({
 
       const done = document.createElement("div");
       done.className = "battle-result win";
-      done.textContent = fresh ? "✓ CHAPITRE TERMINÉ — +8 ◆" : "✓ Chapitre déjà lu";
+      done.textContent = i === STORY.length - 1 ? "✓ FIN DE L'HISTOIRE — " + subtitle : "✓ CHAPITRE TERMINÉ — " + subtitle;
       content.appendChild(done);
 
-      if (i + 1 < CHAPTERS.length) {
+      if (i + 1 < STORY.length) {
         const nx = document.createElement("button");
         nx.className = "pull-btn story-next";
         nx.textContent = "Chapitre suivant ▸";
@@ -960,24 +1164,31 @@ OS.registerApp({
     }
 
     function battleSceneArt() {
+      const idx = battle.storyChapter !== undefined ? battle.storyChapter : (storyScene ? storyScene.idx : 0);
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(battle.mode === "histoire" ? CHAPTERS[3].scene : (storyScene ? CHAPTERS[storyScene.idx].scene : CHAPTERS[0].scene));
+      art.innerHTML = OS.art.scene(STORY[idx] ? STORY[idx].scene : STORY[0].scene);
       return art;
     }
 
-    function startStoryBattle() {
+    function startStoryBattle(cfg) {
       const team = teamUnits();
       if (!team.length) { renderStory(); return; }
-      const hp = 34000, atk = 2050;
+      const fx = BLESSING_FX[storyState.blessing] || {};
+      const hp = Math.round(cfg.hp * (fx.hpMult || 1));
+      storyScene = { idx: storyScene ? storyScene.idx : 0, step: storyScene ? storyScene.step : 0 };
       battle = {
         mode: "histoire",
         tier: "histoire",
-        floor: 4,
-        enemy: { name: "Dragon des cendres", type: "Brute", hp, maxHp: hp, atk },
+        storyChapter: storyScene.idx,
+        storyStep: storyScene.step,
+        bossCfg: cfg,
+        storyMult: fx.mult || 1,
+        floor: storyScene.idx + 1,
+        enemy: { name: cfg.name, type: cfg.type, hp, maxHp: hp, atk: cfg.atk, reward: cfg.reward },
         units: team,
         hp: team.map((u) => u.hp),
-        gauge: 0,
+        gauge: fx.gauge || 0,
         picks: 0,
         curse: 0,
         burn: 0,
@@ -986,9 +1197,23 @@ OS.registerApp({
       };
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
-      battle.log.unshift("----- Dragon des cendres [Boss] · Boss d'histoire · récompense : 30 ◆ -----", "Le dragon des cendres fixe l'équipe de ses yeux de braise.");
+      battle.log.unshift("----- " + cfg.name + " [Boss d'histoire] · récompense : " + cfg.reward + " ◆ -----");
       OS.sfx.play("ult");
       renderQuests();
+    }
+
+    function onStoryContinue() {
+      const idx = battle.storyChapter;
+      const step = battle.storyStep + 1;
+      const fresh = !!battle.freshWin;
+      storyScene = { idx, step };
+      if (step >= STORY[idx].events.length) renderDoneChapter(idx, fresh ? "boss vaincu !" : "déjà lu");
+      else renderScene();
+    }
+
+    function onStoryRetry() {
+      storyScene = { idx: battle.storyChapter, step: battle.storyStep };
+      openScene(battle.storyChapter, battle.storyStep);
     }
 
     /* ---------- Démarrage ---------- */

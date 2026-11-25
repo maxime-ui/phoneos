@@ -109,8 +109,9 @@ setTimeout(() => {
   const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   check("onglet Histoire présent", !!storyTab);
   storyTab.click();
-  check("liste des 4 chapitres", document.querySelectorAll(".story-chapter").length === 4);
-  check("chapitres 2-4 verrouillés au départ", document.querySelectorAll(".story-chapter.locked").length === 3);
+  check("liste des 12 chapitres", document.querySelectorAll(".story-chapter").length === 12);
+  check("chapitres 2-12 verrouillés au départ", document.querySelectorAll(".story-chapter.locked").length === 11);
+  check("trois actes affichés", document.querySelectorAll(".story-act").length === 3);
   check("toggle musique présent", !!document.querySelector(".music-toggle"));
 
   document.querySelector(".story-chapter").click();
@@ -128,7 +129,7 @@ setTimeout(() => {
   check("récompense chapitre affichée", document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
 
   storyTab.click();
-  check("chapitres 3-4 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 2);
+  check("chapitres 3-12 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 10);
 
   const music = document.querySelector(".music-toggle");
   music.click();
@@ -136,27 +137,59 @@ setTimeout(() => {
   check("musique ON persistée", document.querySelector(".music-toggle").textContent.includes("ON") && musicSaved.music === true);
   document.querySelector(".music-toggle").click();
 
-  // Forcer la progression aux 3 chapitres, puis boss du chapitre 4
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.done=3;localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  // Choix narratif du chapitre 3 (bénédiction persistée)
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.done=2;localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  window.eval("OS").openApp("epopee");
+  const storyTabC = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+  storyTabC.click();
+  const chapter3 = [...document.querySelectorAll(".story-chapter")][2];
+  check("chapitre 3 déverrouillé", chapter3 && !chapter3.classList.contains("locked"));
+  chapter3.click();
+  for (let i = 0; i < 2; i++) {
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (next) next.click();
+  }
+  check("choix narratif affiché", document.querySelectorAll(".story-choice").length === 2);
+  const choice = document.querySelector(".story-choice");
+  if (choice) choice.click();
+  const blessingSaved = JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}");
+  check("bénédiction sauvegardée", !!blessingSaved.blessing && document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
+
+  // Boss du chapitre 4 : Gortak
   window.eval("OS").openApp("epopee");
   const storyTab2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTab2.click();
-  const chapter4 = [...document.querySelectorAll(".story-chapter")].pop();
-  check("chapitre 4 déverrouillé", chapter4 && !chapter4.classList.contains("locked"));
+  const chapter4 = [...document.querySelectorAll(".story-chapter")][3];
+  check("chapitre 4 (Gortak) déverrouillé", chapter4 && !chapter4.classList.contains("locked"));
   chapter4.click();
   for (let i = 0; i < 3; i++) {
     const next = [...document.querySelectorAll(".story-next")].pop();
     if (next) next.click();
   }
   const bossBtn = document.querySelector(".story-boss");
-  check("bouton boss dragon présent", !!bossBtn);
+  check("bouton boss Gortak présent", !!bossBtn);
   if (bossBtn) bossBtn.click();
-  check("combat boss lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
+  check("combat boss lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Gortak") && document.body.textContent.includes("Boss d'histoire"));
   for (let draws = 0; draws < 3; draws++) {
     const card = document.querySelector(".hand-card");
     if (card) card.click();
   }
   check("combat boss : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 3);
+
+  // Boss final : le dragon des cendres
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.done=11;localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  window.eval("OS").openApp("epopee");
+  const storyTab3 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+  storyTab3.click();
+  const chapter12 = [...document.querySelectorAll(".story-chapter")][11];
+  check("chapitre 12 déverrouillé", chapter12 && !chapter12.classList.contains("locked"));
+  chapter12.click();
+  const next12 = [...document.querySelectorAll(".story-next")].pop();
+  if (next12) next12.click();
+  const dragonBtn = document.querySelector(".story-boss");
+  check("bouton boss dragon présent", !!dragonBtn);
+  if (dragonBtn) dragonBtn.click();
+  check("boss final lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
 
   window.eval("OS").closeApp();
 
