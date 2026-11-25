@@ -277,10 +277,10 @@ setTimeout(() => {
   check("sélecteur d'équipement sur l'Étendard", !!flagSel);
   if (flagSel) { flagSel.value = "edele"; flagSel.dispatchEvent(new window.Event("change")); }
   const saveFlag = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
-  check("Étendard forgé et équipé, 8 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
+  check("Étendard forgé et équipé, 8 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && document.querySelectorAll(".relic-line:not(.set-line)").length === 8 && [...document.querySelectorAll(".relic-line:not(.set-line)")].filter((l) => l.textContent.includes("Forgée")).length === 5);
 
   // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
-  check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 2 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
+  check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 3 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
   check("Harmonie parfaite inactive (rang N)", [...document.querySelectorAll(".set-line.ready")].every((l) => !l.textContent.includes("Harmonie parfaite")));
   const armorLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
   check("Écaille N : principale affichée, aucune sous-stat", !!armorLine2 && armorLine2.textContent.includes("Principale") && armorLine2.textContent.includes("Aucune sous-stat"));
@@ -376,7 +376,7 @@ setTimeout(() => {
   // Portail de classe : coût 5 ◆ + pity persistée
   const summonTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
   summonTab.click();
-  check("portails de classe affichés (9)", document.querySelectorAll(".portal-grid .portal-btn").length === 9);
+  check("portails de classe affichés (12)", document.querySelectorAll(".portal-grid .portal-btn").length === 9);
   const healerPortal = [...document.querySelectorAll(".portal-grid .portal-btn")].find((b) => b.textContent.includes("Soigneur"));
   check("portail Soigneur présent", !!healerPortal);
   if (healerPortal) healerPortal.click();
@@ -561,7 +561,7 @@ setTimeout(() => {
   check("onglet Histoire reste actif à la fin du chapitre", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
 
   [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire").click();
-  check("chapitres 3-18 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 16);
+  check("chapitres 3-25 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 23);
 
   const music = document.querySelector(".music-toggle");
   music.click();
@@ -693,7 +693,7 @@ setTimeout(() => {
   check("épilogue : boss « Écho du premier dragon » présent", !!document.querySelector(".story-boss") && document.body.textContent.includes("Écho du premier dragon") && document.body.textContent.includes("trois")); // explication des origines
 
   // Bannières + déblocage d'Enfer+
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.bossBeaten={"1":5,"3":5,"6":5,"9":5,"11":5,"18":5,"20":5,"22":5};s.cleared=["facile","moyen","difficile","impossible","enfer"];localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6,"18":6,"20":6,"22":6};s.cleared=["facile","moyen","difficile","impossible","enfer"];localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTab4 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTab4.click();
