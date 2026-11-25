@@ -1514,7 +1514,7 @@ OS.registerApp({
       const op = {
         name, type,
         hp: Math.max(9000, Math.round(unit.atk * 14)),
-        atk: Math.max(180, Math.round(unit.hp * 0.12)),
+        atk: Math.max(120, Math.round(unit.hp * 0.05)),
       };
       battle = {
         mode: "train",
@@ -2355,6 +2355,16 @@ OS.registerApp({
     function battleView() {
       const view = document.createElement("div");
       view.className = "battle";
+      if (battle.mode === "train") {
+        const lab = document.createElement("div");
+        lab.className = "team-hint";
+        lab.textContent = "Duel réel · l'adversaire riposte après vos 3 actions. Victoire et K.O. possibles ; aucune récompense ni perte de progression.";
+        view.appendChild(lab);
+        const score = document.createElement("div");
+        score.className = "training-score";
+        score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " infligés · Ennemi : " + Math.max(0, battle.enemy.hp).toLocaleString("fr-FR") + " PV · Héros : " + Math.max(0, battle.hp[0]).toLocaleString("fr-FR") + " PV · " + battle.picks + "/3 actions</span>";
+        view.appendChild(score);
+      }
 
       if (battle.over) {
         const won = battle.enemy.hp <= 0;
@@ -2415,14 +2425,6 @@ OS.registerApp({
           exitRow.className = "battle-actions";
           exitRow.appendChild(exit);
           view.appendChild(exitRow);
-          const lab = document.createElement("div");
-          lab.className = "team-hint";
-          lab.textContent = "Duel réel · l'adversaire riposte après vos 3 actions. Victoire et K.O. possibles ; aucune récompense ni perte de progression.";
-          view.appendChild(lab);
-          const score = document.createElement("div");
-          score.className = "training-score";
-          score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " infligés · Ennemi : " + Math.max(0, battle.enemy.hp).toLocaleString("fr-FR") + " PV · Héros : " + Math.max(0, battle.hp[0]).toLocaleString("fr-FR") + " PV · " + battle.picks + "/3 actions</span>";
-          view.appendChild(score);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
           : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
