@@ -98,3 +98,10 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Sept icônes élémentaires (Feu, Eau, Foudre, Nature, Terre, Arcane, Vent) sont disponibles dans `assets/asteria/elements/`.
 - Un décor de combat crépusculaire est disponible dans `assets/asteria/scenes/` et sert de fond au cadre de scène.
 - Les contrôles de présence des assets couvrent désormais héros, ennemis, boss, éléments et décor.
+
+## Deuxième vague graphique — bestiaire et régions
+
+- 13 portraits dédiés correspondent aux 13 archétypes de `ENEMY_TYPES` ; le portrait du type rencontré apparaît dans le panneau de combat.
+- Trois paysages de région (forêt, terres embrasées, ruines) illustrent les entrées de chapitres de la carte narrative.
+- Les cartes de chapitres et le panneau d'ennemi disposent de styles adaptatifs pour les petits écrans.
+- Le test de fumée vérifie aussi la présence des 13 portraits de bestiaire et des trois paysages.
