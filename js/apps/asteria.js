@@ -1409,6 +1409,24 @@ OS.registerApp({
       hint.textContent = "Mode Entraînement — testez tous les héros, même non possédés. Aucun gain, aucune perte : pure simulation.";
       content.appendChild(hint);
 
+      // Une fois un héros choisi, le laboratoire devient un écran de combat dédié.
+      // Le roster complet reste dans l'écran de sélection, pas au-dessus du combat.
+      if (battle && battle.mode === "train") {
+        const selected = document.createElement("div");
+        selected.className = "roster training-selected";
+        const selectedCard = unitCard(battle.units[0]);
+        selectedCard.classList.add("in-team");
+        selected.appendChild(selectedCard);
+        content.appendChild(selected);
+        const change = document.createElement("button");
+        change.className = "pull-btn";
+        change.textContent = "↩ Changer de héros";
+        change.addEventListener("click", () => { battle = null; renderTraining(); });
+        content.appendChild(change);
+        content.appendChild(battleView());
+        return;
+      }
+
       const box = document.createElement("div");
       box.className = "roster";
       content.appendChild(box);
