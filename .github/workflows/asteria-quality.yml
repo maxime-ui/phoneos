@@ -1,9 +1,9 @@
 name: Astéria 2.0 — qualité
 on:
   pull_request:
-    branches: [vibe/phoneos-270620]
+    branches: [main]
   push:
-    branches: [asteria-2.0]
+    branches: [asteria-infinite-story-rework, main]
   workflow_dispatch:
 
 jobs:
