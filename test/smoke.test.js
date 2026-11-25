@@ -283,7 +283,7 @@ setTimeout(() => {
   check("onglet Collection présent", !!colTab);
   colTab.click();
   check("collection affiche les " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
-  check("chaque carte de héros possède un portrait individuel", document.querySelectorAll(".col-grid .unit-card .hero-art use").length === unitIds.length);
+  check("chaque carte de héros possède un portrait visible autonome", document.querySelectorAll(".col-grid .unit-card img.hero-art[src]").length === unitIds.length && [...document.querySelectorAll(".col-grid .unit-card img.hero-art")].every((img) => fs.existsSync(path.join(root, img.getAttribute("src").replace(/^\.\//, "")))));
   check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("filtres Collection classe/rareté/possession présents", document.querySelectorAll(".collection-filters select").length === 3);
   const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
@@ -337,7 +337,12 @@ setTimeout(() => {
   check("portail Soigneur présent", !!healerPortal);
   if (healerPortal) healerPortal.click();
   check("clic portail : aperçu des héros et probabilités affiché", !!document.querySelector(".portal-detail") && document.querySelectorAll(".portal-detail .portal-rate").length === 3 && document.querySelectorAll(".portal-detail .portal-roster .unit-card").length > 0);
+  check("portail : filtre Possédés / Non possédés disponible", !!document.querySelector(".portal-owned-filter select"));
   check("ouvrir un portail ne consomme pas de quartz", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350);
+  const portalOwnership = document.querySelector(".portal-owned-filter select");
+  if (portalOwnership) { portalOwnership.value = "missing"; portalOwnership.dispatchEvent(new window.Event("change")); }
+  check("portail : filtre Non possédés appliqué", !!document.querySelector(".portal-detail .portal-count") && document.querySelector(".portal-detail .portal-count").textContent.includes("personnages affichés"));
+  if (portalOwnership) { portalOwnership.value = "all"; portalOwnership.dispatchEvent(new window.Event("change")); }
   const portalSummon = [...document.querySelectorAll(".portal-detail .pull-btn")].find((b) => b.textContent.includes("×1"));
   if (portalSummon) portalSummon.click();
   const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
@@ -687,6 +692,7 @@ setTimeout(() => {
   if (trainingCard) trainingCard.click();
   const enemyHpAfter = document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent;
   check("cible d'entraînement immortelle", !!enemyHpBefore && enemyHpBefore === enemyHpAfter);
+  check("laboratoire : compteur de dégâts cumulés visible après une action", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.includes("dégâts infligés"));
   const quitTraining = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Quitter le test"));
   check("sortie disponible pendant le combat", !!quitTraining);
   if (quitTraining) quitTraining.click();
