@@ -152,6 +152,12 @@ setTimeout(() => {
   const rosterPortraits = [...document.querySelectorAll(".roster .unit-card .unit-portrait .hero-art")];
   check("un portrait SVG personnalisé pour chaque héros du roster", rosterPortraits.length === unitIds.length - 1 && rosterPortraits.every((portrait) => portrait.tagName.toLowerCase() === "svg" && !!portrait.getAttribute("data-portrait-id")));
   check("portraits héros réellement distincts (dessins et identifiants)", new Set(rosterPortraits.map((portrait) => portrait.outerHTML)).size === rosterPortraits.length);
+  const artApi = window.eval("OS").asteriaData;
+  const allHeroArt = artApi.UNITS.map((unit) => artApi.heroPortraitMarkup(unit.id));
+  const enemyTypes = Object.keys(artApi.ENEMY_TYPES);
+  const allEnemyArt = artApi.ENEMY_NAMES.map((name, i) => artApi.enemyPortraitMarkup(enemyTypes[i % enemyTypes.length], name));
+  check("133 portraits de héros générés et uniques", allHeroArt.length === 133 && new Set(allHeroArt).size === allHeroArt.length);
+  check("portraits ennemis uniques par nom et archétype", allEnemyArt.length === artApi.ENEMY_NAMES.length && new Set(allEnemyArt).size === allEnemyArt.length);
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 
