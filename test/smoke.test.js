@@ -44,6 +44,10 @@ function check(name, cond) { results.push((cond ? "PASS" : "FAIL") + "  " + name
 
 // Déclenche DOMContentLoaded manuellement
 check("DOMOSS existe", typeof window.eval("OS") === "object");
+const elementInfo = window.eval("OS").asteriaData.elementInfo();
+check("système élémentaire : 7 affinités déclarées", Object.keys(elementInfo.elements).length === 7);
+check("cartes : Brut/Arcane/Rapide ont une affinité", elementInfo.cards.R.element === "feu" && elementInfo.cards.B.element === "arcane" && elementInfo.cards.V.element === "vent");
+check("ennemis : affinités fixes connues", Object.keys(elementInfo.enemyAffinity).length >= 13 && elementInfo.enemyAffinity.Golem === "terre");
 
 // Attendre l'init de la page web (~2 s max)
 setTimeout(() => {
