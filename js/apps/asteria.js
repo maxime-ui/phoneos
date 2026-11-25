@@ -2,7 +2,27 @@
 "use strict";
 
     const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" }, 4: { label: "SS", color: "#ff8c5a" } };
-    const CARD = { R: { label: "Brut", color: "#c34a2f", mult: 1.5 }, B: { label: "Arcane", color: "#3b6bd4", mult: 1.0 }, V: { label: "Rapide", color: "#3ba75c", mult: 0.8 } };
+    const CARD = {
+      R: { label: "Brut", color: "#c34a2f", mult: 1.5, element: "feu" },
+      B: { label: "Arcane", color: "#3b6bd4", mult: 1.0, element: "arcane" },
+      V: { label: "Rapide", color: "#3ba75c", mult: 0.8, element: "vent" },
+    };
+    const ELEMENTS = {
+      feu: { label: "Feu", icon: "🔥", strong: "nature", weak: "eau" },
+      eau: { label: "Eau", icon: "💧", strong: "feu", weak: "foudre" },
+      foudre: { label: "Foudre", icon: "⚡", strong: "eau", weak: "terre" },
+      nature: { label: "Nature", icon: "🌿", strong: "terre", weak: "feu" },
+      terre: { label: "Terre", icon: "🪨", strong: "foudre", weak: "nature" },
+      arcane: { label: "Arcane", icon: "🔮", strong: null, weak: null },
+      vent: { label: "Vent", icon: "🌪️", strong: null, weak: null },
+    };
+    const ENEMY_AFFINITY = {
+      "Brute": "terre", "Assassin": "vent", "Sorcier": "feu",
+      "Capitaine": "foudre", "Golem": "terre", "Oracle": "eau",
+      "Muraille": "terre", "Invocateur": "arcane", "Fantassin": "foudre",
+      "Nécromant": "nature", "Banshee": "eau", "Sanguinaire": "feu",
+      "Colosse de givre": "eau",
+    };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
       normal: { label: "Normal", hp: 15000, atk: 1330, reward: 10 },
@@ -1668,7 +1688,7 @@ OS.registerApp({
       const hits = (u.id === "kairo" && Math.random() < 0.15) ? 2 : 1;
       let totalDealt = 0;
       for (let h = 0; h < hits; h++) {
-        totalDealt += hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""));
+        totalDealt += hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""), c.element);
         if (battle.enemy.hp <= 0) break;
       }
       if (u.id === "graal" && totalDealt > 0 && battle.enemy.hp > 0) {
@@ -1706,8 +1726,23 @@ OS.registerApp({
       return mult;
     }
 
-    function hitEnemy(base, actorName, label) {
+    function hitEnemy(base, actorName, label, element) {
       let dmg = base;
+      const affinity = ENEMY_AFFINITY[battle.enemy.type] || "arcane";
+      if (element && element !== "arcane" && element !== "vent") {
+        if (ELEMENTS[element] && ELEMENTS[element].strong === affinity) {
+          dmg = Math.round(dmg * 1.25);
+          battle.log.unshift("✧ Faiblesse exploitée : " + ELEMENTS[element].label + " frappe fort contre " + ELEMENTS[affinity].label + " (+25 %)");
+        } else if (ELEMENTS[element] && ELEMENTS[element].weak === affinity) {
+          dmg = Math.round(dmg * 0.80);
+          battle.log.unshift("Résistance : " + ELEMENTS[affinity].label + " atténue " + ELEMENTS[element].label + " (−20 %)");
+        }
+        if (battle.lastElement && battle.lastElement !== element) {
+          dmg = Math.round(dmg * 1.15);
+          battle.log.unshift("⚡ Réaction élémentaire : " + ELEMENTS[battle.lastElement].label + " + " + ELEMENTS[element].label + " (+15 %)");
+        }
+        battle.lastElement = element;
+      }
       if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
       else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
@@ -2917,6 +2952,14 @@ OS.registerApp({
     }
 
     /* ---------- API diffé pour la barre supérieure ---------- */
+    OS.asteriaData.elementInfo = function () {
+      return {
+        cards: Object.fromEntries(Object.entries(CARD).map(([key, card]) => [key, { label: card.label, element: card.element }])),
+        elements: ELEMENTS,
+        enemyAffinity: ENEMY_AFFINITY,
+      };
+    };
+    
     OS.asteriaData.storyDiffs = function () {
       const st = OS.store.get(SAVE_PREFIX + "-story", {});
       const beaten = st.bossBeaten || {};
