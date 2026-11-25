@@ -32,6 +32,42 @@
       { name: "Commandant du feu", type: "Capitaine", hp: 100000, atk: 3360, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" } },
       { name: "Cœur du dragon", type: "Sorcier", hp: 155000, atk: 3990, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" } },
     ];
+    const RAID_BOTS = [
+      "Sombrevel", "Ironhelm", "Vespera", "Morvane", "Talliasha", "Grondor", "Ombrelys",
+      "Arkhanor", "Freyla", "Zarkan", "Mistheal", "Noldrax",
+    ];
+
+    function hashStr(s) {
+      let h = 2166136261;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = (h * 16777619) >>> 0;
+      }
+      return h;
+    }
+
+    function raidRwOf(rank) {
+      return rank === 1 ? 60 : rank <= 3 ? 40 : 20;
+    }
+
+    function raidLeaderboard(week, cleared) {
+      const entries = [];
+      const used = {};
+      for (let i = 0; i < 7; i++) {
+        const v = hashStr(week + "#" + i);
+        let ni = v % RAID_BOTS.length;
+        let guard = 0;
+        while (used[ni] && guard < RAID_BOTS.length) { ni = (ni + 1) % RAID_BOTS.length; guard++; }
+        used[ni] = true;
+        entries.push({ name: RAID_BOTS[ni], score: 1500 + (Math.floor(v / 13) % 11500) });
+      }
+      const mine = (cleared >= 1 ? 1500 : 0) + (cleared >= 2 ? 2500 : 0) + (cleared >= 3 ? 4000 : 0);
+      entries.push({ name: "Vous", score: mine, you: true });
+      entries.sort((a, b) => b.score - a.score);
+      const rank = entries.findIndex((e) => e.you) + 1;
+      return { entries, rank, myScore: mine };
+    }
+
     const EVO_REQ = {
       1: [{ eclat: 8 }, { eclat: 12, larme: 5 }, { larme: 5, sceau: 2 }],
       2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
@@ -367,7 +403,7 @@ function evoSkillLabelsOf(u, evo) {
 }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard };
 
 
 OS.registerApp({
@@ -505,25 +541,41 @@ OS.registerApp({
       if ((raid.elixirs || 0) < 1) enter.disabled = true;
       enter.addEventListener("click", () => startRaid());
       wrap.appendChild(enter);
+      const board = raidLeaderboard(raid.week, raid.cleared);
+      const boardBox = document.createElement("div");
+      boardBox.className = "raid-board";
+      const bt = document.createElement("div");
+      bt.className = "team-hint";
+      bt.textContent = "🏆 Classement hebdo du raid — votre rang : " + board.rank + "/8 · bonus au coffre : +" + raidRwOf(board.rank) + " ◆";
+      boardBox.appendChild(bt);
+      board.entries.forEach((e, i) => {
+        const r = document.createElement("div");
+        r.className = "raid-board-row" + (e.you ? " me" : "") + (i === 0 ? " first" : "");
+        r.innerHTML = '<span class="rb-rank">' + (i + 1) + (i === 0 ? "\u1d49\u02b3" : "\u1d49") + '</span><span class="rb-name">' + e.name + '</span><span class="rb-score">' + e.score + "</span>";
+        boardBox.appendChild(r);
+      });
+      wrap.appendChild(boardBox);
       if (raid.cleared >= 1 && !raid.claimed) {
         const chest = document.createElement("button");
         chest.className = "pull-btn claim-btn raid-chest";
-        chest.textContent = "🎁 Coffre hebdomadaire : +" + 30 * raid.cleared + " ◆ et matières (" + raid.cleared + "/3 phases)";
+        chest.textContent = "🎁 Coffre hebdomadaire : +" + 30 * raid.cleared + " ◆ + " + raidRwOf(board.rank) + " ◆ (rang " + board.rank + ") et matières";
         chest.addEventListener("click", () => {
           const gains = [
             { couronne: 5, poussiere: 5 },
             { couronne: 10, larme: 3, poussiere: 8, cristal: 3 },
             { couronne: 10, larme: 3, sceau: 3, poussiere: 12, cristal: 5 },
           ][Math.min(raid.cleared, 3) - 1];
+          const boardC = raidLeaderboard(raid.week, raid.cleared);
+          const bonus = raidRwOf(boardC.rank);
           const qz = 30 * raid.cleared;
-          save.quartz += qz;
+          save.quartz += qz + bonus;
           const line = gainLoot(gains);
           raid.claimed = true;
-          raid.lastChest = "Coffre réclamé : +" + qz + " ◆ · " + line;
+          raid.lastChest = "Coffre réclamé : +" + qz + " ◆ + " + bonus + " ◆ (rang " + boardC.rank + ") · " + line;
           persist();
           persistRaid();
           OS.sfx.play("unlock");
-          OS.notify("🎁", "#3bd4c4", "Coffre hebdomadaire", "+" + qz + " ◆ · " + line, 5000);
+          OS.notify("🎁", "#3bd4c4", "Coffre hebdomadaire", "+" + qz + " ◆ + " + bonus + " ◆ (rang " + boardC.rank + ") · " + line, 5000);
           renderQuests();
         });
         wrap.appendChild(chest);
@@ -2036,6 +2088,7 @@ OS.registerApp({
         if (!locked) b.addEventListener("click", () => {
           storyState.diff = key;
           persistStory();
+          document.dispatchEvent(new Event("asteria-diff"));
           OS.sfx.play("ui");
           renderStory();
         });
@@ -2276,6 +2329,33 @@ OS.registerApp({
       storyScene = { idx: battle.storyChapter, step: battle.storyStep };
       openScene(battle.storyChapter, battle.storyStep);
     }
+
+    /* ---------- API diffé pour la barre supérieure ---------- */
+    OS.asteriaData.storyDiffs = function () {
+      const st = OS.store.get("asteria-story", {});
+      const beaten = st.bossBeaten || {};
+      let bn = 0;
+      for (let t = 0; t < 5; t++) {
+        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= t + 1)) bn = t + 1;
+      }
+      return Object.keys(STORY_DIFFS).map((key) => ({
+        key,
+        label: STORY_DIFFS[key].label,
+        locked: key === "enferPlus" && bn < 5,
+        active: (st.diff || "moyen") === key,
+      }));
+    };
+    OS.asteriaData.setStoryDiff = function (key) {
+      const st = OS.store.get("asteria-story", {});
+      const infos = OS.asteriaData.storyDiffs();
+      const info = infos.find((d) => d.key === key);
+      if (!info || info.locked) return false;
+      st.diff = key;
+      if (st.done === undefined) st.done = 0;
+      OS.store.set("asteria-story", st);
+      document.dispatchEvent(new Event("asteria-diff"));
+      return true;
+    };
 
     /* ---------- Démarrage ---------- */
     persist();

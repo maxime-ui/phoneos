@@ -12,7 +12,7 @@ votre navigateur.
 
 | Élément | Fonctionnement |
 |---|---|
-| Barre supérieure | Identité du jeu + **4 onglets** (Astéria, Personnages, Réglages, Trophées) + **bouton ⛶ Plein écran** + horloge réelle |
+| Barre supérieure | Identité du jeu + **4 onglets** (Astéria, Personnages, Réglages, Trophées) + **sélecteur de difficulté du Mode Histoire** (6 niveaux, Enfer+ verrouillé jusqu'aux 5 bannières) + **bouton ⛶ Plein écran** (+ raccourci clavier **F**) + horloge réelle |
 | Page principale | L'app affichée en grand — **Astéria est ouverte par défaut** au chargement |
 | Notifications | Bannières empilées en haut à droite, désactivables dans Réglages |
 | Sauvegarde | Automatique, dans le stockage local du navigateur — rien à faire |
@@ -174,7 +174,10 @@ Butin : Cœur de braise + Poussière par étage ; **Élixir + Cristal tous les
 1 Élixir pour entrer, 3 phases enchaînées (Gardien de la trempe 66 000 PV →
 Commandant du feu 100 000 PV → Cœur du dragon 155 000 PV), équipe restaurée
 entre phases, +1 Cristal par phase franchie. Coffre hebdo en fonction des
-phases vaincues (+30 ◆ × phases, matières, Poussières, Cristaux).
+phases vaincues (+30 ◆ × phases, matières, Poussières, Cristaux) plus un
+**bonus de rang** du **classement hebdo** : vous êtes classé contre 7 rivaux simulés
+(score = phases vaincues : 1 500 / 2 500 / 4 000), bonus de +60 ◆ (1er),
++40 ◆ (top 3) ou +20 ◆, rivaux et classement renouvelés chaque semaine.
 
 ### 5.4 Récompenses des événements
 
@@ -241,6 +244,6 @@ compétiteurs — affichée dans la Salle des trophées.
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
 - Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
-- Tests : `node test/smoke.test.js` (140 vérifications) et
+- Tests : `node test/smoke.test.js` (146 vérifications) et
   `node test/stress.test.js` — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.

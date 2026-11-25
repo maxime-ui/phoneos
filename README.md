@@ -17,7 +17,9 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 | Réglages | **Vitesse du jeu (Lent/Normal/Rapide — dialogues + musique)**, **vitesse des dialogues du Mode Histoire (Instantané/Lent/Normal/Rapide, indépendante du jeu)**, **mode daltonien (repères visuels en plus des couleurs : badges de rareté, symboles sur les cartes de combat, repères PV)**, **son du jeu on/off**, **notifications système on/off**, volume, réinitialisation (purge complète des données) |
 
 La barre supérieure donne accès aux 4 sections (**Astéria**, Personnages,
-Trophées, Réglages) et au **plein écran** (bouton ⛶).
+Trophées, Réglages), au **sélecteur de difficulté du Mode Histoire** (change la
+difficulté en un clic, Enfer+ verrouillé tant que les 5 bannières manquent) et au
+**plein écran** (bouton ⛶ ou raccourci clavier **F**).
 
 ### Astéria en détail
 
@@ -41,7 +43,7 @@ Trophées, Réglages) et au **plein écran** (bouton ⛶).
 - **Quêtes** à 3 difficultés, **Mode Infini** (+18 % PV/étage, +9 % ATQ, record sauvegardé)
 - **Mode Histoire** : 12 chapitres / 3 actes, dialogues machine à écrire (vitesse réglable, option Instantané), scènes SVG procédurales avec votre équipe réelle, 5 boss de récit, choix narratifs + 6 bénédictions persistantes, **6 difficultés de boss (Facile → Enfer+)**, Enfer+ avec 5 compétences de boss élites, +8 ◆ par chapitre
 - **Bannières de gloire** : +25 ◆ chacune, **notification système au déblocage**
-- **Raid hebdomadaire** : 3 phases enchaînées (Gardien de la trempe, Commandant du feu, Cœur du dragon), 1 Élixir pour entrer, équipe restaurée entre les phases, 40 ◆ sur victoire finale, **coffre hebdomadaire** réinitialisé chaque semaine
+- **Raid hebdomadaire** : 3 phases enchaînées (Gardien de la trempe, Commandant du feu, Cœur du dragon), 1 Élixir pour entrer, équipe restaurée entre les phases, 40 ◆ sur victoire finale, **coffre hebdomadaire** réinitialisé chaque semaine, **classement hebdo** contre 7 rivaux simulés avec **bonus de rang** au coffre (+60/+40/+20 ◆)
 - **Missions quotidiennes** : 3 missions tirées au sort chaque jour réel (cartes, invocations, victoires, soins, étages Infini, boss d'histoire), récompenses ◆ réclamables
 - **Événements de week-end** : Week-end de fortune (récompenses ×2), Week-end des invocateurs (taux SSR doublé)
 - 8 archétypes d'ennemis : **Oracle** (se régénère), **Muraille** (très résistante), **Invocateur** (frappe d'ombre)…
@@ -70,7 +72,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (140 vérifications)
+test/smoke.test.js  Test de fumée (146 vérifications)
 test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ```
 
@@ -90,7 +92,7 @@ récompense de complétion réclamée, clic → fiche détaillée dans l'app Per
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
 Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),
 Raid hebdomadaire (3 phases, coffre réclamé, −1 Élixir à l'entrée, silhouettes évoluées),
-Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, et notifications + plein écran, via jsdom :
+Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), records de Trophées avec Enfer+ distingué, notifications, plein écran (bouton + raccourci F), sélecteur de difficulté et classement hebdo du raid, via jsdom :
 
 ```bash
 npm install jsdom   # uniquement pour le test

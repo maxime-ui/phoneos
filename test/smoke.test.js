@@ -54,6 +54,9 @@ setTimeout(() => {
   check("Astéria ouverte par défaut", !!activeTab && activeTab.dataset.app === "asteria");
   check("bouton plein écran présent", !!document.getElementById("btn-fullscreen"));
   check("horloge de la barre affichée", document.getElementById("top-clock").textContent !== "--:--");
+  const topDiffBoot = document.getElementById("top-diff");
+  const epOptBoot = topDiffBoot ? [...topDiffBoot.querySelectorAll("option")].find((o) => o.value === "enferPlus") : null;
+  check("sélecteur de difficulté dans la barre (Enfer+ verrouillé au départ)", !!epOptBoot && epOptBoot.disabled === true);
 
   // Ouvrir chaque app (la page ne quitte jamais le flux web)
   const apps = Object.keys(window.eval("OS").APPS);
@@ -413,16 +416,22 @@ setTimeout(() => {
   const questTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   questTabR.click();
   check("panneau raid affiché", !!document.querySelector(".raid-panel"));
+  check("classement hebdo du raid affiché (8 lignes)", document.querySelectorAll(".raid-board-row").length === 8 && document.body.textContent.includes("Vous"));
+  check("ligne 'Vous' en surbrillance", !!document.querySelector(".raid-board-row.me") && document.querySelector(".raid-board-row.me").textContent.includes("Vous"));
   check("3 phases de raid affichées", document.querySelectorAll(".raid-chip").length === 3);
   check("3 phases déjà vaincues (✓)", document.querySelectorAll(".raid-chip.done").length === 3);
   check("Élixirs affichés (5)", document.querySelector(".raid-panel").textContent.includes("Élixirs de raid : 5"));
   const chest = document.querySelector(".raid-chest");
   check("coffre hebdomadaire réclamable", !!chest);
+  const raidData = window.eval("OS").asteriaData;
+  const lb = raidData.raidLeaderboard(JSON.parse(window.localStorage.getItem("phoneos:asteria-raid")).week, 3);
+  const bonus = raidData.raidRwOf(lb.rank);
+  check("classement déterministe : rang calculé " + lb.rank + "/8", lb.rank >= 1 && lb.rank <= 8 && lb.entries.length === 8);
   const q0 = JSON.parse(window.localStorage.getItem("phoneos:asteria")).quartz;
   if (chest) chest.click();
   const rs1 = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
   const rr1 = JSON.parse(window.localStorage.getItem("phoneos:asteria-raid"));
-  check("coffre : +90 ◆ (3 phases × 30)", rs1.quartz === q0 + 90);
+  check("coffre : +90 ◆ + bonus de rang " + lb.rank + " (+" + bonus + " ◆)", rs1.quartz === q0 + 90 + bonus);
   check("coffre : +3 Sceaux du dragon, Étendard déduit (45 → 48)", rs1.loot.sceau === 48);
   check("coffre marqué réclamé", rr1.claimed === true);
   const teamTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
@@ -448,21 +457,26 @@ setTimeout(() => {
   const raidArt = document.querySelector(".battle .story-art").innerHTML;
   check("scène de combat raid : aura présente seulement si un membre est évolué", raidArt.includes("scale(1.08)") === anyTeamEvo);
 
+  // Barre supérieure avancée : sélecteur de difficulté direct + raccourci F
+  window.eval('document.dispatchEvent(new Event("asteria-diff"))');
+  const topDiff = document.getElementById("top-diff");
+  check("sélecteur de difficulté direct (6 options)", !!topDiff && topDiff.querySelectorAll("option").length === 6);
+  const epOpt = [...topDiff.querySelectorAll("option")].find((o) => o.value === "enferPlus");
+  check("Enfer+ déverrouillé dans le sélecteur (5 bannières)", !!epOpt && epOpt.disabled === false);
+  const nDiff = document.querySelectorAll(".notif").length;
+  topDiff.value = "moyen";
+  topDiff.dispatchEvent(new window.Event("change", { bubbles: true }));
+  check("difficulté changée depuis la barre (persistée)", JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff === "moyen");
+  check("notification de difficulté affichée", document.querySelectorAll(".notif").length === nDiff + 1);
+  const nF = document.querySelectorAll(".notif").length;
+  document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "f" }));
+  check("raccourci F : réaction plein écran (repli jsdom)", document.querySelectorAll(".notif").length === nF + 1);
+
   window.eval("OS").closeApp();
 
   // closeApp ramène sur Astéria (page web unique, pas d'écran d'accueil)
   const backTab = document.querySelector("#top-tabs .top-tab.active");
   check("retour -> Astéria ouverte", !!backTab && backTab.dataset.app === "asteria");
-
-  // Notifications
-  window.eval("OS").notify("✅", "#333", "Test", "Message de test");
-  check("notification affichée", document.querySelectorAll(".notif").length >= 1);
-
-  // Plein écran : bouton présent, clic sans erreur (fallback notification en jsdom)
-  const fsBtn = document.getElementById("btn-fullscreen");
-  check("bouton plein écran actif", !!fsBtn);
-  if (fsBtn) fsBtn.click();
-  check("clic plein écran sans erreur", true);
 
   if (errors.length) {
     console.log("ERREURS:\n" + errors.join("\n"));

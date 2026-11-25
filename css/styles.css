@@ -574,3 +574,36 @@ body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }
 .relic-line .tag-chip { margin-left: 6px; padding: 1px 7px; font-size: 9.5px; }
 .relic-line .forge-req b { color: #dfe4ef; }
 .set-line .forge-req b { color: #3ba75c; }
+
+/* ---------- Sélecteur de difficulté (barre supérieure) ---------- */
+.top-diff {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(20,25,38,.9);
+  color: #eef1f8;
+  font-size: 13px;
+  cursor: pointer;
+}
+.top-diff:hover { background: rgba(38,44,64,.95); }
+
+/* ---------- Classement hebdo du raid ---------- */
+.raid-board { margin-top: 10px; }
+.raid-board-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: 13px;
+}
+.raid-board-row.me {
+  background: rgba(79,124,255,.16);
+  border-radius: 8px;
+  font-weight: 700;
+}
+.rb-rank { width: 28px; color: #97a0b8; font-weight: 700; flex: none; }
+.raid-board-row.first .rb-rank { color: #ffd970; }
+.rb-name { flex: 1; }
+.rb-score { color: #3bd4c4; font-weight: 700; }
+body.cb .rb-score { color: #0fb3a3; }
