@@ -17,7 +17,7 @@ OS.registerApp({
   render(body) {
     body.classList.add("padend");
     const D = OS.asteriaData;
-    const sv = OS.store.get("asteria", {}) || {};
+    const sv = OS.store.get("asteria-v2", {}) || {};
     sv.owned = sv.owned || {};
     sv.evo = sv.evo || {};
     sv.relics = sv.relics || {};
