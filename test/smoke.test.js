@@ -22,6 +22,14 @@ const artFiles = [
   "assets/asteria/enemies/dragonnet.svg",
   "assets/asteria/enemies/sentinelle.svg",
   "assets/asteria/enemies/seigneur-abysses.svg",
+  "assets/asteria/scenes/crepuscule-ruines.svg",
+  "assets/asteria/elements/feu.svg",
+  "assets/asteria/elements/eau.svg",
+  "assets/asteria/elements/foudre.svg",
+  "assets/asteria/elements/nature.svg",
+  "assets/asteria/elements/terre.svg",
+  "assets/asteria/elements/arcane.svg",
+  "assets/asteria/elements/vent.svg",
 ];
 artFiles.forEach((file) => {
   if (!fs.existsSync(path.join(root, file))) throw new Error("Illustration manquante : " + file);
