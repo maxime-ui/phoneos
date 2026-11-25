@@ -2879,8 +2879,11 @@ OS.registerApp({
       { name: "Bannière du Serment", color: "#a06a2c" },
       { name: "Bannière de la Caldeira", color: "#8c2f39" },
       { name: "Bannière du Dragon Rouge", color: "#d33b2f" },
+      { name: "Bannière des Failles", color: "#7551b8" },
+      { name: "Bannière de la Sève-Lune", color: "#398f6b" },
+      { name: "Bannière du Dernier Sablier", color: "#3d627f" },
     ];
-    const BOSS_IDX = [1, 3, 6, 9, 11];
+    const BOSS_IDX = [1, 3, 6, 9, 11, 12, 14, 16];
 
     function bannersUnlockedCount() {
       const beaten = storyState.bossBeaten || {};
@@ -3170,9 +3173,68 @@ OS.registerApp({
       },
     ];
 
+    STORY.push(
+      { act: "Acte V — Les royaumes fracturés", title: "La forge des étoiles", scene: { sky: "dawn", ground: "ruines", sunX: 210, actors: [{ cls: "Artificier", color: "#d7a85a", x: 120 }, { cls: "Mage", color: "#6b4f9e", x: 165, flip: true }] }, events: [
+        { t: "Au-delà du sanctuaire, les anciennes routes se brisent en fragments suspendus. Une forge céleste pulse au rythme d’un cœur mécanique." },
+        { s: "Elyndra", t: "Cette forge ne fabrique pas des armes. Elle répare les serments que le temps a déchirés." },
+        { fight: { name: "Sentinelle prismatique", type: "Sentinelle", hp: 69000, atk: 2550, reward: 62, intro: "La forge teste votre maîtrise des nouveaux rôles." } },
+        { s: "Toren", t: "Les runes répondent ! Mais quelqu’un a détourné le noyau pour ouvrir une faille." },
+        { boss: { name: "L’Architecte des failles", type: "Chronomancien", hp: 82000, atk: 2900, reward: 72, intro: "Il plie les secondes pour empêcher votre prochain mouvement." } },
+        { t: "La forge se rallume. Une nouvelle bannière apparaît dans le ciel, marquant le début d’une guerre plus ancienne que les royaumes." }
+      ]},
+      { act: "Acte V — Les royaumes fracturés", title: "La forêt qui se souvient", scene: { sky: "forest", ground: "canopee3", sunX: 80, actors: [{ cls: "Druide", color: "#3bd4a0", x: 120 }, { cls: "Archer", color: "#3ba75c", x: 165, flip: true }] }, events: [
+        { t: "La forêt de Lune-Racine s’étend sous une voûte de feuilles argentées. Chaque arbre porte un souvenir qui n’appartient à personne." },
+        { s: "Maélis", t: "La forêt ne vous attaque pas. Elle vous montre ce que vous avez oublié. Écoutez avant de frapper." },
+        { fight: { name: "Prédateur nocturne", type: "Prédateur", hp: 73500, atk: 2700, reward: 66 } },
+        { s: "Sylwen", t: "La sève est empoisonnée. Quelqu’un a planté une graine de néant au cœur des racines." },
+        { boss: { name: "Reine des épines", type: "Alchimiste", hp: 90000, atk: 3050, reward: 78, elite: { id: "siphon", name: "Sève vorace", desc: "absorbe une partie des dégâts infligés" } } },
+        { t: "La graine se dissout. La forêt rend les souvenirs volés et ouvre un passage vers les royaumes fracturés." }
+      ]},
+      { act: "Acte VI — Le voile des ombres", title: "Les cloches sans écho", scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 240, actors: [{ cls: "Occultiste", color: "#7d5bb5", x: 120 }, { cls: "Chevalier", color: "#e3b23c", x: 165, flip: true }] }, events: [
+        { t: "Dans la cité engloutie, les cloches sonnent sans produire de son. Les habitants marchent comme s’ils attendaient une seconde qui ne vient jamais." },
+        { s: "Vhal", t: "Le voile n’est pas une porte. C’est une dette. Chaque pouvoir emprunté réclame quelque chose en retour." },
+        { fight: { name: "Alchimiste du néant", type: "Alchimiste", hp: 79000, atk: 2850, reward: 70 } },
+        { s: "Nyxar", t: "Le maître du voile se nourrit des noms effacés. Ne lui donnez pas le vôtre." },
+        { boss: { name: "Le Collecteur de noms", type: "Nécromant", hp: 98000, atk: 3250, reward: 86, elite: { id: "veil", name: "Dette des ombres", desc: "draine une partie de la jauge à chaque tour" } } },
+        { t: "Les cloches retrouvent leur voix. Au loin, le sablier du monde se fissure une nouvelle fois." }
+      ]},
+      { act: "Acte VI — Le voile des ombres", title: "La marche des armées", scene: { sky: "ash", ground: "vulkan", sunX: 60, actors: [{ cls: "Défenseur", color: "#9fb0c8", x: 120 }, { cls: "Berserker", color: "#c34a2f", x: 165, flip: true }] }, events: [
+        { t: "Trois armées avancent vers la faille. Les bannières se mélangent dans la fumée, mais les ordres viennent d’une seule voix." },
+        { s: "Aldric", t: "Nous ne gagnerons pas en frappant plus fort. Il faut tenir la ligne et laisser les soigneurs respirer." },
+        { fight: { name: "Canonnière cendrée", type: "Artilleur", hp: 85000, atk: 3000, reward: 75 } },
+        { s: "Bastien", t: "La ligne tient. Pour combien de temps ? Le commandant approche." },
+        { boss: { name: "Maréchal des trois armées", type: "Capitaine", hp: 108000, atk: 3450, reward: 94 } },
+        { t: "Les armées déposent leurs armes. Une carte ancienne révèle le chemin vers l’horloge du monde." }
+      ]},
+      { act: "Acte VII — L’horloge du monde", title: "Les secondes volées", scene: { sky: "night", ground: "ruines", stars: true, sunX: 220, actors: [{ cls: "Mage", color: "#6b4f9e", x: 120 }, { cls: "Artificier", color: "#d7a85a", x: 165, flip: true }] }, events: [
+        { t: "Au sommet de l’horloge, les aiguilles tournent dans des directions opposées. Chaque seconde arrachée au monde devient une créature." },
+        { s: "Elyndra", t: "Le mécanisme peut nous rendre le temps perdu, mais il faut briser ses six verrous." },
+        { fight: { name: "Duelliste des failles", type: "Duelliste", hp: 93000, atk: 3250, reward: 82 } },
+        { s: "Nyxar", t: "Je reconnais cette magie. Le Chronarque ne veut pas régner : il veut empêcher toute fin." },
+        { boss: { name: "Chronarque", type: "Chronomancien", hp: 118000, atk: 3650, reward: 105, elite: { id: "oriflamme", name: "Seconde captive", desc: "ralentit la recharge de l’Ultime" } } },
+        { t: "L’horloge s’arrête. Le silence qui suit ressemble enfin à la paix." }
+      ]},
+      { act: "Acte VII — L’horloge du monde", title: "Le dernier engrenage", scene: { sky: "dawn", ground: "sanctuaire", sunX: 190, actors: [{ cls: "Druide", color: "#3bd4a0", x: 120 }, { cls: "Occultiste", color: "#7d5bb5", x: 165, flip: true }] }, events: [
+        { t: "Une dernière roue tourne sous le sanctuaire. Elle porte les noms de tous ceux qui ont combattu depuis le premier serment." },
+        { s: "Maélis", t: "Le temps ne nous appartient pas. Mais nos choix, eux, peuvent rester." },
+        { fight: { name: "Garde astral", type: "Sentinelle", hp: 101000, atk: 3450, reward: 90 } },
+        { s: "Astrée", t: "Je sens les braises répondre. Ce pouvoir n’est pas fait pour durer éternellement : il doit passer à quelqu’un d’autre." },
+        { boss: { name: "Le Premier Témoin", type: "Prédateur", hp: 128000, atk: 3850, reward: 118 } },
+        { t: "Le dernier engrenage se fige. Les royaumes ne sont plus séparés : ils partagent désormais une même histoire." }
+      ]},
+      { act: "Epilogue II — Un monde relié", title: "Une bannière pour demain", scene: { sky: "dawn", ground: "village", sunX: 130, actors: [{ cls: "Chevalier", color: "#e3b23c", x: 120 }, { cls: "Mage", color: "#6b4f9e", x: 165, flip: true }] }, events: [
+        { t: "Des années ont passé. Les routes sont ouvertes, les écoles de combat accueillent de nouveaux visages et les reliques ne sont plus réservées aux rois." },
+        { s: "Dame Elise", t: "Nous avons commencé à trois. Regardez-les : ils sont des centaines à porter le serment." },
+        { fight: { name: "Épreuve des volontaires", type: "Fantassin", hp: 112000, atk: 3600, reward: 98 } },
+        { s: "Astrée", t: "Une bannière n’est pas un morceau de tissu. C’est la promesse de ne pas laisser quelqu’un seul face aux ténèbres." },
+        { boss: { name: "L’Écho de demain", type: "Sorcier", hp: 140000, atk: 4050, reward: 130 } },
+        { t: "FIN — Les braises ne s’éteignent pas tant que quelqu’un choisit de les transmettre. Une nouvelle aventure commence." }
+      ]}
+    );
+
     // Chaque chapitre devient un véritable niveau : une escarmouche jouable
     // est insérée dans le parcours, avant le boss lorsqu'il y en a un.
-    const STORY_SKIRMISH_TYPES = ["Brute", "Assassin", "Sorcier", "Capitaine", "Fantassin", "Nécromant", "Banshee", "Golem", "Oracle"];
+    const STORY_SKIRMISH_TYPES = ["Brute", "Assassin", "Sorcier", "Capitaine", "Fantassin", "Nécromant", "Banshee", "Golem", "Oracle", "Duelliste", "Artilleur", "Alchimiste"];
     STORY.forEach((chapter, index) => {
       if (chapter.events.some((event) => event.fight)) return;
       const bossIndex = chapter.events.findIndex((event) => event.boss);
@@ -3259,7 +3321,7 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Histoire — 18 niveaux jouables : dialogues, escarmouches, boss et progression de chapitre.";
+      hint.textContent = "Mode Histoire — " + STORY.length + " chapitres jouables : dialogues, escarmouches, boss et progression."
       content.appendChild(hint);
 
       const shelf = document.createElement("div");
