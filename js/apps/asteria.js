@@ -2333,6 +2333,12 @@ OS.registerApp({
     }
 
     function advanceFloor() {
+      const clearedFloor = battle.floor;
+      const baseQuartz = Math.round(3 + clearedFloor * 2 + Math.pow(clearedFloor, 1.28));
+      const quartzReward = Math.round(baseQuartz * eventMult());
+      save.quartz += quartzReward;
+      persist();
+      battle.log.unshift("Récompense de l'étage " + clearedFloor + " : +" + quartzReward + " ◆");
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
       const flGain = {
@@ -2451,7 +2457,7 @@ OS.registerApp({
           view.appendChild(exitRow);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
-          : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
+          : battle.mode === "histoire" ? " · Niveau d'histoire · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
@@ -2978,7 +2984,7 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Histoire — trois volontaires sur la route du nord.";
+      hint.textContent = "Mode Histoire — 18 niveaux jouables : dialogues, escarmouches, boss et progression de chapitre.";
       content.appendChild(hint);
 
       const shelf = document.createElement("div");
