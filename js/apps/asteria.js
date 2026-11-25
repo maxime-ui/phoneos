@@ -454,6 +454,9 @@
     const byId = (id) => UNITS.find((u) => u.id === id);
     const RELICS = {
       arme: { name: "Lame du Raid", effect: "ATK du héros équipé", cost: { couronne: 8, larme: 10 } },
+      talisman: { name: "Talisman des saisons", effect: "Soins du héros équipé", cost: { coeur: 14, poussiere: 20 } },
+      grimoire: { name: "Grimoire des failles", effect: "Jauge et dégâts du héros équipé", cost: { larme: 16, sceau: 4 } },
+      bottes: { name: "Bottes du vent long", effect: "Esquive du héros équipé", cost: { eclat: 18, couronne: 4 } },
       armure: { name: "Écaille du Dragon", effect: "PV du héros équipé", cost: { eclat: 20, coeur: 15 } },
       etendard: { name: "Étendard des trois phases", effect: "Jauge d’Ultime du héros", cost: { couronne: 12, sceau: 5 } },
       anneau: { name: "Anneau des serments", effect: "Critique du héros équipé", cost: { larme: 14, sceau: 6 } },
@@ -471,6 +474,9 @@
       etendard: { stat: "jaugeInit", label: "Jauge du héros", values: [15, 18, 21, 24] },
       anneau: { stat: "crit", label: "Critique du héros", values: [8, 12, 16, 22] },
       orbe: { stat: "dmg", label: "Dégâts du héros", values: [8, 12, 16, 22] },
+      talisman: { stat: "heal", label: "Soins du héros", values: [8, 12, 16, 22] },
+      grimoire: { stat: "gauge", label: "Ultime par carte", values: [4, 6, 8, 10] },
+      bottes: { stat: "esquive", label: "Esquive du héros", values: [5, 8, 11, 14] },
     };
     const RELIC_SUBS = {
       arme: [{ crit: 3 }, { renvoi: 5 }, { execute: 8 }],
@@ -478,11 +484,15 @@
       etendard: [{ teamAtk: 3 }, { gauge: 2 }, { growth: 2 }],
       anneau: [{ execute: 6 }, { gauge: 3 }, { renvoi: 5 }],
       orbe: [{ teamAtk: 4 }, { heal: 5 }, { growth: 3 }],
+      talisman: [{ hp: 4 }, { gauge: 2 }, { teamAtk: 2 }],
+      grimoire: [{ dmg: 3 }, { crit: 3 }, { execute: 5 }],
+      bottes: [{ renvoi: 3 }, { hp: 4 }, { gauge: 2 }],
     };
     const RELIC_SETS = [
       { id: "trio", name: "Pacte du trio", need: 2, fx: { dmg: 4 }, desc: "2 reliques forgées et équipées : dégâts +4 %" },
       { id: "trinite", name: "Trinité du dragon", need: 4, fx: { dmg: 4, jaugeInit: 10 }, desc: "4 reliques forgées et équipées : dégâts +4 % et jauge de départ +10 %" },
       { id: "harmonie", name: "Harmonie parfaite", need: 4, sameTier: 3, fx: { dmg: 8 }, desc: "4 reliques équipées en rang Épique ou + : dégâts +8 %" },
+      { id: "saisons", name: "Cycle des saisons", need: 3, fx: { heal: 6, gauge: 3 }, desc: "3 reliques équipées : soins +6 % et jauge +3 % par carte" },
     ];
     const RELIC_UP = { 2: { poussiere: 10 }, 3: { poussiere: 20, cristal: 5 }, 4: { poussiere: 40, cristal: 12 } };
     const RELIC_STAT_LABELS = { dmg: "Dégâts", crit: "Critique", esquive: "Esquive", renvoi: "Renvoi", execute: "Exécution", heal: "Soins", gauge: "Ultime par carte", growth: "Croissance/tour", teamAtk: "ATK d’équipe", hp: "PV du héros", jaugeInit: "Jauge du héros", atk: "ATK du héros" };
@@ -1402,13 +1412,16 @@ OS.registerApp({
       const wrap = document.createElement("div");
       wrap.className = "forge-panel relic-panel";
       const h = document.createElement("h3");
-      h.textContent = "Reliquaire du raid — 5 reliques, chacune s’équipe sur un héros";
+      h.textContent = "Reliquaire du raid — 8 reliques, chacune s’équipe sur un héros";
       wrap.appendChild(h);
       wrap.appendChild(relicLine("arme"));
       wrap.appendChild(relicLine("armure"));
       wrap.appendChild(relicLine("etendard"));
       wrap.appendChild(relicLine("anneau"));
       wrap.appendChild(relicLine("orbe"));
+      wrap.appendChild(relicLine("talisman"));
+      wrap.appendChild(relicLine("grimoire"));
+      wrap.appendChild(relicLine("bottes"));
 
       const h2 = document.createElement("h3");
       h2.textContent = "Bonus d'ensemble";
