@@ -19,11 +19,11 @@ OS.registerApp({
     const BOSS_IDX = [1, 3, 6, 9, 11];
     const DIFFS = ["Facile", "Moyen", "Difficile", "Impossible", "Enfer", "Enfer+"];
 
-    const story = OS.store.get("asteria-story", {});
-    const gacha = OS.store.get("asteria", {});
+    const story = OS.store.get("asteria-v2-story", {});
+    const gacha = OS.store.get("asteria-v2", {});
     const owned = gacha.owned || {};
     const beaten = story.bossBeaten || {};
-    const infiniteBest = OS.store.get("infinite-best", 0);
+    const infiniteBest = OS.store.get("asteria-v2-infinite-best", 0);
     const graalOwned = !!owned.graal;
 
     function bannerSvg(color, dim) {
