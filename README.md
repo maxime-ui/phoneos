@@ -73,7 +73,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée automatisé (navigation, sauvegardes, combats, progression, assets)
+test/smoke.test.js  Test de fumée automatisé (navigation, sauvegardes, combats, progression, assets, volume)
 ```
 
 ## Lancer
