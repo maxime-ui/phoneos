@@ -149,8 +149,8 @@ setTimeout(() => {
   const teamTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR.click();
   check("roster de 132 unités possédées", document.querySelectorAll(".roster .unit-card").length === unitIds.length - 1);
-  check("portraits présents sur toutes les cartes du roster", [...document.querySelectorAll(".roster .unit-card .unit-portrait img")].length === unitIds.length - 1);
-  check("aucun portrait de héros en erreur de chemin", [...document.querySelectorAll(".roster .unit-card .unit-portrait img")].every((img) => img.getAttribute("src") && fs.existsSync(path.join(root, img.getAttribute("src")))));
+  check("portraits SVG présents sur toutes les cartes du roster", [...document.querySelectorAll(".roster .unit-card .unit-portrait .hero-art use")].length === unitIds.length - 1);
+  check("chemins des portraits SVG du roster valides", [...document.querySelectorAll(".roster .unit-card .unit-portrait .hero-art use")].every((use) => use.getAttribute("href") && fs.existsSync(path.join(root, use.getAttribute("href").split("#")[0]))));
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 
