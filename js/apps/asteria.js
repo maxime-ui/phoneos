@@ -977,7 +977,8 @@ OS.registerApp({
       panel.appendChild(rates);
       const pity = document.createElement("div");
       pity.className = "team-hint";
-      pity.textContent = "Pity du portail : " + (save.pity[cls] || 0) + "/30" + ((save.pity[cls] || 0) >= 29 ? " · prochain tirage SSR garanti" : " · SSR garanti au 30e tirage");
+      const hasSsr = pool.some((u) => u.r === 3);
+      pity.textContent = "Pity du portail : " + (save.pity[cls] || 0) + "/30" + (hasSsr ? ((save.pity[cls] || 0) >= 29 ? " · prochain tirage SSR garanti" : " · SSR garanti au 30e tirage") : " · aucun SSR dans cette classe");
       panel.appendChild(pity);
       const list = document.createElement("div");
       list.className = "roster col-grid portal-roster";
