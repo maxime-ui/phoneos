@@ -2753,6 +2753,9 @@ OS.registerApp({
 
     function renderStory() {
       clearTyping();
+      // Une victoire/défaite d'histoire est terminée : sortir du combat avant
+      // de revenir à la carte évite de conserver une équipe de combat obsolète.
+      if (battle && battle.mode === "histoire" && battle.over) battle = null;
       setActiveTab(tabStory);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -2838,6 +2841,11 @@ OS.registerApp({
 
     function renderScene() {
       clearTyping();
+      setActiveTab(tabStory);
+      if (!storyScene || !STORY[storyScene.idx] || !STORY[storyScene.idx].events[storyScene.step]) {
+        renderStory();
+        return;
+      }
       const ch = STORY[storyScene.idx];
       const ev = ch.events[storyScene.step];
       content.innerHTML = "";
@@ -2941,7 +2949,9 @@ OS.registerApp({
 
     function renderDoneChapter(i, subtitle) {
       clearTyping();
+      setActiveTab(tabStory);
       const ch = STORY[i];
+      if (!ch) { renderStory(); return; }
       content.innerHTML = "";
       content.appendChild(quartzBar());
 
@@ -2987,7 +2997,8 @@ OS.registerApp({
       const team = teamUnits();
       if (!team.length) { renderStory(); return; }
       const fx = BLESSING_FX[storyState.blessing] || {};
-      const d = STORY_DIFFS[storyState.diff || "moyen"];
+      const d = STORY_DIFFS[storyState.diff] || STORY_DIFFS.facile;
+      if (!cfg || !Number.isFinite(cfg.hp) || !Number.isFinite(cfg.atk)) { renderStory(); return; }
       const hp = Math.round(cfg.hp * (fx.hpMult || 1) * d.hp);
       storyScene = { idx: storyScene ? storyScene.idx : 0, step: storyScene ? storyScene.step : 0 };
       battle = {
@@ -3020,6 +3031,7 @@ OS.registerApp({
     }
 
     function onStoryContinue() {
+      if (!battle || battle.mode !== "histoire" || !battle.over || !battle.enemy || battle.enemy.hp > 0) return;
       const idx = battle.storyChapter;
       const step = battle.storyStep + 1;
       const fresh = !!battle.freshWin;
@@ -3029,6 +3041,7 @@ OS.registerApp({
     }
 
     function onStoryRetry() {
+      if (!battle || battle.mode !== "histoire" || !battle.over || battle.enemy.hp <= 0) return;
       storyScene = { idx: battle.storyChapter, step: battle.storyStep };
       openScene(battle.storyChapter, battle.storyStep);
     }
