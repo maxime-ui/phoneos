@@ -2457,7 +2457,7 @@ OS.registerApp({
           view.appendChild(exitRow);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
-          : battle.mode === "histoire" ? " · Niveau d'histoire · " + battle.diffLabel
+          : battle.mode === "histoire" ? " · " + (battle.storyBoss ? "Boss d'histoire" : "Escarmouche d'histoire") + " · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
