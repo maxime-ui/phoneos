@@ -534,8 +534,9 @@ function evoSkillLabelsOf(u, evo) {
   return out;
 }
 
-function heroPortraitMarkup(id) { const href = "./assets/asteria/heroes/roster.svg#hero-" + id; return '<svg class="portrait-art hero-art" viewBox="0 0 120 140" width="120" height="140" role="img" aria-label="Portrait de héros" xmlns:xlink="http://www.w3.org/1999/xlink"><use href="' + href + '" xlink:href="' + href + '"></use></svg>'; }
-    function enemyPortraitMarkup(type, name) { const known = ENEMY_NAMES.includes(name); const key = known ? 'enemy-' + name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : 'enemy-type-' + ({ "Colosse de givre": "colosse-de-givre", "Nécromant": "necromant" }[type] || type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); const href = "./assets/asteria/enemies/bestiary.svg#" + key; return '<svg class="portrait-art enemy-art" viewBox="0 0 120 140" width="120" height="140" role="img" aria-label="Portrait de ' + (name || type) + '" xmlns:xlink="http://www.w3.org/1999/xlink"><use href="' + href + '" xlink:href="' + href + '"></use></svg>'; }
+function artSlug(value) { return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+    function heroPortraitMarkup(id) { const unit = UNITS.find((u) => u.id === id); const cls = unit ? unit.cls : "Héros"; const files = { "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" }; const src = "./assets/asteria/heroes/" + (files[cls] || "heros") + ".svg"; return '<img class="portrait-art hero-art" src="' + src + '" alt="Portrait de ' + (unit ? unit.name : "héros") + '" loading="lazy">'; }
+    function enemyPortraitMarkup(type, name) { const file = type === "Colosse de givre" ? "colosse-givre" : artSlug(type); const src = "./assets/asteria/enemies/types/" + file + ".svg"; return '<img class="portrait-art enemy-art" src="' + src + '" alt="Portrait de ' + (name || type) + '" loading="lazy">'; }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
 OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
@@ -950,6 +951,7 @@ OS.registerApp({
       return results;
     }
 
+    let portalOwnershipFilter = "all";
     function renderPortalDetails(cls, results) {
       const panel = content.querySelector(".portal-detail") || document.createElement("div");
       panel.className = "portal-detail";
@@ -980,9 +982,24 @@ OS.registerApp({
       const hasSsr = pool.some((u) => u.r === 3);
       pity.textContent = "Pity du portail : " + (save.pity[cls] || 0) + "/30" + (hasSsr ? ((save.pity[cls] || 0) >= 29 ? " · prochain tirage SSR garanti" : " · SSR garanti au 30e tirage") : " · aucun SSR dans cette classe");
       panel.appendChild(pity);
+      const filterWrap = document.createElement("label");
+      filterWrap.className = "portal-owned-filter";
+      filterWrap.innerHTML = "<span>Afficher les personnages</span>";
+      const ownership = document.createElement("select");
+      [["all","Tous"],["owned","Possédés"],["missing","Non possédés"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; ownership.appendChild(option); });
+      ownership.value = portalOwnershipFilter;
+      ownership.addEventListener("change", () => { portalOwnershipFilter = ownership.value; renderPortalDetails(cls, results); });
+      filterWrap.appendChild(ownership);
+      panel.appendChild(filterWrap);
       const list = document.createElement("div");
       list.className = "roster col-grid portal-roster";
-      pool.slice().sort((a,b) => b.r-a.r || a.name.localeCompare(b.name)).forEach((u) => list.appendChild(unitCard(u)));
+      const visiblePool = pool.filter((u) => portalOwnershipFilter === "all" || (portalOwnershipFilter === "owned" ? !!save.owned[u.id] : !save.owned[u.id]));
+      const count = document.createElement("div");
+      count.className = "team-hint portal-count";
+      count.textContent = visiblePool.length + " / " + pool.length + " personnages affichés";
+      panel.appendChild(count);
+      if (!visiblePool.length) { const empty = document.createElement("div"); empty.className = "team-hint"; empty.textContent = "Aucun personnage dans cette catégorie."; list.appendChild(empty); }
+      visiblePool.slice().sort((a,b) => b.r-a.r || a.name.localeCompare(b.name)).forEach((u) => list.appendChild(unitCard(u)));
       panel.appendChild(list);
       const actions = document.createElement("div");
       actions.className = "pull-row";
@@ -1431,6 +1448,7 @@ OS.registerApp({
       const op = { name, type, hp: 1000000000, atk: 0 };
       battle = {
         mode: "train",
+        trainingDamage: 0,
         floor: 1,
         enemy: { name: op.name, type: op.type, hp: op.hp, maxHp: op.hp, atk: op.atk },
         tier: "train",
@@ -1865,7 +1883,8 @@ OS.registerApp({
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
       else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
-      if (battle.mode !== "train") battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      if (battle.mode === "train") battle.trainingDamage = (battle.trainingDamage || 0) + dmg;
+      else battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts" + (battle.mode === "train" ? " · cible immortelle" : ""));
 
       // Jauge de rupture : les assauts coordonnés peuvent interrompre la riposte.
@@ -2334,6 +2353,10 @@ OS.registerApp({
           lab.className = "team-hint";
           lab.textContent = "Mode laboratoire · cible immortelle · aucune riposte · quittez quand vous voulez.";
           view.appendChild(lab);
+          const score = document.createElement("div");
+          score.className = "training-score";
+          score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " dégâts infligés · " + battle.picks + "/3 actions ce tour</span>";
+          view.appendChild(score);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
           : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
@@ -2936,6 +2959,16 @@ OS.registerApp({
       art.className = "story-art-box";
       art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
       content.appendChild(art);
+      const actorStrip = document.createElement("div");
+      actorStrip.className = "story-actor-strip";
+      (ch.scene.actors || []).forEach((actor) => {
+        const actorCard = document.createElement("div");
+        actorCard.className = "story-actor";
+        const file = ({ "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" })[actor.cls] || "heros";
+        actorCard.innerHTML = '<img src="./assets/asteria/heroes/' + file + '.svg" alt="" loading="lazy"><span>' + actor.cls + '</span>';
+        actorStrip.appendChild(actorCard);
+      });
+      if (actorStrip.childElementCount) content.appendChild(actorStrip);
 
       const title = document.createElement("div");
       title.className = "story-title";
@@ -2973,6 +3006,10 @@ OS.registerApp({
         line.className = "story-line current";
         text.appendChild(line);
         content.appendChild(text);
+        const bossPortrait = document.createElement("div");
+        bossPortrait.className = "story-boss-portrait";
+        bossPortrait.innerHTML = enemyPortraitMarkup(ev.boss.type, ev.boss.name) + '<span>' + ev.boss.name + " · " + ev.boss.type + '</span>';
+        content.appendChild(bossPortrait);
         typeCurrentLine(line, ev.boss.intro);
 
         const boss = document.createElement("button");
@@ -2984,10 +3021,13 @@ OS.registerApp({
         const text = document.createElement("div");
         text.className = "story-text";
         if (ev.s) {
-          const sp = document.createElement("div");
-          sp.className = "story-speaker";
-          sp.textContent = ev.s;
-          text.appendChild(sp);
+          const speaker = document.createElement("div");
+          speaker.className = "story-speaker-card";
+          const known = UNITS.find((u) => u.name === ev.s || (ev.s === "Dame Elise" && u.id === "elise") || (ev.s === "Orwen" && u.id === "orwen") || (ev.s === "Kaeren" && u.id === "kaeren"));
+          const fallbackClass = ev.s === "Gortak" ? "defenseur" : "heros";
+          const classFile = known ? ({ "Chevalier":"chevalier", "Mage":"mage", "Archer":"archer", "Berserker":"berserker", "Rôdeur":"rodeur", "Héros":"heros", "Soigneur":"soigneur", "Défenseur":"defenseur", "Tueur":"tueur" })[known.cls] : fallbackClass;
+          speaker.innerHTML = '<img src="./assets/asteria/heroes/' + classFile + '.svg" alt="" loading="lazy"><span>' + ev.s + '</span>';
+          text.appendChild(speaker);
         }
         const line = document.createElement("div");
         line.className = "story-line current" + (ev.s ? "" : " narration");
