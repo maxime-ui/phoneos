@@ -787,6 +787,61 @@ button { font-family: inherit; }
 .battle-result.win { color: #4caf7d; background: rgba(76,175,125,.12); }
 .battle-result.lose { color: #d9653c; background: rgba(217,101,60,.12); }
 
+/* Mode Histoire */
+.story-list { display: flex; flex-direction: column; gap: 8px; }
+.story-chapter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #2c3654;
+  background: #1b2236;
+  color: #c9d0e2;
+  cursor: pointer;
+  font-size: 13px;
+}
+.story-chapter b { color: #e3b23c; }
+.story-chapter small { color: #97a0b8; }
+.story-chapter.done { border-color: #4caf7d; }
+.story-chapter.done b { color: #4caf7d; }
+.story-chapter.locked { opacity: 0.4; cursor: default; }
+.story-art-box { border-radius: 12px; overflow: hidden; border: 1px solid #2c3654; }
+.story-art { display: block; width: 100%; height: auto; }
+.story-title { font-size: 15px; font-weight: 700; color: #e3b23c; }
+.story-text {
+  color: #c9d0e2;
+  line-height: 1.65;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 96px;
+}
+.story-line { color: #aab2c6; }
+.story-line.current { color: #f0d68a; }
+.story-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #97a0b8;
+  font-size: 12px;
+  padding: 2px 0;
+  cursor: pointer;
+}
+.music-toggle {
+  align-self: flex-end;
+  background: #1b2236;
+  border: 1px solid #2c3654;
+  color: #c9d0e2;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.story-boss { background: linear-gradient(135deg, #8c2f39, #3d2f66); }
+
 /* Galerie */
 .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .gallery-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer; display: block; }

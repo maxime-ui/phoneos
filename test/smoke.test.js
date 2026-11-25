@@ -8,7 +8,7 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
-const scripts = ["js/os.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
+const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
   "js/apps/messages.js", "js/apps/clock.js", "js/apps/gallery.js", "js/apps/settings.js", "js/main.js"];
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
@@ -104,6 +104,60 @@ setTimeout(() => {
     if (card) card.click();
   }
   check("infini : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 2);
+
+  // ---- Mode Histoire ----
+  const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+  check("onglet Histoire présent", !!storyTab);
+  storyTab.click();
+  check("liste des 4 chapitres", document.querySelectorAll(".story-chapter").length === 4);
+  check("chapitres 2-4 verrouillés au départ", document.querySelectorAll(".story-chapter.locked").length === 3);
+  check("toggle musique présent", !!document.querySelector(".music-toggle"));
+
+  document.querySelector(".story-chapter").click();
+  check("scène SVG visible", !!document.querySelector(".story-art"));
+  check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
+  const firstLine = document.querySelector(".story-line.current");
+  check("ligne narrée présente", !!firstLine && firstLine.textContent.length > 0);
+
+  for (let i = 0; i < 4; i++) {
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (next) next.click();
+  }
+  const storySaved = JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}");
+  check("progression chapitre 1 sauvegardée", storySaved.done >= 1);
+  check("récompense chapitre affichée", document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
+
+  storyTab.click();
+  check("chapitres 3-4 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 2);
+
+  const music = document.querySelector(".music-toggle");
+  music.click();
+  const musicSaved = JSON.parse(window.localStorage.getItem("phoneos:epopee-story") || "{}");
+  check("musique ON persistée", document.querySelector(".music-toggle").textContent.includes("ON") && musicSaved.music === true);
+  document.querySelector(".music-toggle").click();
+
+  // Forcer la progression aux 3 chapitres, puis boss du chapitre 4
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.done=3;localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  window.eval("OS").openApp("epopee");
+  const storyTab2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
+  storyTab2.click();
+  const chapter4 = [...document.querySelectorAll(".story-chapter")].pop();
+  check("chapitre 4 déverrouillé", chapter4 && !chapter4.classList.contains("locked"));
+  chapter4.click();
+  for (let i = 0; i < 3; i++) {
+    const next = [...document.querySelectorAll(".story-next")].pop();
+    if (next) next.click();
+  }
+  const bossBtn = document.querySelector(".story-boss");
+  check("bouton boss dragon présent", !!bossBtn);
+  if (bossBtn) bossBtn.click();
+  check("combat boss lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
+  for (let draws = 0; draws < 3; draws++) {
+    const card = document.querySelector(".hand-card");
+    if (card) card.click();
+  }
+  check("combat boss : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 3);
+
   window.eval("OS").closeApp();
 
   // Retour -> home

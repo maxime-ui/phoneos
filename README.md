@@ -19,7 +19,7 @@ Applications incluses :
 | App | Fonctions |
 |---|---|
 | Snake | Jeu d'arcade : grille 15×15, record sauvegardé, clavier + croix directionnelle |
-| Épopée | Gacha (invocations R/SR/SSR, quartz) + combat au tour par tour façon FGO : cartes Brut/Arcane/Rapide, jauge d'Ultime, quêtes à 3 difficultés, 88 personnages fictifs répartis en 6 classes (Chevalier, Berserker, Mage, Archer, Rôdeur, Héros — libération inspirée des archétypes manga, tous 100 % originaux), montée en niveau par doublons (+8 % ATK/PV par copie, plafond +96 %), 5 archétypes d'ennemis (Brute, Assassin, Sorcier, Capitaine, Golem), 14 compétences uniques sur les SSR (renvoi, double frappe, bouclier, malédiction, brûlure…), Mode Infini (ennemis +16 %/étage, récompense au record, sauvegarde du meilleur étage) |
+| Épopée | Gacha (invocations R/SR/SSR, quartz) + combat au tour par tour façon FGO : cartes Brut/Arcane/Rapide, jauge d'Ultime, quêtes à 3 difficultés, 88 personnages fictifs répartis en 6 classes (Chevalier, Berserker, Mage, Archer, Rôdeur, Héros — libération inspirée des archétypes manga, tous 100 % originaux), montée en niveau par doublons (+8 % ATK/PV par copie, plafond +96 %), 5 archétypes d'ennemis (Brute, Assassin, Sorcier, Capitaine, Golem), 14 compétences uniques sur les SSR (renvoi, double frappe, bouclier, malédiction, brûlure…), Mode Infini (ennemis +16 %/étage, récompense au record, sauvegarde du meilleur étage), **Mode Histoire** (4 chapitres illustrés en SVG procédural avec texte machine à écrire, effets sonores et musique chiptune Web Audio, boss final « Dragon des cendres » → +30 ◆, progression sauvegardée, musique on/off persistée) |
 | 2048 | Puzzle de fusion : tuiles colorées, record sauvegardé, clavier + croix directionnelle |
 | Calc | Calculatrice avec parenthèses, aperçu du résultat en direct |
 | Téléphone | Clavier téléphonique, appel simulé avec chrono d'appel |
@@ -36,6 +36,8 @@ index.html          Point d'entrée
 css/styles.css      Châssis du téléphone + styles système et apps
 js/os.js            Noyau : couches d'affichage, cycle de vie des apps,
                     notifications, état système, persistance
+js/sfx.js           Moteur audio Web Audio (sfx synthétisés + musique chiptune)
+js/svgart.js        Générateur d'illustrations SVG procédurales (scènes du Mode Histoire)
 js/main.js          Initialisation
 js/apps/*.js        Applications (registerApp)
 test/smoke.test.js  Test de fumée (jsdom installé séparément)
@@ -52,7 +54,13 @@ python3 -m http.server       # puis http://localhost:8000
 ## Tester
 
 Le test de fumée simule boot, déverrouillage, ouverture des 10 apps, calcul, partie de quête jouée (3 cartes),
-multitâche, notification et cycle power off/on via jsdom :
+Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon) et multitâche via jsdom :
+
+```bash
+npm install jsdom   # uniquement pour le test
+node test/smoke.test.js
+node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
+```
 
 ```bash
 npm install jsdom   # uniquement pour le test
