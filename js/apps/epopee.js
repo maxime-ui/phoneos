@@ -41,6 +41,57 @@ OS.registerApp({
       2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
       3: [{ eclat: 20, coeur: 10 }, { larme: 12, couronne: 6 }, { sceau: 5 }],
     };
+    const EVO3 = {
+      Chevalier: { fx: { renvoi: 10 }, label: "Renvoi +10 %" },
+      Berserker: { fx: { rage: 15 }, label: "Rage +15 % sous le seuil" },
+      Mage: { fx: { gauge: 6 }, label: "Jauge +6 % par carte" },
+      Archer: { fx: { crit: 15 }, label: "Critique +15 %" },
+      Rôdeur: { fx: { esquive: 10 }, label: "Esquive +10 %" },
+      Héros: { fx: { growth: 4 }, label: "Croissance +4 %/tour" },
+      Soigneur: { fx: { heal: 30 }, label: "Soins +30 %" },
+      Défenseur: { fx: { rempart: 5 }, label: "Encaissement +5 %" },
+      Tueur: { fx: { fureur: 10 }, label: "Tueur +10 % (cible blessée)" },
+    };
+    const PASSIVE_INFO = {
+      gauvin: ["Serment renforcé", "renvoie 10 % de plus", { renvoi: 10 }],
+      morgane: ["Écho arcanique", "jauge +5 % de plus par carte", { gauge: 5 }],
+      kaelith: ["Œil d'aigle", "critique +10 %", { crit: 10 }],
+      aldric: ["Bannière levée", "ATK d'équipe +8 % de plus", { teamAtk: 8 }],
+      seraphine: ["Bouclier sacré", "PV max +10 %", { hp: 10 }],
+      draven: ["Fureur montante", "dégâts +10 %", { dmg: 10 }],
+      valen: ["Juste dernier", "+25 % contre une cible sous 50 % PV", { execute: 25 }],
+      ravenne: ["Sceau amplifié", "dégâts +8 %", { dmg: 8 }],
+      aelis: ["Flèche d'or", "jauge +5 % par carte", { gauge: 5 }],
+      kargan: ["Peau de titane", "PV max +12 %", { hp: 12 }],
+      kairo: ["Héritage du dragon", "croissance +3 %/tour", { growth: 3 }],
+      okatsuro: ["Double ombre", "esquive +15 %", { esquive: 15 }],
+      barrok: ["Élasticité max", "renvoie 10 % de plus", { renvoi: 10 }],
+      enzo: ["Âme du brasier", "dégâts +6 %", { dmg: 6 }],
+      edele: ["Printemps éternel", "soins +20 %", { heal: 20 }],
+      nadila: ["Jardin d'herbes", "jauge +5 % par carte", { gauge: 5 }],
+      bastien: ["Mur vivant", "PV max +15 %", { hp: 15 }],
+      orlan: ["Aube fatale", "+15 % contre une cible sous 50 % PV", { execute: 15 }],
+      raiden: ["Éclair noir", "critique +15 %", { crit: 15 }],
+      rin: ["Destin lié", "jauge de départ +15 %", { jaugeInit: 15 }],
+      vespera: ["Âme veillée", "PV max +8 %", { hp: 8 }],
+      takumi: ["Écailles d'épaule", "PV max +12 %", { hp: 12 }],
+      graal: ["Héritière des braises", "dégâts +15 %", { dmg: 15 }],
+    };
+
+    function unitFx(u) {
+      const fx = {};
+      const add = (k, v) => { fx[k] = (fx[k] || 0) + v; };
+      const passive = PASSIVE_INFO[u.id];
+      if (passive) Object.keys(passive[2]).forEach((k) => add(k, passive[2][k]));
+      const evo = (save.evo && save.evo[u.id]) || 0;
+      if (evo >= 1) add("jaugeInit", 10);
+      if (evo >= 2) add("dmg", 8);
+      if (evo >= 3) {
+        const e3 = EVO3[u.cls];
+        if (e3) Object.keys(e3.fx).forEach((k) => add(k, e3.fx[k]));
+      }
+      return fx;
+    }
 
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
@@ -227,7 +278,8 @@ OS.registerApp({
       const mult = 1 + 0.08 * Math.min(count - 1, 12);
       const evo = save.evo[u.id] || 0;
       const em = 1 + 0.10 * evo;
-      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em), hp: Math.round(u.hp * mult * em) };
+      const hpFx = 1 + ((unitFx(u).hp || 0) / 100);
+      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em), hp: Math.round(u.hp * mult * em * hpFx) };
     }
 
     let infiniteBest = OS.store.get("infinite-best", 0);
@@ -470,9 +522,19 @@ OS.registerApp({
       return b;
     }
 
+    function evoSkillLabels(u, evo) {
+      const lines = [];
+      if (evo >= 1) lines.push("Éveil I ✦ Jauge de départ +10 %");
+      if (evo >= 2) lines.push("Éveil II ✦ Dégâts +8 %");
+      if (evo >= 3 && EVO3[u.cls]) lines.push("Éveil III ✦ " + EVO3[u.cls].label);
+      return lines;
+    }
+
     function unitCard(u) {
       const p = unitPower(u);
       const stars = "★".repeat(p.evo || 0);
+      const passive = PASSIVE_INFO[u.id];
+      const evoLines = evoSkillLabels(u, p.evo || 0);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
       c.innerHTML =
@@ -480,6 +542,8 @@ OS.registerApp({
         '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
         '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
         (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + '</div>' : "") +
+        (passive ? '<div class="unit-passive">✧ Passif : ' + passive[0] + " — " + passive[1] + "</div>" : "") +
+        (evoLines.length ? '<div class="unit-evo">' + evoLines.join("<br>") + "</div>" : "") +
         '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
       return c;
     }
@@ -577,11 +641,12 @@ OS.registerApp({
         const evo = save.evo[u.id] || 0;
         const req = EVO_REQ[u.r][evo] || {};
         const can = Object.keys(req).every((k) => (save.loot[k] || 0) >= req[k]);
+        const nextEvoLabel = ({ 1: "Éveil I ✦ Jauge de départ +10 %", 2: "Éveil II ✦ Dégâts +8 %", 3: EVO3[u.cls] ? EVO3[u.cls].label : "" })[evo + 1];
         const line = document.createElement("div");
         line.className = "forge-line" + (can ? " ready" : "");
         line.innerHTML =
           '<div class="unit-name">' + u.name + "</div>" +
-          '<div class="forge-evo">' + "★".repeat(evo) + "→ " + "★".repeat(evo + 1) + " \u00b7 +10 % ATK/PV</div>" +
+          '<div class="forge-evo">' + "★".repeat(evo) + "→ " + "★".repeat(evo + 1) + " \u00b7 +10 % ATK/PV \u00b7 " + nextEvoLabel + "</div>" +
           '<div class="forge-req">' + Object.keys(req).map((k) => {
             const ok = (save.loot[k] || 0) >= req[k];
             return '<span class="' + (ok ? "ok" : "ko") + '">' + req[k] + "× " + LOOT[k].name + "</span>";
@@ -736,6 +801,7 @@ OS.registerApp({
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0));
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
@@ -776,9 +842,10 @@ OS.registerApp({
       if (u.cls === "Soigneur") {
         trackDaily("cards");
         trackDaily("heals");
+        const fdxHeal = (unitFx(u).heal || 0) / 100;
         const needy = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b]);
         const wi = needy[0];
-        const heal = Math.round(unit.atk * 0.30 * (u.id === "edele" ? 1.5 : 1) * (0.9 + Math.random() * 0.2));
+        const heal = Math.round(unit.atk * 0.30 * (u.id === "edele" ? 1.5 : 1) * (1 + fdxHeal) * (0.9 + Math.random() * 0.2));
         const healed = Math.min(battle.units[wi].hp - battle.hp[wi], heal);
         battle.hp[wi] = Math.min(battle.units[wi].hp, battle.hp[wi] + heal);
         battle.log.unshift(unit.name + " soigne " + battle.units[wi].name + " (+" + healed + " PV)");
@@ -791,27 +858,31 @@ OS.registerApp({
       }
 
       trackDaily("cards");
+      const fx = unitFx(u);
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
       dmg = Math.round(dmg * teamAtkMult() * (battle.storyMult || 1));
+      if (fx.dmg) dmg = Math.round(dmg * (1 + fx.dmg / 100));
       let crit = false;
-      const critBase = u.cls === "Archer" ? 0.35 : 0.25;
-      const critChance = card.type === "V" ? (u.id === "aelis" ? 0.5 : critBase) : 0;
+      const critBase = (u.cls === "Archer" ? 0.35 : 0.25) + (fx.crit || 0) / 100;
+      const critChance = card.type === "V" ? (u.id === "aelis" ? 0.5 + (fx.crit || 0) / 100 : critBase) : 0;
       if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
       if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
       if (u.cls === "Berserker") {
         const threshold = u.id === "draven" ? 0.7 : 0.5;
-        const rage = u.id === "draven" ? 1.3 : 1.2;
+        const rage = (u.id === "draven" ? 1.3 : 1.2) + (fx.rage || 0) / 100;
         if (battle.hp[gi] < u.hp * threshold) dmg = Math.round(dmg * rage);
       }
       if (u.cls === "Tueur") dmg = Math.round(dmg * (u.id === "orlan" ? 1.45 : 1.30));
       if (u.id === "raiden" && battle.enemy.hp / battle.enemy.maxHp < 0.25) dmg = Math.round(dmg * 2);
+      const execBonus = ((fx.execute || 0) + (fx.fureur || 0)) / 100;
+      if (execBonus && battle.enemy.hp / battle.enemy.maxHp < 0.5) dmg = Math.round(dmg * (1 + execBonus));
       if (u.cls === "Héros" && battle.heroStacks && battle.heroStacks[gi] > 1) {
-        const heroGrowth = (u.id === "rin" || u.id === "graal") ? 0.08 : 0.05;
+        const heroGrowth = ((u.id === "rin" || u.id === "graal") ? 0.08 : 0.05) + (fx.growth || 0) / 100;
         dmg = Math.round(dmg * (1 + heroGrowth * (battle.heroStacks[gi] - 1)));
       }
       if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
 
-      const gaugeGain = card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8;
+      const gaugeGain = (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8) + (fx.gauge || 0);
       battle.gauge = Math.min(100, battle.gauge + (battle.elite && battle.elite.id === "oriflamme" ? Math.round(gaugeGain * 0.8) : gaugeGain));
       if (u.id === "morgane") battle.gauge = Math.min(100, battle.gauge + 5);
       if (u.id === "vespera") battle.gauge = Math.min(100, battle.gauge + 6);
@@ -830,7 +901,7 @@ OS.registerApp({
       }
       if (u.id === "graal" && totalDealt > 0 && battle.enemy.hp > 0) {
         const graalTarget = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b])[0];
-        const healedD = Math.min(battle.units[graalTarget].hp - battle.hp[graalTarget], Math.round(totalDealt * 0.15));
+        const healedD = Math.min(battle.units[graalTarget].hp - battle.hp[graalTarget], Math.round(totalDealt * 0.15 * (1 + (fx.heal || 0) / 100)));
         if (healedD > 0) {
           battle.hp[graalTarget] += healedD;
           battle.log.unshift(unit.name + " canalise les braises : soigne " + battle.units[graalTarget].name + " (+" + healedD + " PV)");
@@ -852,7 +923,13 @@ OS.registerApp({
 
     function teamAtkMult() {
       let mult = 1;
-      if (battle.units.some((u, i) => u.id === "aldric" && battle.hp[i] > 0)) mult += 0.10;
+      battle.units.forEach((u, i) => {
+        if (battle.hp[i] > 0) {
+          if (u.id === "aldric") mult += 0.10;
+          const fx = unitFx(u);
+          if (fx.teamAtk) mult += fx.teamAtk / 100;
+        }
+      });
       mult += battle.valenFury * 0.30;
       return mult;
     }
@@ -871,7 +948,7 @@ OS.registerApp({
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" || strongest.id === "graal" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
-      const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
+      const dmg = Math.round(strongest.atk * 2.4 * heroMult * (1 + (unitFx(strongest).dmg || 0) / 100) * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
       battle.picks = 3;
@@ -884,7 +961,7 @@ OS.registerApp({
 
     function attackAlly(ti, raw) {
       const target = battle.units[ti];
-      const dodgeChance = target.id === "okatsuro" ? 0.40 : target.cls === "Rôdeur" ? 0.25 : 0;
+      const dodgeChance = (target.id === "okatsuro" ? 0.40 : target.cls === "Rôdeur" ? 0.25 : 0) + (unitFx(target).esquive || 0) / 100;
       if (Math.random() < dodgeChance) {
         battle.log.unshift(target.name + " esquive la riposte !");
         return 0;
@@ -897,7 +974,7 @@ OS.registerApp({
       let dmg = raw;
       const defenders = battle.units.filter((u, i) => u.cls === "Défenseur" && battle.hp[i] > 0);
       if (defenders.length) {
-        const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10), 0));
+        const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10) + (unitFx(u).rempart || 0) / 100, 0));
         dmg = Math.round(dmg * (1 - cut));
         battle.log.unshift(unitName(defenders) + " encaisse : dégâts réduits de " + Math.round(cut * 100) + " %");
       }
@@ -916,8 +993,9 @@ OS.registerApp({
         takumi: ["garde-rapprochée (renvoi)", 0.20],
         graal: ["héritage des braises (renvoi)", 0.35],
       };
-      if (RENVOI[target.id] && battle.enemy.hp > 0) {
-        hitEnemy(Math.round(dmg * RENVOI[target.id][1]), target.name, RENVOI[target.id][0]);
+      const renvoiPct = RENVOI[target.id] ? RENVOI[target.id][1] + (unitFx(target).renvoi || 0) / 100 : (unitFx(target).renvoi || 0) / 100;
+      if (renvoiPct > 0 && battle.enemy.hp > 0) {
+        hitEnemy(Math.round(dmg * renvoiPct), target.name, RENVOI[target.id] ? RENVOI[target.id][0] : "passif (renvoi)");
       }
       if (battle.hp[ti] === 0 && battle.enemy.hp > 0) {
         battle.log.unshift(target.name + " tombe K.O.");

@@ -1051,3 +1051,8 @@ button { font-family: inherit; }
 .forge-req .ok { color: #3ba75c; }
 .forge-req .ko { color: #c34a2f; }
 .evo-stars { color: #e3b23c; }
+
+/* ---------- Passifs et éveils ---------- */
+.unit-passive { font-size: 10.5px; color: #e3b23c; margin-top: 3px; }
+.unit-evo { font-size: 10.5px; color: #3ba75c; margin-top: 3px; }
+.forge-evo small { color: #aab2c6; }

@@ -98,11 +98,15 @@ setTimeout(() => {
   check("forge d'évolution : lignes présentes", document.querySelectorAll(".forge-line").length >= 100);
   const bronLine = [...document.querySelectorAll(".forge-line")].find((l) => l.querySelector(".unit-name").textContent.startsWith("Bron"));
   check("forge : ligne Bron évolutive et finançable", !!bronLine && !bronLine.querySelector("button").disabled);
+  check("forge : prochain éveil annoncé", !!bronLine && bronLine.innerHTML.includes("Éveil I ✦ Jauge de départ"));
   if (bronLine) bronLine.querySelector("button").click();
   const saveEvo = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
   check("évolution Bron persistée (+10 %, −8 Éclat)", saveEvo.evo.bron === 1 && saveEvo.loot.eclat === 991);
   const bronCardF = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
   check("étoiles ★ affichées sur la carte", !!bronCardF && bronCardF.querySelector(".unit-name").textContent.includes("★"));
+  check("éveil I acquis visible sur Bron évolué", !!bronCardF && bronCardF.textContent.includes("Éveil I ✦ Jauge de départ"));
+  const ssrCard = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.className.includes("r3"));
+  check("passif ✧ affiché sur les SSR", !!ssrCard && ssrCard.textContent.includes("Passif :"));
 
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
   const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
