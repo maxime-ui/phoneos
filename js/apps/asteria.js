@@ -218,6 +218,20 @@
       mira: ["Tisane claire", "soins +8 %", { heal: 8 }],
       wendel: ["Serment frais", "PV max +6 %", { hp: 6 }],
     };
+    const ENEMY_BALANCE = {
+      Brute: [1.08, 1.04], Assassin: [0.94, 1.12], Sorcier: [1.00, 0.96],
+      Capitaine: [1.06, 1.00], Golem: [1.18, 0.90], Oracle: [1.12, 0.88],
+      Muraille: [1.22, 0.84], Invocateur: [0.96, 1.04], Fantassin: [1.00, 0.98],
+      Nécromant: [1.04, 0.94], Banshee: [0.96, 1.02], Sanguinaire: [0.94, 1.12],
+      "Colosse de givre": [1.14, 0.96], Duelliste: [0.96, 1.10], Artilleur: [0.92, 1.08],
+      Alchimiste: [1.04, 0.92], Sentinelle: [1.20, 0.90], Prédateur: [0.96, 1.12],
+      Chronomancien: [0.92, 1.08],
+    };
+    function enemyStats(type, hp, atk) {
+      const tune = ENEMY_BALANCE[type] || [1, 1];
+      return { hp: Math.round(hp * tune[0]), maxHp: Math.round(hp * tune[0]), atk: Math.round(atk * tune[1]) };
+    }
+
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
       "Assassin": { desc: "Traque l'attaquant le plus dangereux, critiques fréquents" },
@@ -1895,7 +1909,7 @@ OS.registerApp({
       battle = {
         mode: key === "infini" ? "infini" : "quest",
         floor: 1,
-        enemy: { name, type: etype, hp: Math.round(t.hp * golemMult * scale), maxHp: Math.round(t.hp * golemMult * scale), atk: Math.round(t.atk * (key === "infini" ? 1.08 : 1)) },
+        enemy: { name, type: etype, ...enemyStats(etype, t.hp * scale, t.atk * (key === "infini" ? 1.08 : 1)) },
         tier: key,
         units: team,
         hp: team.map((u) => u.hp),
@@ -1926,7 +1940,7 @@ OS.registerApp({
       battle = {
         mode: "raid",
         raidPhase: 1,
-        enemy: { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk },
+        enemy: { name: ph.name, type: ph.type, ...enemyStats(ph.type, ph.hp, ph.atk) },
         tier: "raid",
         units: team,
         hp: team.map((u) => u.hp),
@@ -2639,7 +2653,7 @@ OS.registerApp({
       const etype = Object.keys(ENEMY_TYPES)[Math.floor(Math.random() * Object.keys(ENEMY_TYPES).length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const golemMult = etype === "Golem" ? 1.15 : 1;
-      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * attackScale) };
+      battle.enemy = { name, type: etype, ...enemyStats(etype, TIER.infini.hp * scale, TIER.infini.atk * attackScale) };
       battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
       newHand();
       renderBattle();
@@ -3600,7 +3614,7 @@ OS.registerApp({
         storyBoss: !!isBoss,
         storyMult: fx.mult || 1,
         floor: storyScene.idx + 1,
-        enemy: { name: cfg.name, type: cfg.type, hp, maxHp: hp, atk: Math.round(cfg.atk * d.atk), reward: Math.max(2, Math.round(cfg.reward * d.rw)) },
+        enemy: { name: cfg.name, type: cfg.type, ...enemyStats(cfg.type, hp, Math.round(cfg.atk * d.atk)), reward: Math.max(2, Math.round(cfg.reward * d.rw)) },
         diffLabel: d.label,
         units: team,
         hp: team.map((u) => u.hp),
