@@ -17,7 +17,7 @@ const ownedAll = {};
 unitIds.forEach((id) => { if (id !== "graal") ownedAll[id] = 1; });
 const seedSave = { schemaVersion: 2, quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
 html = html.replace('<script src="js/os.js">',
-  '<script>localStorage.setItem("phoneos:event-debug", JSON.stringify("fortune"));localStorage.setItem("phoneos:asteria-v2", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
+  '<script>localStorage.setItem("phoneos:event-debug", JSON.stringify("fortune"));localStorage.setItem("phoneos:asteria", JSON.stringify({quartz:99999}));localStorage.setItem("phoneos:asteria-v2", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   const inline = "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "<\/script>";
@@ -52,6 +52,7 @@ setTimeout(() => {
   check("barre d'apps présente (4 onglets)", document.querySelectorAll("#top-tabs .top-tab").length === 4);
   const activeTab = document.querySelector("#top-tabs .top-tab.active");
   check("Astéria ouverte par défaut", !!activeTab && activeTab.dataset.app === "asteria");
+  check("ancienne sauvegarde Astéria supprimée au démarrage v2", window.localStorage.getItem("phoneos:asteria") === null);
   check("bouton plein écran présent", !!document.getElementById("btn-fullscreen"));
   check("horloge de la barre affichée", document.getElementById("top-clock").textContent !== "--:--");
   const topDiffBoot = document.getElementById("top-diff");
