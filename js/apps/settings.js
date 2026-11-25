@@ -106,7 +106,7 @@ OS.registerApp({
       vol.min = "0";
       vol.max = "100";
       vol.value = String(OS.state.volume);
-      vol.addEventListener("change", () => OS.setVolume(Number(vol.value)));
+      vol.addEventListener("input", () => OS.setVolume(Number(vol.value)));
       rowV.appendChild(vol);
       sound.appendChild(rowV);
 
@@ -115,6 +115,7 @@ OS.registerApp({
       about.className = "about-line";
       about.innerHTML =
         "Astéria — RPG gacha en page web (HTML/CSS/JS)<br>" +
+        "Raccourcis : 1–4 apps · F plein écran · Échap retour<br>" +
         "Plein écran : bouton ⛶ dans la barre supérieure · sauvegarde automatique dans le navigateur";
       sys.appendChild(about);
 

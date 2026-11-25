@@ -19,6 +19,7 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 La barre supérieure donne accès aux 4 sections (**Astéria**, Personnages,
 Trophées, Réglages), au **sélecteur de difficulté du Mode Histoire** (chaîne de difficultés : change la difficulté en un clic, chaque palier débloqué seulement après que toute l'histoire a été bouclée au palier précédent) et au
 **plein écran** (bouton ⛶ ou raccourci clavier **F**).
+Raccourcis clavier : **1–4** pour changer d'app, **F** plein écran, **Échap** retour.
 
 ### Astéria en détail
 

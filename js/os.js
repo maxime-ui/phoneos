@@ -193,6 +193,15 @@ const OS = (() => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === "Escape") goBack();
       if (e.key === "f" || e.key === "F") toggleFullscreen();
+      const idx = Number(e.key) - 1;
+      const ids = Object.keys(APPS);
+      if (idx >= 0 && idx < ids.length) {
+        e.preventDefault();
+        if (ids[idx] !== state.currentApp) {
+          openApp(ids[idx]);
+          OS.sfx.play("ui");
+        }
+      }
     });
   }
 
