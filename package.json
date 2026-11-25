@@ -5,7 +5,7 @@
   "description": "Tests automatisés du jeu Astéria / PhoneOS",
   "scripts": {
     "test": "node test/smoke.test.js",
-    "check:syntax": "node --check js/os.js && node --check js/sfx.js && node --check js/svgart.js && node --check js/apps/asteria.js && node --check js/apps/heroes.js && node --check js/apps/settings.js && node --check js/apps/trophies.js && node --check js/main.js"
+    "check:syntax": "node --check js/os.js && node --check js/sfx.js && node --check js/svgart.js && node --check js/apps/asteria.js && node --check js/apps/heroes.js && node --check js/apps/settings.js && node --check js/apps/trophies.js && node --check js/main.js && node --check test/smoke.test.js"
   },
   "devDependencies": {
     "jsdom": "24.1.3"
