@@ -2954,7 +2954,7 @@ OS.registerApp({
       const beaten = storyState.bossBeaten || {};
       let n = 0;
       for (let t = 0; t < BANNERS.length; t++) {
-        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, DIFFS.length))) n = Math.min(t + 1, DIFFS.length);
+        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) n = Math.min(t + 1, DIFFS.length);
       }
       return n;
     }
