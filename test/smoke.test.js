@@ -287,10 +287,10 @@ setTimeout(() => {
   check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("filtres Collection classe/rareté/possession présents", document.querySelectorAll(".collection-filters select").length === 3);
   const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
-  ownershipFilter.value = "missing"; ownershipFilter.dispatchEvent(new Event("change"));
+  ownershipFilter.value = "missing"; ownershipFilter.dispatchEvent(new window.Event("change"));
   check("filtre non possédés appliqué", document.querySelectorAll(".col-grid .unit-card").length === 1 && document.querySelector(".col-grid .unit-card.locked"));
   const resetOwnershipFilter = document.querySelectorAll(".collection-filters select")[2];
-  resetOwnershipFilter.value = "all"; resetOwnershipFilter.dispatchEvent(new Event("change"));
+  resetOwnershipFilter.value = "all"; resetOwnershipFilter.dispatchEvent(new window.Event("change"));
   check("progression 132 / " + (unitIds.length) + " affichée", document.body.textContent.includes("132 / " + unitIds.length));
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
