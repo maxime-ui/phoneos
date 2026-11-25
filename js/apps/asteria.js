@@ -227,6 +227,7 @@
       Alchimiste: [1.04, 0.92], Sentinelle: [1.20, 0.90], Prédateur: [0.96, 1.12],
       Chronomancien: [0.92, 1.08],
     };
+    OS.asteriaData.ENEMY_BALANCE = ENEMY_BALANCE;
     function enemyStats(type, hp, atk) {
       const tune = ENEMY_BALANCE[type] || [1, 1];
       return { hp: Math.round(hp * tune[0]), maxHp: Math.round(hp * tune[0]), atk: Math.round(atk * tune[1]) };
@@ -1027,6 +1028,7 @@ OS.registerApp({
       { id: "saison", name: "Le pacte de la sève-lune", hero: "maelis", color: "#398f6b", desc: "Maélis en vedette · Druide" },
       { id: "voile", name: "Les secrets du crépuscule", hero: "nyxar", color: "#7551b8", desc: "Nyxar en vedette · Occultiste" },
     ];
+    OS.asteriaData.FEATURED_BANNERS = FEATURED_BANNERS;
     function featuredPull(banner, n) {
       const cost = n === 1 ? 3 : 30;
       if (save.quartz < cost) { notifyGacha("Pas assez de quartz pour cette bannière."); return []; }
@@ -2243,6 +2245,7 @@ OS.registerApp({
       Druide: { turns: 4, name: "Floraison primordiale", power: 1.0, heal: 0.12 },
       Occultiste: { turns: 4, name: "Éclipse du voile", power: 1.9, curse: 1 },
     };
+    OS.asteriaData.CLASS_ULTIMATE = CLASS_ULTIMATE;
     function resolveHeroUltimates() {
       if (!Array.isArray(battle.heroUltimates)) battle.heroUltimates = battle.units.map(() => 0);
       battle.units.forEach((unit, i) => {
@@ -3269,6 +3272,7 @@ OS.registerApp({
 
     // Chaque chapitre devient un véritable niveau : une escarmouche jouable
     // est insérée dans le parcours, avant le boss lorsqu'il y en a un.
+    OS.asteriaData.STORY = STORY;
     const STORY_SKIRMISH_TYPES = ["Brute", "Assassin", "Sorcier", "Capitaine", "Fantassin", "Nécromant", "Banshee", "Golem", "Oracle", "Duelliste", "Artilleur", "Alchimiste"];
     STORY.forEach((chapter, index) => {
       if (chapter.events.some((event) => event.fight)) return;
