@@ -3,20 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Astéria — RPG gacha jouable directement dans votre navigateur : invocations, combats au tour par tour, histoire et progression. Sans installation.">
+  <meta name="theme-color" content="#0d1119">
+  <meta property="og:title" content="Astéria — Gacha RPG">
+  <meta property="og:description" content="Un RPG gacha jouable dans votre navigateur : invocations, combats, histoire et progression.">
+  <meta property="og:type" content="website">
   <title>Astéria — Gacha RPG</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1119'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23ffd970'%3E%E2%9A%94%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
   <header class="top-bar" id="top-bar">
     <div class="top-brand">⚔ Astéria</div>
-    <nav class="top-tabs" id="top-tabs"></nav>
+    <nav class="top-tabs" id="top-tabs" aria-label="Sections du jeu"></nav>
     <button class="top-tab" id="btn-fullscreen" title="Plein écran">⛶ Plein écran</button>
     <span class="top-clock" id="top-clock">--:--</span>
   </header>
 
   <!-- Conteneur d'app -->
   <main class="app-body" id="app-body"></main>
+
+  <noscript><div style="padding:20px;font-family:sans-serif;color:#eef1f8">Astéria a besoin de JavaScript pour fonctionner. Activez-le puis rechargez la page.</div></noscript>
 
   <!-- Notifications -->
   <div class="notif-stack" id="notif-stack"></div>
