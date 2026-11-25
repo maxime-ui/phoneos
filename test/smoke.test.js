@@ -681,12 +681,21 @@ setTimeout(() => {
   // Boss Gortak en Enfer+ : stats scalées + compétence élite
   const chapter4p = [...document.querySelectorAll(".story-chapter")][3];
   chapter4p.click();
-  for (let i = 0; i < 3; i++) {
+  let epGuard = 0;
+  while (epGuard++ < 12) {
+    const encounterBtn = document.querySelector(".story-boss");
+    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
+    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
+      encounterBtn.click();
+      if (!finishStorySkirmish()) break;
+      continue;
+    }
     const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
+    if (!next) break;
+    next.click();
   }
-  const bossBtnP = document.querySelector(".story-boss");
-  check("bouton boss Gortak (Enfer+) présent", !!bossBtnP);
+  const bossBtnP = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
+  check("bouton boss Gortak (Enfer+) présent après escarmouche", !!bossBtnP);
   if (bossBtnP) bossBtnP.click();
   const bossHp = document.querySelector(".hp-row.enemy .hp-num");
   check("boss Enfer+ scalé ×4,2 (> 50 000 PV)", !!bossHp && Number(bossHp.textContent.split("/")[0]) > 50000);
