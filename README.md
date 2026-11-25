@@ -1,23 +1,5 @@
 # PhoneOS 1.0
 
-Émulateur de téléphone complet dans le navigateur, 100 % HTML/CSS/JS vanilla.
-Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
-
-## Fonctionnalités
-
-- **Séquence de boot** animée avec barre de progression
-- **Écran de verrouillage** avec code PIN (1234), horloge et date
-- **Écran d'accueil** avec grille d'applications et dock
-- **Barre d'état système** : heure réelle, batterie simulée (décharge lente), mode avion
-- **Boutons physiques simulés** : power (éteindre/redémarrer), volume +/- avec retour visuel
-- **Multitâche** : vue des applications récentes, fermeture individuelle ou globale
-- **Notifications** empilées avec animation d'entrée/sortie
-- **Barre de navigation** système : retour, accueil, multitâche
-
-Applications incluses :
-
-| App | Fonctions |
-|---|---|
 | Épopée | Gacha + combat au tour par tour façon FGO + Mode Histoire + Raid — détail ci-dessous |
 | Personnages | Fiches détaillées des 113 héros (liste complète, non possédés grisés), accessibles depuis la Collection : classe et bonus, cartes de combat, stats réelles (doublons, évolutions, reliques incluses), compétence, **passif**, éveils et talents acquis, coût de la prochaine évolution, indice d'obtention pour les héros non invoqués (Graal → Enfer+) |
 | Trophées | Salle des trophées : étagère des 5 bannières (débloquées/scellées), records des 5 boss (meilleur niveau vaincu, **Enfer+ distingué d'Enfer** avec mise en avant dorée), record du Mode Infini, statut du **Graal** (Astrée, Héritière des braises, SS exclusive débloquée en battant le Dragon des cendres en Enfer+) |
@@ -97,22 +79,6 @@ Mode Infini, Mode Histoire (chapitre joué, progression, boss dragon, Enfer+), r
 npm install jsdom   # uniquement pour le test
 node test/smoke.test.js    # 136 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
-```
-
-## Ajouter une application
-
-Dans `js/apps/` :
-
-```js
-OS.registerApp({
-  id: "monapp",
-  name: "MonApp",
-  icon: "🚀",           // emoji ou caractère
-  color: "#5b6b94",     // couleur d'icône
-  dock: false,          // true pour l'épingler dans le dock
-  render(body) { /* construire l'UI dans body */ },
-  onBack() {},          // optionnel : interception du bouton retour
-});
 ```
 
 Puis référencez le fichier dans `index.html` (avant `js/main.js`).
