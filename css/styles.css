@@ -237,6 +237,26 @@ button { font-family: inherit; }
 
 /* Combat */
 .battle { display: flex; flex-direction: column; gap: 8px; }
+.battle-intent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(227,178,60,.42);
+  border-left: 3px solid #e3b23c;
+  border-radius: 9px;
+  background: linear-gradient(110deg, rgba(227,178,60,.12), rgba(0,0,0,.18));
+  color: #e8d7a8;
+  font-size: 12px;
+}
+.battle-intent strong { color: #f0c967; font-size: 13px; }
+.battle-intent span { color: #b6bed4; line-height: 1.4; }
+.battle-actions .pull-btn.disabled,
+.battle-actions .pull-btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 480px) {
+  .battle-actions { flex-wrap: wrap; }
+  .battle-actions .pull-btn { flex: 1 1 140px; }
+}
 .hp-row { display: grid; grid-template-columns: 92px 1fr 74px; gap: 8px; align-items: center; font-size: 12px; }
 .hp-row .hp-label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .hp-row.enemy .hp-label { color: #e07b7b; font-weight: 700; }
