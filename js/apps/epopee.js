@@ -133,6 +133,9 @@ OS.registerApp({
       "Sorcier": { desc: "Brûle toute l'équipe à chaque tour" },
       "Capitaine": { desc: "Se renforce de 4 % à chacun de ses tours" },
       "Golem": { desc: "Carapace : subit 20 % de dégâts en moins, frappe plus lentement" },
+      "Oracle": { desc: "Prie à chaque tour : régénère 4 % de ses PV max" },
+      "Muraille": { desc: "Bastion : subit 10 % de dégâts en moins" },
+      "Invocateur": { desc: "Rituel : appelle une ombre qui frappe une seconde fois" },
     };
 
     const UNITS = [
@@ -307,13 +310,20 @@ OS.registerApp({
       }).join(", ");
     }
 
+    const RELICS = {
+      arme: { name: "Lame du Raid", effect: "ATK +8 % pour toute l'équipe", cost: { couronne: 8, larme: 10 } },
+      armure: { name: "Écaille du Dragon", effect: "PV +8 % pour toute l'équipe", cost: { eclat: 20, coeur: 15 } },
+      etendard: { name: "Étendard des trois phases", effect: "Jauge d'Ultime de départ +15 %", cost: { couronne: 12, sceau: 5 } },
+    };
+
     function unitPower(u) {
       const count = save.owned[u.id] || 1;
       const mult = 1 + 0.08 * Math.min(count - 1, 12);
       const evo = save.evo[u.id] || 0;
       const em = 1 + 0.10 * evo;
-      const hpFx = 1 + ((unitFx(u).hp || 0) / 100);
-      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em), hp: Math.round(u.hp * mult * em * hpFx) };
+      const relics = save.relics || {};
+      const hpFx = (1 + ((unitFx(u).hp || 0) / 100)) * (relics.armure ? 1.08 : 1);
+      return { ...u, lvl: count, evo, atk: Math.round(u.atk * mult * em * (relics.arme ? 1.08 : 1)), hp: Math.round(u.hp * mult * em * hpFx) };
     }
 
     let infiniteBest = OS.store.get("infinite-best", 0);
@@ -328,6 +338,7 @@ OS.registerApp({
     if (!save.collected) save.collected = [];
     if (!save.loot) save.loot = {};
     if (!save.evo) save.evo = {};
+    if (!save.relics) save.relics = {};
     function persist() { OS.store.set("epopee", save); }
 
     let storyState = OS.store.get("epopee-story", { done: 0, music: false, diff: "moyen" });
@@ -437,6 +448,28 @@ OS.registerApp({
       return wrap;
     }
 
+    /* ---------- Événements du week-end ---------- */
+
+    const EVENTS = {
+      fortune: { name: "Week-end de fortune", desc: "récompenses de victoire ×2", icon: "💰" },
+      invoqueurs: { name: "Week-end des invocateurs", desc: "taux SSR doublé", icon: "✨" },
+    };
+    function eventInfo() {
+      const d = new Date();
+      const forced = OS.store.get("event-debug", "");
+      const weekend = d.getDay() === 0 || d.getDay() === 6;
+      const kind = forced && EVENTS[forced] ? forced : weekend ? (d.getDate() < 16 ? "fortune" : "invoqueurs") : null;
+      return kind ? { k: kind, ...EVENTS[kind] } : null;
+    }
+    function eventMult() {
+      const ev = eventInfo();
+      return ev && ev.k === "fortune" ? 2 : 1;
+    }
+    function eventSsrBoost() {
+      const ev = eventInfo();
+      return ev && ev.k === "invoqueurs" ? 2 : 1;
+    }
+
     function dailyPanel() {
       ensureDaily();
       const wrap = document.createElement("div");
@@ -507,7 +540,8 @@ OS.registerApp({
     function rollUnit(pool) {
       const base = (pool || UNITS).filter((u) => u.id !== "graal");
       const roll = Math.random();
-      const wanted = roll < 0.05 ? 3 : roll < 0.25 ? 2 : 1;
+      const ssrRate = 0.05 * eventSsrBoost();
+      const wanted = roll < ssrRate ? 3 : roll < 0.25 ? 2 : 1;
       const arr = base.filter((u) => u.r === wanted).length
         ? base.filter((u) => u.r === wanted)
         : [2, 1, 3].map((r) => base.filter((u) => u.r === r)).find((a) => a.length) || base;
@@ -663,6 +697,13 @@ OS.registerApp({
       const b = document.createElement("div");
       b.className = "quartz-bar";
       b.textContent = "◆ Quartz : " + save.quartz;
+      const ev = eventInfo();
+      if (ev) {
+        const chip = document.createElement("span");
+        chip.className = "event-chip";
+        chip.textContent = ev.icon + " " + ev.name + " — " + ev.desc;
+        b.appendChild(chip);
+      }
       return b;
     }
 
@@ -718,6 +759,45 @@ OS.registerApp({
 
       content.appendChild(lootBar());
       content.appendChild(forgePanel());
+      content.appendChild(relicPanel());
+    }
+
+    function relicPanel() {
+      const wrap = document.createElement("div");
+      wrap.className = "forge-panel relic-panel";
+      const h = document.createElement("h3");
+      h.textContent = "Reliquaire du raid — bonus communs à toute l'équipe";
+      wrap.appendChild(h);
+      Object.keys(RELICS).forEach((k) => {
+        const rel = RELICS[k];
+        const has = save.relics[k];
+        const can = !has && Object.keys(rel.cost).every((c) => (save.loot[c] || 0) >= rel.cost[c]);
+        const line = document.createElement("div");
+        line.className = "forge-line relic-line" + (has ? " ready" : "");
+        const req = Object.keys(rel.cost).map((c) =>
+          '<span class="' + ((save.loot[c] || 0) >= rel.cost[c] ? "ok" : "ko") + '">' + rel.cost[c] + "× " + LOOT[c].name + "</span>"
+        ).join(" ");
+        line.innerHTML =
+          '<div class="unit-name">' + rel.name + "</div>" +
+          '<div class="forge-evo">' + rel.effect + "</div>" +
+          '<div class="forge-req">' + (has ? "✓ Forgée — active sur l'équipe" : req) + "</div>";
+        if (!has) {
+          const b = document.createElement("button");
+          b.className = "pull-btn";
+          b.textContent = "Forger";
+          b.disabled = !can;
+          b.addEventListener("click", () => {
+            Object.keys(rel.cost).forEach((c) => { save.loot[c] = (save.loot[c] || 0) - rel.cost[c]; });
+            save.relics[k] = 1;
+            persist();
+            OS.sfx.play("unlock");
+            renderTeam();
+          });
+          line.appendChild(b);
+        }
+        wrap.appendChild(line);
+      });
+      return wrap;
     }
 
     function lootBar() {
@@ -917,7 +997,7 @@ OS.registerApp({
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0));
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + ((save.relics || {}).etendard ? 15 : 0));
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
@@ -948,9 +1028,9 @@ OS.registerApp({
       if (ph.elite) battle.elite = ph.elite;
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
-      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0));
       battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
       if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + ((save.relics || {}).etendard ? 15 : 0));
       OS.sfx.play("ult");
       renderQuests();
     }
@@ -1085,6 +1165,7 @@ OS.registerApp({
     function hitEnemy(base, actorName, label) {
       let dmg = base;
       if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
+      else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
@@ -1191,6 +1272,26 @@ OS.registerApp({
           battle.enemy.atk = Math.round(battle.enemy.atk * 1.04);
           battle.log.unshift("Le Capitaine joue de la corne : il frappe plus fort au tour suivant (+4 %)");
           break;
+        case "Oracle": {
+          const heal = Math.round(battle.enemy.maxHp * 0.04);
+          battle.enemy.hp = Math.min(battle.enemy.maxHp, battle.enemy.hp + heal);
+          battle.log.unshift("L'Oracle prie : +" + heal + " PV régénérés");
+          ti = targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.85 * (0.8 + Math.random() * 0.4)));
+          break;
+        }
+        case "Invocateur": {
+          const tkInv = targets.filter((i) => battle.units[i].cls === "Tueur");
+          ti = tkInv.length && Math.random() < 0.4 ? tkInv[0] : targets[Math.floor(Math.random() * targets.length)];
+          attackAlly(ti, Math.round(battle.enemy.atk * 0.75 * (0.8 + Math.random() * 0.4)));
+          const restants = aliveIdx();
+          if (restants.length) {
+            const t2 = restants[Math.floor(Math.random() * restants.length)];
+            attackAlly(t2, Math.round(battle.enemy.atk * 0.5 * (0.8 + Math.random() * 0.4)));
+            battle.log.unshift("Rituel : une ombre invoquée frappe à son tour !");
+          }
+          break;
+        }
         default: {
           const tk = targets.filter((i) => battle.units[i].cls === "Tueur");
           if (tk.length && Math.random() < 0.6) ti = tk[0];
@@ -1318,6 +1419,10 @@ OS.registerApp({
           battle.log.unshift("Butin : " + gainLoot(gains));
           trackDaily("wins");
         }
+      }
+      if (win && eventMult() > 1) {
+        reward = Math.round(reward * eventMult());
+        battle.log.unshift("💰 " + EVENTS.fortune.name + " : récompense doublée !");
       }
       OS.sfx.play(win ? "victory" : "defeat");
       save.quartz += reward;
@@ -1996,7 +2101,7 @@ OS.registerApp({
         diffLabel: d.label,
         units: team,
         hp: team.map((u) => u.hp),
-        gauge: fx.gauge || 0,
+        gauge: Math.min(100, (fx.gauge || 0) + ((save.relics || {}).etendard ? 15 : 0)),
         picks: 0,
         curse: 0,
         burn: 0,

@@ -1066,3 +1066,10 @@ button { font-family: inherit; }
 }
 .raid-chip.done { border-color: #3ba75c; color: #3ba75c; }
 .raid-chest { display: block; width: 100%; text-align: center; margin-top: 6px; }
+
+/* ---------- Événements du week-end ---------- */
+.quartz-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.event-chip {
+  background: #3a2f14; border: 1px solid #e3b23c; color: #ffd970;
+  border-radius: 999px; padding: 2px 9px; font-size: 10.5px;
+}

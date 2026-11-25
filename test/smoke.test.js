@@ -17,7 +17,7 @@ const ownedAll = {};
 unitIds.forEach((id) => { if (id !== "graal") ownedAll[id] = 1; });
 const seedSave = { quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
 html = html.replace('<script src="js/os.js">',
-  '<script>localStorage.setItem("phoneos:epopee", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
+  '<script>localStorage.setItem("phoneos:event-debug", JSON.stringify("fortune"));localStorage.setItem("phoneos:epopee", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   const inline = "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "<\/script>";
@@ -108,6 +108,27 @@ setTimeout(() => {
   const ssrCard = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.className.includes("r3"));
   check("passif ✧ affiché sur les SSR", !!ssrCard && ssrCard.textContent.includes("Passif :"));
 
+  // Reliquaire du raid : 3 reliques forgees avec le butin, bonus communs a l'equipe
+  check("bandeau d'evenement force (fortune)", !!document.querySelector(".event-chip") && document.querySelector(".event-chip").textContent.includes("Week-end de fortune"));
+  check("reliquaire : 3 reliques affichees", document.querySelectorAll(".relic-line").length === 3);
+  const bronAtkOf = () => { const c = [...document.querySelectorAll(".roster .unit-card")].find((x) => x.querySelector(".unit-name").textContent.includes("Bron")); return c ? Number((c.textContent.match(/ATK (\d+)/) || [0, 0])[1]) : 0; };
+  const bronAtkBefore = bronAtkOf();
+  const armorLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9caille du Dragon"));
+  check("\u00c9caille du Dragon forgerable", !!armorLine && !armorLine.querySelector("button").disabled);
+  if (armorLine) armorLine.querySelector("button").click();
+  const saveRelic = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  check("\u00c9caille forge\u00e9e : \u221220 \u00c9clats, \u221215 C\u0153urs", saveRelic.relics.armure === 1 && saveRelic.loot.eclat === 971 && saveRelic.loot.coeur === 35);
+  const weaponLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("Lame du Raid"));
+  check("Lame du Raid forgerable", !!weaponLine && !weaponLine.querySelector("button").disabled);
+  if (weaponLine) weaponLine.querySelector("button").click();
+  const saveRelic2 = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  check("Lame forg\u00e9e et persist\u00e9e", saveRelic2.relics.arme === 1);
+  check("Lame : ATK de l'\u00e9quipe renforc\u00e9e (" + bronAtkBefore + " \u2192 " + bronAtkOf() + ")", bronAtkOf() > bronAtkBefore);
+  const flagLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9tendard des trois phases"));
+  check("\u00c9tendard forgerable (Couronnes + Sceaux en stock)", !!flagLine && !flagLine.querySelector("button").disabled);
+  if (flagLine) flagLine.querySelector("button").click();
+  check("\u00c9tendard forg\u00e9, 3 reliques actives", JSON.parse(window.localStorage.getItem("phoneos:epopee")).relics.etendard === 1 && [...document.querySelectorAll(".relic-line")].every((l) => l.textContent.includes("Forg\u00e9e")));
+
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
   const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
   check("onglet Collection présent", !!colTab);
@@ -136,10 +157,12 @@ setTimeout(() => {
   const today = new Date();
   const tk = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
   window.eval('(function(){localStorage.setItem("phoneos:epopee-daily",JSON.stringify({date:"' + tk + '",missions:[{t:"cards",label:"Jouer 30 cartes en combat",goal:30,reward:20,p:0,claimed:false},{t:"pulls",label:"Invoquer 10 héros",goal:10,reward:25,p:10,claimed:false},{t:"wins",label:"Gagner 3 quêtes",goal:3,reward:30,p:1,claimed:false}]}));})()');
+  window.eval('(function(){localStorage.setItem("phoneos:event-debug", JSON.stringify("invoqueurs"));})()');
   window.eval("OS").openApp("epopee");
   const questTabD = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   questTabD.click();
   check("3 missions du jour affichées", document.querySelectorAll(".daily-mission").length === 3);
+  check("bandeau d'evenement passe en Week-end des invocateurs", !!document.querySelector(".event-chip") && document.querySelector(".event-chip").textContent.includes("invocateurs"));
   check("mission 'Invoquer' prête à réclamer", !!document.querySelector(".daily-mission .claim-btn"));
   document.querySelector(".daily-mission .claim-btn").click();
   check("réclamation mission +25 ◆", JSON.parse(window.localStorage.getItem("phoneos:epopee")).quartz === 370);
@@ -153,6 +176,7 @@ setTimeout(() => {
   check("bouton quête facile présent", !!tierBtn);
   tierBtn.click();
   check("vue combat affichée", !!document.querySelector(".battle"));
+  check("\u00c9tendard : jauge de d\u00e9part \u00e0 15 %", document.querySelector(".gauge .hp-num") && document.querySelector(".gauge .hp-num").textContent === "15%");
   const beforeLog = document.querySelectorAll(".battle-log > div").length;
   for (let draws = 0; draws < 3; draws++) {
     const card = document.querySelector(".hand-card:not([disabled])");
@@ -187,7 +211,7 @@ setTimeout(() => {
       if (lg && lg.textContent.includes("Butin")) { lootSeen = true; break; }
     }
   }
-  check("butin : Éclat d'acier gagné en victoire facile", lootSeen && JSON.parse(window.localStorage.getItem("phoneos:epopee")).loot.eclat >= 992);
+  check("butin : Éclat d'acier gagné en victoire facile", lootSeen && JSON.parse(window.localStorage.getItem("phoneos:epopee")).loot.eclat >= 972);
 
   // Mode Infini : démarrage sans erreur, étage affiché
   window.eval("OS").openApp("epopee");
@@ -363,7 +387,7 @@ setTimeout(() => {
   const rs1 = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
   const rr1 = JSON.parse(window.localStorage.getItem("phoneos:epopee-raid"));
   check("coffre : +90 ◆ (3 phases × 30)", rs1.quartz === q0 + 90);
-  check("coffre : +3 Sceaux du dragon (50 → 53)", rs1.loot.sceau === 53);
+  check("coffre : +3 Sceaux du dragon, Étendard déduit (45 → 48)", rs1.loot.sceau === 48);
   check("coffre marqué réclamé", rr1.claimed === true);
   const teamTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR2.click();
