@@ -149,8 +149,9 @@ setTimeout(() => {
   const teamTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR.click();
   check("roster de 132 unités possédées", document.querySelectorAll(".roster .unit-card").length === unitIds.length - 1);
-  check("portraits autonomes présents sur toutes les cartes du roster", [...document.querySelectorAll(".roster .unit-card .unit-portrait img.hero-art")].length === unitIds.length - 1);
-  check("chemins des portraits autonomes du roster valides", [...document.querySelectorAll(".roster .unit-card .unit-portrait img.hero-art")].every((img) => img.getAttribute("src") && fs.existsSync(path.join(root, img.getAttribute("src").replace("./", "")))));
+  const rosterPortraits = [...document.querySelectorAll(".roster .unit-card .unit-portrait .hero-art")];
+  check("un portrait SVG personnalisé pour chaque héros du roster", rosterPortraits.length === unitIds.length - 1 && rosterPortraits.every((portrait) => portrait.tagName.toLowerCase() === "svg" && !!portrait.getAttribute("data-portrait-id")));
+  check("portraits héros réellement distincts (dessins et identifiants)", new Set(rosterPortraits.map((portrait) => portrait.outerHTML)).size === rosterPortraits.length);
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 
@@ -502,7 +503,7 @@ setTimeout(() => {
   document.querySelector(".story-chapter").click();
   check("onglet Histoire reste actif dans une scène", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
   check("scène SVG visible", !!document.querySelector(".story-art"));
-  check("Mode Histoire : portraits des personnages de la scène visibles", document.querySelectorAll(".story-actor-strip img").length > 0 && [...document.querySelectorAll(".story-actor-strip img")].every((img) => fs.existsSync(path.join(root, img.getAttribute("src").replace("./", "")))));
+  check("Mode Histoire : portraits uniques des personnages du chapitre", document.querySelectorAll(".story-actor-strip svg").length > 0 && [...document.querySelectorAll(".story-actor-strip svg")].every((portrait) => !!portrait.getAttribute("data-portrait-id")));
   const sceneHtml = document.querySelector(".story-art").innerHTML;
   check("scène d'histoire : l'équipe réelle apparaît avec ses évolutions", sceneHtml.includes("scale(1.08)") && sceneHtml.includes("#ffd970"));
   check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
@@ -584,7 +585,7 @@ setTimeout(() => {
   check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
   check("intention ennemie annoncée", !!document.querySelector(".battle-intent"));
-  check("portrait du boss affiché en combat via un SVG autonome", !!document.querySelector(".battle-enemy-art img.enemy-art[src]") && fs.existsSync(path.join(root, document.querySelector(".battle-enemy-art img.enemy-art").getAttribute("src").replace("./", ""))));
+  check("portrait ennemi personnalisé affiché en combat", !!document.querySelector(".battle-enemy-art svg.enemy-art[data-portrait-id]"));
   check("affinité élémentaire de l’ennemi affichée", !!document.querySelector(".battle-affinity"));
   check("jauge de rupture visible", !!document.querySelector(".break-gauge"));
   check("action de garde disponible", [...document.querySelectorAll(".battle-actions button")].some((b) => b.textContent.includes("Garde d'équipe")));
@@ -694,7 +695,7 @@ setTimeout(() => {
   check("entraînement : tous les héros affichés", document.querySelectorAll(".roster .unit-card").length === unitIds.length);
   const graalCardT = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.textContent.includes("Astrée, Héritière des braises"));
   if (graalCardT) graalCardT.click();
-  check("clic héros : combat d'entraînement lancé immédiatement", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("cible immortelle"));
+  check("clic héros : combat d'entraînement lancé immédiatement", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("combat réel"));
   check("héros non possédé sélectionnable", !!document.querySelector(".training-selected .unit-card.in-team"));
   const changeTrainingHero = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Changer de héros"));
   check("laboratoire : combat isolé sans devoir défiler le roster complet", !!changeTrainingHero && !!document.querySelector(".training-selected .unit-card.in-team"));
@@ -702,13 +703,18 @@ setTimeout(() => {
   const startTrain = [...document.querySelectorAll(".pull-row button")].find((b) => b.textContent.includes("mob aléatoire"));
   check("démarrage contre mob aléatoire proposé", !!startTrain && !startTrain.disabled);
   if (startTrain) startTrain.click();
-  check("combat laboratoire démarré", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("cible immortelle"));
-  const enemyHpBefore = document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent;
-  const trainingCard = document.querySelector(".hand-card");
-  if (trainingCard) trainingCard.click();
-  const enemyHpAfter = document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent;
-  check("cible d'entraînement immortelle", !!enemyHpBefore && enemyHpBefore === enemyHpAfter);
-  check("laboratoire : compteur de dégâts cumulés visible après une action", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.includes("dégâts infligés"));
+  check("combat laboratoire démarré", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("combat réel"));
+  const enemyHpBefore = Number((document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent || "0").replace(/[^0-9]/g, ""));
+  let heroHpBefore = Number((document.querySelector(".battle .hp-row.ally .hp-num")?.textContent || "0").replace(/[^0-9]/g, ""));
+  for (let action = 0; action < 3; action++) {
+    const card = document.querySelector(".battle .hand-card");
+    if (card) card.click();
+  }
+  const enemyHpAfter = Number((document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent || "0").replace(/[^0-9]/g, ""));
+  const heroHpAfter = Number((document.querySelector(".battle .hp-row.ally .hp-num")?.textContent || "0").replace(/[^0-9]/g, ""));
+  check("duel : les attaques diminuent réellement les PV ennemis", enemyHpBefore > 0 && enemyHpAfter > 0 && enemyHpAfter < enemyHpBefore);
+  check("duel : l'ennemi riposte et peut blesser le héros après 3 actions", heroHpBefore > 0 && heroHpAfter < heroHpBefore);
+  check("duel : compteur de dégâts cumulés visible", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.includes("dégâts cumulés"));
   const quitTraining = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Quitter le test"));
   check("sortie disponible pendant le combat", !!quitTraining);
   if (quitTraining) quitTraining.click();
