@@ -1,9 +1,10 @@
 # Astéria
 
-RPG gacha complet en page web, 100 % HTML/CSS/JS vanilla : tout l'univers
+RPG gacha complet en page web, construit en HTML/CSS/JavaScript vanilla : tout l'univers
 s'affiche directement dans le navigateur, avec un bouton **⛶ Plein écran**
 dans la barre supérieure.
-Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
+Aucune dépendance à installer pour jouer et aucun back-end. La suite de tests utilise
+`jsdom` comme dépendance de développement (Node.js 20 recommandé).
 
 📖 **Guide complet du jeu** : [GUIDE.md](GUIDE.md) — tout y est expliqué (OS, combat, héros, reliques, raid, histoire, stratégies).
 
@@ -79,14 +80,19 @@ test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ## Lancer
 
 ```bash
-# Au choix :
+# Pour jouer :
 xdg-open index.html          # ou double-clic sur index.html
 python3 -m http.server       # puis http://localhost:8000
+
+# Pour lancer les contrôles (Node.js 20+) :
+npm install
+npm run check:syntax
+npm test
 ```
 
 ## Tester
 
-Le test de fumée simule l'ouverture de la page (barre d'apps, Astéria ouverte par défaut, bouton plein écran, horloge),
+Le test de fumée (`npm test`) simule l'ouverture de la page (barre d'apps, Astéria ouverte par défaut, bouton plein écran, horloge),
 les 4 apps, roster des 132 unités possédées (sur 133), écran Collection (Graal grisé,
 récompense de complétion réclamée, clic → fiche détaillée dans l'app Personnages, retour, fiche du Graal non invoqué), réglages bonus (mode daltonien persisté,
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, **pity de la bannière des héros à 50 invocations (SSR garanti, remise à zéro)**, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
