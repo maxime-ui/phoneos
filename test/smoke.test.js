@@ -473,6 +473,7 @@ setTimeout(() => {
   check("clic sur Enfer+ verrouillé sans effet", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enfer");
 
   document.querySelector(".story-chapter").click();
+  check("onglet Histoire reste actif dans une scène", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
   check("scène SVG visible", !!document.querySelector(".story-art"));
   const sceneHtml = document.querySelector(".story-art").innerHTML;
   check("scène d'histoire : l'équipe réelle apparaît avec ses évolutions", sceneHtml.includes("scale(1.08)") && sceneHtml.includes("#ffd970"));
@@ -487,6 +488,7 @@ setTimeout(() => {
   const storySaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
   check("progression chapitre 1 sauvegardée", storySaved.done >= 1);
   check("récompense chapitre affichée", document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
+  check("onglet Histoire reste actif à la fin du chapitre", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
 
   [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire").click();
   check("chapitres 3-18 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 16);
