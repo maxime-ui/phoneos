@@ -15,9 +15,9 @@ const unitsBlock = fs.readFileSync(path.join(root, "js/apps/asteria.js"), "utf8"
 const unitIds = [...unitsBlock.matchAll(/\{ id: "([^"]+)"/g)].map((m) => m[1]);
 const ownedAll = {};
 unitIds.forEach((id) => { if (id !== "graal") ownedAll[id] = 1; });
-const seedSave = { quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
+const seedSave = { schemaVersion: 2, quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
 html = html.replace('<script src="js/os.js">',
-  '<script>localStorage.setItem("phoneos:event-debug", JSON.stringify("fortune"));localStorage.setItem("phoneos:asteria", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
+  '<script>localStorage.setItem("phoneos:event-debug", JSON.stringify("fortune"));localStorage.setItem("phoneos:asteria-v2", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   const inline = "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "<\/script>";
@@ -84,9 +84,9 @@ setTimeout(() => {
   check("équipe 3 Soigneurs composée", [...document.querySelectorAll(".roster .unit-card.in-team .unit-cls")].every((el) => el.textContent === "Soigneur"));
 
   // Forge d'évolution : butin semé puis 1re évolution de Bron (+8 Éclat d'acier)
-  const saveForge = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveForge = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   saveForge.loot = { eclat: 999, coeur: 50, larme: 50, couronne: 50, sceau: 50, poussiere: 50, cristal: 20 };
-  window.eval('(function(){localStorage.setItem("phoneos:asteria",' + JSON.stringify(JSON.stringify(saveForge)) + ')})()');
+  window.eval('(function(){localStorage.setItem("phoneos:asteria-v2",' + JSON.stringify(JSON.stringify(saveForge)) + ')})()');
   window.eval("OS").openApp("asteria");
   const teamTabF = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabF.click();
@@ -96,7 +96,7 @@ setTimeout(() => {
   check("forge : ligne Bron évolutive et finançable", !!bronLine && !bronLine.querySelector("button").disabled);
   check("forge : prochain éveil annoncé", !!bronLine && bronLine.innerHTML.includes("Éveil I ✦ Jauge de départ"));
   if (bronLine) bronLine.querySelector("button").click();
-  const saveEvo = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveEvo = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("évolution Bron persistée (+10 %, −8 Éclat)", saveEvo.evo.bron === 1 && saveEvo.loot.eclat === 991);
   const bronCardF = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
   check("étoiles ★ affichées sur la carte", !!bronCardF && bronCardF.querySelector(".unit-name").textContent.includes("★"));
@@ -112,33 +112,33 @@ setTimeout(() => {
   const armorLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9caille du Dragon"));
   check("\u00c9caille du Dragon forgerable", !!armorLine && !armorLine.querySelector("button").disabled);
   if (armorLine) armorLine.querySelector("button").click();
-  const saveRelic = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveRelic = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Écaille forgée : −20 Éclats, −15 Cœurs", saveRelic.relics.armure === 1 && saveRelic.loot.eclat === 971 && saveRelic.loot.coeur === 35);
   const armorLineE = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
   const armorSel = armorLineE && armorLineE.querySelector(".relic-equip-select");
   check("sélecteur d'équipement sur l'Écaille forgée", !!armorSel);
   if (armorSel) { armorSel.value = "nerys"; armorSel.dispatchEvent(new window.Event("change")); }
-  check("Écaille équipée sur Nerys persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.armure === "nerys");
+  check("Écaille équipée sur Nerys persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).relicsEquip.armure === "nerys");
   const nerysCard = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Nerys"));
   check("Nerys : PV renforcés par l'Écaille portée", !!nerysCard && nerysCard.textContent.includes("PV"));
   const weaponLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("Lame du Raid"));
   check("Lame du Raid forgerable", !!weaponLine && !weaponLine.querySelector("button").disabled);
   if (weaponLine) weaponLine.querySelector("button").click();
-  const saveRelic2 = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveRelic2 = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Lame forg\u00e9e et persist\u00e9e", saveRelic2.relics.arme === 1);
   check("Lame forgée sans porteur : ATK de Bron inchangée (" + bronAtkBefore + ")", bronAtkOf() === bronAtkBefore);
   const weaponLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Lame du Raid"));
   const weaponSel = weaponLine2 && weaponLine2.querySelector(".relic-equip-select");
   check("sélecteur d'équipement sur la Lame", !!weaponSel);
   if (weaponSel) { weaponSel.value = "bron"; weaponSel.dispatchEvent(new window.Event("change")); }
-  check("Lame équipée sur Bron persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.arme === "bron");
+  check("Lame équipée sur Bron persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).relicsEquip.arme === "bron");
   check("Lame portée par Bron : ATK renforcée (" + bronAtkBefore + " → " + bronAtkOf() + ")", bronAtkOf() > bronAtkBefore);
   const lameSelOpt = weaponSel && [...weaponSel.querySelectorAll("option")].find((o) => o.value === "bron");
   check("prévisualisation Lame : ATK exacte du héros affichée avant équipement", !!lameSelOpt && /\(ATK \d+ → \d+\)/.test(lameSelOpt.textContent));
   const ringLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("Anneau des serments"));
   check("Anneau des serments forgerable", !!ringLine && !ringLine.querySelector("button").disabled);
   if (ringLine) ringLine.querySelector("button").click();
-  const saveRing = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveRing = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Anneau forgé (−14 Larmes, −6 Sceaux)", saveRing.relics.anneau === 1 && saveRing.loot.larme === 26 && saveRing.loot.sceau === 44);
   const ringLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Anneau des serments"));
   const ringSel = ringLine2 && ringLine2.querySelector(".relic-equip-select");
@@ -146,11 +146,11 @@ setTimeout(() => {
   const ringOpt = ringSel && [...ringSel.querySelectorAll("option")].find((o) => o.value === "tilia");
   check("prévisualisation Anneau : bonus de critique affiché", !!ringOpt && ringOpt.textContent.includes("(Critique +8 %)"));
   if (ringSel) { ringSel.value = "tilia"; ringSel.dispatchEvent(new window.Event("change")); }
-  check("Anneau équipé sur Tilia persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.anneau === "tilia");
+  check("Anneau équipé sur Tilia persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).relicsEquip.anneau === "tilia");
   const orbLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("Orbe des braises"));
   check("Orbe des braises forgerable", !!orbLine && !orbLine.querySelector("button").disabled);
   if (orbLine) orbLine.querySelector("button").click();
-  const saveOrb = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveOrb = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Orbe forgé (−18 Cœurs, −10 Larmes)", saveOrb.relics.orbe === 1 && saveOrb.loot.coeur === 17 && saveOrb.loot.larme === 16);
   const orbLine2 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Orbe des braises"));
   const orbSel = orbLine2 && orbLine2.querySelector(".relic-equip-select");
@@ -158,7 +158,7 @@ setTimeout(() => {
   const orbOpt = orbSel && [...orbSel.querySelectorAll("option")].find((o) => o.value === "bron");
   check("prévisualisation Orbe : bonus de dégâts affiché", !!orbOpt && orbOpt.textContent.includes("(Dégâts +8 %)"));
   if (orbSel) { orbSel.value = "bron"; orbSel.dispatchEvent(new window.Event("change")); }
-  check("Orbe équipé sur Bron persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria")).relicsEquip.orbe === "bron");
+  check("Orbe équipé sur Bron persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).relicsEquip.orbe === "bron");
   const flagLine = [...document.querySelectorAll(".relic-line")].find((l) => l.textContent.includes("\u00c9tendard des trois phases"));
   check("\u00c9tendard forgerable (Couronnes + Sceaux en stock)", !!flagLine && !flagLine.querySelector("button").disabled);
   if (flagLine) flagLine.querySelector("button").click();
@@ -166,7 +166,7 @@ setTimeout(() => {
   const flagSel = flagLine2 && flagLine2.querySelector(".relic-equip-select");
   check("sélecteur d'équipement sur l'Étendard", !!flagSel);
   if (flagSel) { flagSel.value = "edele"; flagSel.dispatchEvent(new window.Event("change")); }
-  const saveFlag = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveFlag = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Étendard forgé et équipé, 5 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
 
   // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
@@ -177,7 +177,7 @@ setTimeout(() => {
   const upBtn = armorLine2 && [...armorLine2.querySelectorAll("button")].find((b) => b.textContent.includes("Améliorer"));
   check("Écaille améliorable (→ R)", !!upBtn && !upBtn.disabled);
   if (upBtn) upBtn.click();
-  const saveUp = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveUp = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("Écaille passée en R (−10 Poussières)", saveUp.relics.armure === 2 && saveUp.loot.poussiere === 40);
   const armorLine3 = [...document.querySelectorAll(".relic-line:not(.set-line)")].find((l) => l.textContent.includes("Écaille du Dragon"));
   check("Écaille R : chip rang, PV du héros +18 % et 1re sous-stat", !!armorLine3 && armorLine3.textContent.includes("R · Rare") && armorLine3.textContent.includes("PV du héros +18 %") && armorLine3.textContent.includes("Soins +4 %"));
@@ -188,7 +188,7 @@ setTimeout(() => {
   check("Harmonie parfaite : inactive si une relique portée est au rang N", AD.relicFxOf(svH2).dmg === 8);
 
   // Recyclage des doublons : matériaux propres à la classe, selon la rareté
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria"));s.owned.tilia=3;localStorage.setItem("phoneos:asteria",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.owned.tilia=3;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const teamTabRec = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabRec.click();
@@ -196,7 +196,7 @@ setTimeout(() => {
   const tiliaRec = [...document.querySelectorAll(".recycle-panel .forge-line")].find((l) => l.textContent.includes("Tilia"));
   check("recyclage : Tilia 3 doublons → +2 Rune de Mage", !!tiliaRec && tiliaRec.textContent.includes("3 doublons") && tiliaRec.textContent.includes("Rune de Mage"));
   if (tiliaRec) tiliaRec.querySelector("button").click();
-  const saveRec = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveRec = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("recyclage : doublon consommé et matériau de classe crédité", saveRec.owned.tilia === 2 && saveRec.loot.mat_Mage === 2);
 
   // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
@@ -209,7 +209,7 @@ setTimeout(() => {
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
   if (claim) claim.click();
-  check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:asteria")).collected.includes(25));
+  check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).collected.includes(25));
 
   // App Personnages : navigation Collection -> fiche détaillée -> retour
   const colCard = [...document.querySelectorAll(".col-grid .unit-card")].find((c) => !c.classList.contains("locked") && c.textContent.includes("Morgane"));
@@ -245,7 +245,7 @@ setTimeout(() => {
   const healerPortal = [...document.querySelectorAll(".portal-grid .portal-btn")].find((b) => b.textContent.includes("Soigneur"));
   check("portail Soigneur présent", !!healerPortal);
   if (healerPortal) healerPortal.click();
-  const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("portail : −5 ◆ et pity persistée", saveAfterPortal.quartz === 345 && saveAfterPortal.pity["Soigneur"] >= 1);
   const portalCard = document.querySelector(".pull-results .unit-card");
   check("portail : personnage Soigneur invoqué", !!portalCard && portalCard.querySelector(".unit-cls").textContent.includes("Soigneur"));
@@ -253,7 +253,7 @@ setTimeout(() => {
   // Missions quotidiennes : seed contrôlé pour aujourd'hui (date réelle, même jour)
   const today = new Date();
   const tk = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
-  window.eval('(function(){localStorage.setItem("phoneos:asteria-daily",JSON.stringify({date:"' + tk + '",missions:[{t:"cards",label:"Jouer 30 cartes en combat",goal:30,reward:20,p:0,claimed:false},{t:"pulls",label:"Invoquer 10 héros",goal:10,reward:25,p:10,claimed:false},{t:"wins",label:"Gagner 3 quêtes",goal:3,reward:30,p:1,claimed:false}]}));})()');
+  window.eval('(function(){localStorage.setItem("phoneos:asteria-v2-daily",JSON.stringify({date:"' + tk + '",missions:[{t:"cards",label:"Jouer 30 cartes en combat",goal:30,reward:20,p:0,claimed:false},{t:"pulls",label:"Invoquer 10 héros",goal:10,reward:25,p:10,claimed:false},{t:"wins",label:"Gagner 3 quêtes",goal:3,reward:30,p:1,claimed:false}]}));})()');
   window.eval('(function(){localStorage.setItem("phoneos:event-debug", JSON.stringify("invoqueurs"));})()');
   window.eval("OS").openApp("asteria");
   const questTabD = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
@@ -262,11 +262,11 @@ setTimeout(() => {
   check("bandeau d'evenement passe en Week-end des invocateurs", !!document.querySelector(".event-chip") && document.querySelector(".event-chip").textContent.includes("invocateurs"));
   check("mission 'Invoquer' prête à réclamer", !!document.querySelector(".daily-mission .claim-btn"));
   document.querySelector(".daily-mission .claim-btn").click();
-  check("réclamation mission +25 ◆", JSON.parse(window.localStorage.getItem("phoneos:asteria")).quartz === 370);
-  check("mission réclamée marquée ✓", JSON.parse(window.localStorage.getItem("phoneos:asteria-daily")).missions[1].claimed === true);
+  check("réclamation mission +25 ◆", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 370);
+  check("mission réclamée marquée ✓", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-daily")).missions[1].claimed === true);
 
   // Pity de la bannière de héros : SSR garanti à la 50ᵉ invocation, remise à zéro
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria"));s.pity={banniere:49};s.quartz=100;localStorage.setItem("phoneos:asteria",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.pity={banniere:49};s.quartz=100;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const summonTabP = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
   summonTabP.click();
@@ -275,7 +275,7 @@ setTimeout(() => {
   check("invocation ×1 disponible", !!singleP);
   if (singleP) singleP.click();
   const pityCard = document.querySelector(".pull-results .unit-card");
-  check("pity 50 : SSR garanti à la 50ᵉ invocation", !!pityCard && pityCard.className.includes("r3") && JSON.parse(window.localStorage.getItem("phoneos:asteria")).pity.banniere === 0);
+  check("pity 50 : SSR garanti à la 50ᵉ invocation", !!pityCard && pityCard.className.includes("r3") && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).pity.banniere === 0);
   check("sous-titre bannière remis à pity 0/50", document.querySelector(".banner-sub").textContent.includes("pity 0/50"));
 
   // Quête facile : le Soigneur soigne au lieu d'attaquer
@@ -296,7 +296,7 @@ setTimeout(() => {
   check("3 cartes jouées -> log enrichi (" + beforeLog + " → " + afterLog + ")", afterLog > beforeLog);
   const logText = document.querySelector(".battle-log") ? document.querySelector(".battle-log").textContent : "";
   check("Soigneur soigne l'allié le plus blessé", logText.includes("soigne"));
-  const dailyCards = JSON.parse(window.localStorage.getItem("phoneos:asteria-daily")).missions.find((m) => m.t === "cards");
+  const dailyCards = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-daily")).missions.find((m) => m.t === "cards");
   check("mission cartes progresse en combat (3 jouées)", !!dailyCards && dailyCards.p >= 3);
 
   // Chasse au butin : équipe offensive gagne la quête facile → Éclat d'acier garanti
@@ -321,7 +321,7 @@ setTimeout(() => {
       if (lg && lg.textContent.includes("Butin")) { lootSeen = true; break; }
     }
   }
-  check("butin : Éclat d'acier gagné en victoire facile", lootSeen && JSON.parse(window.localStorage.getItem("phoneos:asteria")).loot.eclat >= 972);
+  check("butin : Éclat d'acier gagné en victoire facile", lootSeen && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).loot.eclat >= 972);
 
   // Mode Infini : démarrage sans erreur, étage affiché
   window.eval("OS").openApp("asteria");
@@ -339,7 +339,7 @@ setTimeout(() => {
 
   // ---- Mode Histoire ----
   // Évolution poussée : l'équipe est réinitialisée avec Bron ★★★ (talents II/III empilables)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria"));s.team=["bron","tilia","nerys"];s.evo={bron:3};localStorage.setItem("phoneos:asteria",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.team=["bron","tilia","nerys"];s.evo={bron:3};localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const teamTabE = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabE.click();
@@ -347,14 +347,14 @@ setTimeout(() => {
   check("Éveils II/III + 2ᵉ talent de classe affichés sur Bron ★★★ (Berserker)", !!bronCardE && bronCardE.textContent.includes("Éveil II ✦ Dégâts +8 %") && bronCardE.textContent.includes("Talent ✦ Critique +8 %") && bronCardE.textContent.includes("Éveil III ✦ Rage +15 % sous le seuil") && bronCardE.textContent.includes("Talent ✦ PV max +8 %"));
 
   // Éveil IV : 4ᵉ étoile payée en matériau de classe (Croc de Berserker)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria"));s.evo={bron:3};s.loot.mat_Berserker=5;localStorage.setItem("phoneos:asteria",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.evo={bron:3};s.loot.mat_Berserker=5;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const teamTabE4 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabE4.click();
   const bronLineE4 = [...document.querySelectorAll(".forge-line")].find((l) => l.querySelector(".unit-name").textContent.startsWith("Bron"));
   check("forge éveil IV : ligne Bron au rang III financable", !!bronLineE4 && !bronLineE4.querySelector("button").disabled && bronLineE4.textContent.includes("Croc de Berserker"));
   if (bronLineE4) bronLineE4.querySelector("button").click();
-  const saveE4 = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const saveE4 = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("éveil IV persisté (−3 Crocs de Berserker)", saveE4.evo.bron === 4 && saveE4.loot.mat_Berserker === 2);
   const bronCardE4 = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
   check("éveil IV visible : ★★★★ et talents annoncés", !!bronCardE4 && bronCardE4.querySelector(".unit-name").textContent.includes("★★★★") && bronCardE4.textContent.includes("Éveil IV ✦ Dégâts +6 % et jauge de départ +5 %"));
@@ -373,19 +373,19 @@ setTimeout(() => {
   const moyenBtn0 = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Moyen"));
   check("Moyen verrouillé tant que l'histoire n'est pas bouclée en Facile", moyenBtn0 && moyenBtn0.classList.contains("locked"));
   if (moyenBtn0) moyenBtn0.click();
-  check("clic sur Moyen verrouillé sans effet", ((JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff) || "facile") === "facile");
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story")||"{}");s.cleared=["facile","moyen","difficile","impossible"];s.done=0;localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  check("clic sur Moyen verrouillé sans effet", ((JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) || "facile") === "facile");
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.cleared=["facile","moyen","difficile","impossible"];s.done=0;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTabD = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTabD.click();
   const enferBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer") && !b.textContent.includes("Enfer+"));
   check("bouton Enfer débloqué après la chaîne de difficultés", enferBtn && !enferBtn.classList.contains("locked"));
   if (enferBtn) enferBtn.click();
-  check("difficulté Enfer persistée", (JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff) === "enfer");
+  check("difficulté Enfer persistée", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enfer");
   const epBtn0 = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
   check("Enfer+ verrouillé sans histoire bouclée en Enfer", epBtn0 && epBtn0.classList.contains("locked"));
   if (epBtn0) epBtn0.click();
-  check("clic sur Enfer+ verrouillé sans effet", (JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff) === "enfer");
+  check("clic sur Enfer+ verrouillé sans effet", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enfer");
 
   document.querySelector(".story-chapter").click();
   check("scène SVG visible", !!document.querySelector(".story-art"));
@@ -399,7 +399,7 @@ setTimeout(() => {
     const next = [...document.querySelectorAll(".story-next")].pop();
     if (next) next.click();
   }
-  const storySaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}");
+  const storySaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
   check("progression chapitre 1 sauvegardée", storySaved.done >= 1);
   check("récompense chapitre affichée", document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
 
@@ -408,12 +408,12 @@ setTimeout(() => {
 
   const music = document.querySelector(".music-toggle");
   music.click();
-  const musicSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}");
+  const musicSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
   check("musique ON persistée", document.querySelector(".music-toggle").textContent.includes("ON") && musicSaved.music === true);
   document.querySelector(".music-toggle").click();
 
   // Choix narratif du chapitre 3 (bénédiction persistée)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story"));s.done=2;localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.done=2;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTabC = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTabC.click();
@@ -427,7 +427,7 @@ setTimeout(() => {
   check("choix narratif affiché", document.querySelectorAll(".story-choice").length === 2);
   const choice = document.querySelector(".story-choice");
   if (choice) choice.click();
-  const blessingSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}");
+  const blessingSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
   check("bénédiction sauvegardée", !!blessingSaved.blessing && document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
 
   // Boss du chapitre 4 : Gortak
@@ -452,7 +452,7 @@ setTimeout(() => {
   check("combat boss : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 3);
 
   // Boss final : le dragon des cendres
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story"));s.done=11;localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.done=11;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTab3 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTab3.click();
@@ -470,7 +470,7 @@ setTimeout(() => {
   check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
 
   // Épilogue : le 18ᵉ chapitre explique les origines (l'écho du premier dragon)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story")||"{}");s.done=17;localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.done=17;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTabEp = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTabEp.click();
@@ -485,7 +485,7 @@ setTimeout(() => {
   check("épilogue : boss « Écho du premier dragon » présent", !!document.querySelector(".story-boss") && document.body.textContent.includes("Écho du premier dragon") && document.body.textContent.includes("trois")); // explication des origines
 
   // Bannières + déblocage d'Enfer+
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story")||"{}");s.bossBeaten={"1":5,"3":5,"6":5,"9":5,"11":5};s.cleared=["facile","moyen","difficile","impossible","enfer"];localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.bossBeaten={"1":5,"3":5,"6":5,"9":5,"11":5};s.cleared=["facile","moyen","difficile","impossible","enfer"];localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const storyTab4 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTab4.click();
@@ -493,7 +493,7 @@ setTimeout(() => {
   const epBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
   check("Enfer+ débloqué", epBtn && !epBtn.classList.contains("locked"));
   if (epBtn) epBtn.click();
-  check("Enfer+ sélectionné et persisté", (JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff) === "enferPlus");
+  check("Enfer+ sélectionné et persisté", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enferPlus");
 
   // Boss Gortak en Enfer+ : stats scalées + compétence élite
   const chapter4p = [...document.querySelectorAll(".story-chapter")][3];
@@ -516,12 +516,12 @@ setTimeout(() => {
   check("trophées : records des 5 boss + Mode Infini", document.querySelectorAll(".trophies-record").length === 6);
   check("trophées : Graal verrouillé affiché", !!document.querySelector(".trophy-graal.locked") && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("trophées : record Mode Infini affiché", document.body.textContent.includes("Mode Infini"));
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-story"));s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6};localStorage.setItem("phoneos:asteria-story",JSON.stringify(s));})()');
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6};localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
   window.eval("OS").openApp("trophies");
   check("trophées : records Enfer+ distincts d'Enfer", [...document.querySelectorAll(".trophies-record.top")].filter((l) => l.textContent.includes("Enfer+")).length === 5);
 
   // ---- Raid hebdomadaire : 3 phases, coffre, Élixirs ----
-  window.eval('(function(){var d=new Date(),t=new Date(d.getFullYear(),0,1),w=Math.ceil(((d-t)/86400000+t.getDay()+1)/7);localStorage.setItem("phoneos:asteria-raid",JSON.stringify({week:d.getFullYear()+"-S"+w,elixirs:5,cleared:3,claimed:false}));})()');
+  window.eval('(function(){var d=new Date(),t=new Date(d.getFullYear(),0,1),w=Math.ceil(((d-t)/86400000+t.getDay()+1)/7);localStorage.setItem("phoneos:asteria-v2-raid",JSON.stringify({week:d.getFullYear()+"-S"+w,elixirs:5,cleared:3,claimed:false}));})()');
   window.eval("OS").openApp("asteria");
   const questTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   questTabR.click();
@@ -534,13 +534,13 @@ setTimeout(() => {
   const chest = document.querySelector(".raid-chest");
   check("coffre hebdomadaire réclamable", !!chest);
   const raidData = window.eval("OS").asteriaData;
-  const lb = raidData.raidLeaderboard(JSON.parse(window.localStorage.getItem("phoneos:asteria-raid")).week, 3);
+  const lb = raidData.raidLeaderboard(JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-raid")).week, 3);
   const bonus = raidData.raidRwOf(lb.rank);
   check("classement déterministe : rang calculé " + lb.rank + "/8", lb.rank >= 1 && lb.rank <= 8 && lb.entries.length === 8);
-  const q0 = JSON.parse(window.localStorage.getItem("phoneos:asteria")).quartz;
+  const q0 = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz;
   if (chest) chest.click();
-  const rs1 = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
-  const rr1 = JSON.parse(window.localStorage.getItem("phoneos:asteria-raid"));
+  const rs1 = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
+  const rr1 = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-raid"));
   check("coffre : +90 ◆ + bonus de rang " + lb.rank + " (+" + bonus + " ◆)", rs1.quartz === q0 + 90 + bonus);
   check("coffre : +3 Sceaux du dragon (39 → 42 après l'Anneau)", rs1.loot.sceau === 42);
   check("coffre marqué réclamé", rr1.claimed === true);
@@ -552,7 +552,7 @@ setTimeout(() => {
   const enterBtn = [...document.querySelectorAll(".raid-panel .pull-btn")].find((b) => b.textContent.includes("Entrer dans le Raid"));
   check("bouton entrer dans le raid actif", !!enterBtn && !enterBtn.disabled);
   if (enterBtn) enterBtn.click();
-  check("raid : −1 Élixir persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria-raid")).elixirs === 4);
+  check("raid : −1 Élixir persisté", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-raid")).elixirs === 4);
   check("combat de raid lancé (phase 1/3)", !!document.querySelector(".battle") && document.body.textContent.includes("Gardien de la trempe") && document.body.textContent.includes("Phase 1/3"));
   check("élite du gardien annoncée", document.querySelector(".battle-log").textContent.includes("Massue écrasante"));
 
@@ -562,7 +562,7 @@ setTimeout(() => {
   check("silhouette de base sans aura", !sil0.includes("scale(1.08)"));
   check("silhouette évoluée : échelle 1,08 + halo", sil3.includes("scale(1.08)") && sil3.includes("opacity=\"0.16\""));
   check("silhouette rang III : couronne d'étoiles dorées", sil3.includes("#ffd970") && sil3.includes("#e3b23c"));
-  const raidSave = JSON.parse(window.localStorage.getItem("phoneos:asteria"));
+  const raidSave = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   const anyTeamEvo = raidSave.team.some((id) => ((raidSave.evo || {})[id] || 0) >= 1);
   const raidArt = document.querySelector(".battle .story-art").innerHTML;
   check("scène de combat raid : aura présente seulement si un membre est évolué", raidArt.includes("scale(1.08)") === anyTeamEvo);
@@ -600,7 +600,7 @@ setTimeout(() => {
   const nDiff = document.querySelectorAll(".notif").length;
   topDiff.value = "moyen";
   topDiff.dispatchEvent(new window.Event("change", { bubbles: true }));
-  check("difficulté changée depuis la barre (persistée)", JSON.parse(window.localStorage.getItem("phoneos:asteria-story") || "{}").diff === "moyen");
+  check("difficulté changée depuis la barre (persistée)", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff === "moyen");
   check("notification de difficulté affichée", document.querySelectorAll(".notif").length === nDiff + 1);
   const nF = document.querySelectorAll(".notif").length;
   document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "f" }));
