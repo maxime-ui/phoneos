@@ -422,6 +422,21 @@
       /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
       { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2380, hp: 13200, cards: ["R", "R", "B"] },
     ];
+    const PASSIVE_BY_CLASS = {
+      Chevalier: ["Garde disciplinée", "PV max +5 %", { hp: 5 }],
+      Berserker: ["Fureur contrôlée", "dégâts +4 %", { dmg: 4 }],
+      Mage: ["Flux arcanique", "jauge +3 % par carte", { gauge: 3 }],
+      Archer: ["Œil exercé", "critique +4 %", { crit: 4 }],
+      "Rôdeur": ["Pas silencieux", "esquive +4 %", { esquive: 4 }],
+      "Héros": ["Volonté tenace", "croissance +2 %/tour", { growth: 2 }],
+      Soigneur: ["Main secourable", "soins +6 %", { heal: 6 }],
+      Défenseur: ["Rempart mobile", "renvoi +4 %", { renvoi: 4 }],
+      Tueur: ["Frappe précise", "exécution +6 %", { execute: 6 }],
+      Artificier: ["Réglage fin", "ATK d’équipe +2 %", { teamAtk: 2 }],
+      Druide: ["Sève vitale", "soins +5 % et PV +2 %", { heal: 5, hp: 2 }],
+      Occultiste: ["Marque discrète", "dégâts +4 %", { dmg: 4 }],
+    };
+    UNITS.forEach((unit) => { if (!PASSIVE_INFO[unit.id]) PASSIVE_INFO[unit.id] = PASSIVE_BY_CLASS[unit.cls] || ["Détermination", "dégâts +3 %", { dmg: 3 }]; });
     const CLASS_BONUS = {
       Chevalier: "Encaisse : ripostes subies réduites de 25 %",
       Berserker: "Enragé : +20 % dégâts sous 50 % PV",
@@ -625,7 +640,7 @@ function artSlug(value) { return String(value || "").normalize("NFD").replace(/[
       const hair = pick(["#241d2c","#493027","#b87935","#d8c18a","#e7e0d2","#8e3542","#253b50","#6b7891","#171923","#c65c32"], 4);
       const eye = pick(["#65c8d8","#8eaf72","#a78be8","#c58a43","#d8dce8","#d65b69"], 8);
       const cloth = pick(["#344b72","#684b82","#315c58","#7b3d42","#4a5368","#87653c","#26364e","#725f9c"], 12);
-      const accent = ({ "Chevalier":"#e4b85e", "Mage":"#a88af0", "Archer":"#72c995", "Berserker":"#e4774f", "Rôdeur":"#68b9a2", "Héros":"#e8c66c", "Soigneur":"#72d6bd", "Défenseur":"#9db4cf", "Tueur":"#d96a8c" })[cls] || "#d6b77a";
+      const accent = ({ "Chevalier":"#e4b85e", "Mage":"#a88af0", "Archer":"#72c995", "Berserker":"#e4774f", "Rôdeur":"#68b9a2", "Héros":"#e8c66c", "Soigneur":"#72d6bd", "Défenseur":"#9db4cf", "Tueur":"#d96a8c", "Artificier":"#d7a85a", "Druide":"#3bd4a0", "Occultiste":"#9b79d0" })[cls] || "#d6b77a";
       const skin2 = pick(["#f7d8c2","#c98768","#e7b28d","#b9785b"], 16);
       const hairShape = Math.floor((h / 65536) % 5);
       const fringe = [
@@ -635,7 +650,7 @@ function artSlug(value) { return String(value || "").normalize("NFD").replace(/[
         "M30 48 Q37 12 65 17 Q94 19 91 50 Q75 35 65 41 Q47 34 30 48 Z",
         "M24 59 Q21 16 59 13 Q100 17 96 62 L83 53 Q72 40 60 48 Q42 39 24 59 Z"
       ][hairShape];
-      const classGear = cls === "Mage" ? '<path d="M25 44 L60 5 L95 44 L82 39 L60 19 L38 39 Z" fill="' + accent + '" opacity=".9"/><circle cx="60" cy="27" r="5" fill="#d9c8ff"/>' :
+      const classGear = cls === "Artificier" ? '<path d="M60 7 70 27 93 30 76 46 80 70 60 59 40 70 44 46 27 30 50 27Z" fill="none" stroke="' + accent + '" stroke-width="5"/><circle cx="60" cy="39" r="7" fill="' + accent + '"/>' : cls === "Druide" ? '<path d="M60 12Q94 29 75 55Q60 70 45 55Q26 29 60 12Z" fill="' + accent + '" opacity=".9"/><path d="M60 22V67M60 45L43 34M60 53L77 39" stroke="#e6f4ce" stroke-width="3"/>' : cls === "Occultiste" ? '<path d="M60 8 68 31 92 36 70 50 74 75 60 60 46 75 50 50 28 36 52 31Z" fill="' + accent + '" opacity=".9"/><circle cx="60" cy="43" r="7" fill="#f3e8ff"/>' : cls === "Mage" ? '<path d="M25 44 L60 5 L95 44 L82 39 L60 19 L38 39 Z" fill="' + accent + '" opacity=".9"/><circle cx="60" cy="27" r="5" fill="#d9c8ff"/>' :
         cls === "Archer" || cls === "Rôdeur" ? '<path d="M15 37 Q-1 67 19 94 Q27 102 29 89 Q12 65 28 46" fill="none" stroke="' + accent + '" stroke-width="4"/><path d="M15 37 L30 47" stroke="#f2e7c7" stroke-width="2"/>' :
         cls === "Berserker" || cls === "Tueur" ? '<path d="M27 82 L8 55 L28 61 L36 48 L42 75 Z M93 82 L112 55 L92 61 L84 48 L78 75 Z" fill="' + accent + '"/>' :
         cls === "Soigneur" ? '<circle cx="60" cy="19" r="14" fill="none" stroke="' + accent + '" stroke-width="3"/><path d="M60 10 V28 M51 19 H69" stroke="' + accent + '" stroke-width="3"/>' :
