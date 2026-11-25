@@ -1,7 +1,7 @@
 # PhoneOS — Le guide complet
 
 🌞 Bienvenue sur PhoneOS, un téléphone simulé dans votre navigateur, et son jeu
-principal : **l'Épopée**, un gacha + RPG au tour par tour. Ce document explique
+principal : **l'Astéria**, un gacha + RPG au tour par tour. Ce document explique
 tout : l'OS, le combat, les héros, les évolutions, les reliques, le Raid, le
 Mode Histoire et les stratégies. 100 % hors-ligne, aucune donnée ne quitte
 votre navigateur.
@@ -14,7 +14,7 @@ votre navigateur.
 |---|---|
 | Boot | Séquence animée à chaque allumage (bouton power) |
 | Verrouillage | Code PIN **1234** par défaut — horloge et date réelles |
-| Accueil | Grille d'apps (Épopée, Personnages, Réglages, Trophées) |
+| Accueil | Grille d'apps (Astéria, Personnages, Réglages, Trophées) |
 | Barre d'état | Heure réelle, batterie simulée (décharge lente + chargeur dans Réglages), mode avion |
 | Multitâche | Apps récentes, fermeture individuelle ou globale |
 | Notifications | Empilées, désactivables dans Réglages |
@@ -25,9 +25,9 @@ son on/off, volume, notifications.
 
 ---
 
-## 2. L'Épopée — vue d'ensemble
+## 2. Astéria — vue d'ensemble
 
-L'app **Épopée** contient 4 onglets : **Invoquer**, **Équipe**, **Quêtes**,
+L'app **Astéria** contient 4 onglets : **Invoquer**, **Équipe**, **Quêtes**,
 **Collection** ; le Mode Histoire et le Raid en font partie (voyez §6/§7).
 
 ### 2.1 Le quartz (◆)
@@ -211,7 +211,7 @@ compétiteurs — affichée dans la Salle des trophées.
 
 ## 8. Systèmes connexes
 
-- **Collection** (Épopée) : tout le roster, héros manquants grisés ; paliers de
+- **Collection** (Astéria) : tout le roster, héros manquants grisés ; paliers de
   25/50/75/100 % → +50/+100/+200/+500 ◆ ; touchez un héros → fiche détaillée.
 - **App Personnages** : fiche de chaque héros (stats réelles, compétence, passif,
   éveils, talents, doublons, coût d'évolution suivante, comment invoquer les absents).
@@ -241,8 +241,8 @@ compétiteurs — affichée dans la Salle des trophées.
 ## 10. Technique
 
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
-- Sauvegarde locale (`phoneos:*` dans localStorage) : Épopée, Histoire, Raid,
+- Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
 - Tests : `node test/smoke.test.js` (142 vérifications) et
   `node test/stress.test.js` — voir le README.
-- Données partagées pour les apps : `OS.epopeeData`.
+- Données partagées pour les apps : `OS.asteriaData`.

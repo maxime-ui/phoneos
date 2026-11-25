@@ -16,8 +16,8 @@ OS.registerApp({
   color: "#3b6bd4",
   render(body) {
     body.classList.add("padend");
-    const D = OS.epopeeData;
-    const sv = OS.store.get("epopee", {}) || {};
+    const D = OS.asteriaData;
+    const sv = OS.store.get("asteria", {}) || {};
     sv.owned = sv.owned || {};
     sv.evo = sv.evo || {};
     sv.relics = sv.relics || {};
@@ -68,7 +68,7 @@ OS.registerApp({
       } else {
         stats.innerHTML =
           "<b>ATK " + u.atk + " · PV " + u.hp + "</b><br>" +
-          "<small>Non invoqué — cherchez ce héros via le portail de classe " + u.cls + " (onglet Invoquer de l'Épopée)</small>";
+          "<small>Non invoqué — cherchez ce héros via le portail de classe " + u.cls + " (onglet Invoquer de l'Astéria)</small>";
       }
       panel.appendChild(stats);
 
@@ -92,7 +92,7 @@ OS.registerApp({
         const labels = D.evoSkillLabelsOf(u, evo);
         const ev = document.createElement("div");
         ev.className = "sheet-line";
-        ev.innerHTML = "<b>Éveils &amp; talents</b><br>" + (labels.length ? labels.join("<br>") : "Aucun éveil — évoluez ★ dans la Forge (onglet Équipe de l'Épopée)");
+        ev.innerHTML = "<b>Éveils &amp; talents</b><br>" + (labels.length ? labels.join("<br>") : "Aucun éveil — évoluez ★ dans la Forge (onglet Équipe de l'Astéria)");
         panel.appendChild(ev);
         if (evo < 3 && D.EVO_REQ[u.r]) {
           const req = D.EVO_REQ[u.r][evo] || {};

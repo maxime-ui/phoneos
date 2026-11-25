@@ -640,7 +640,7 @@ button { font-family: inherit; }
   font-variant-numeric: tabular-nums;
 }
 
-/* Épopée (gacha + combat) */
+/* Astéria (gacha + combat) */
 .gacha-tabs {
   display: flex;
   gap: 8px;

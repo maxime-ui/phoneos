@@ -19,8 +19,8 @@ OS.registerApp({
     const BOSS_IDX = [1, 3, 6, 9, 11];
     const DIFFS = ["Facile", "Moyen", "Difficile", "Impossible", "Enfer", "Enfer+"];
 
-    const story = OS.store.get("epopee-story", {});
-    const gacha = OS.store.get("epopee", {});
+    const story = OS.store.get("asteria-story", {});
+    const gacha = OS.store.get("asteria", {});
     const owned = gacha.owned || {};
     const beaten = story.bossBeaten || {};
     const infiniteBest = OS.store.get("infinite-best", 0);

@@ -9,12 +9,12 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 
 | App | Fonctions |
 |---|---|
-| Épopée | Gacha + combat au tour par tour façon FGO + Mode Histoire + Raid — détail ci-dessous |
+| Astéria | Gacha + combat au tour par tour façon FGO + Mode Histoire + Raid — détail ci-dessous |
 | Personnages | Fiches détaillées des 113 héros (liste complète, non possédés grisés), accessibles depuis la Collection : classe et bonus, cartes de combat, stats réelles (doublons, évolutions, reliques incluses), compétence, **passif**, éveils et talents acquis, coût de la prochaine évolution, indice d'obtention pour les héros non invoqués (Graal → Enfer+) |
 | Trophées | Salle des trophées : étagère des 5 bannières (débloquées/scellées), records des 5 boss (meilleur niveau vaincu, **Enfer+ distingué d'Enfer** avec mise en avant dorée), record du Mode Infini, statut du **Graal** (Astrée, Héritière des braises, SS exclusive débloquée en battant le Dragon des cendres en Enfer+) |
 | Réglages | Mode avion, luminosité, **vitesse du jeu (Lent/Normal/Rapide — dialogues + musique)**, **vitesse des dialogues du Mode Histoire (Instantané/Lent/Normal/Rapide, indépendante du jeu)**, **mode daltonien (repères visuels en plus des couleurs : badges de rareté, symboles sur les cartes de combat, repères PV)**, **son du jeu on/off**, **notifications système on/off**, volume, chargeur, réinitialisation (purge complète des données) |
 
-### L'Épopée en détail
+### Astéria en détail
 
 **Invocations**
 
@@ -61,7 +61,7 @@ js/sfx.js           Moteur audio Web Audio (sfx synthétisés + musique chiptune
 js/svgart.js        Générateur d'illustrations SVG procédurales (scènes du Mode Histoire,
                     silhouettes évoluées : aura/halo/couronne d'étoiles)
 js/main.js          Initialisation (applique le mode daltonien au démarrage)
-js/apps/epopee.js   Gacha + combat + collection + mode histoire + raid + forge
+js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
@@ -79,7 +79,7 @@ python3 -m http.server       # puis http://localhost:8000
 
 ## Tester
 
-Le test de fumée simule boot, déverrouillage, ouverture des 4 apps (Épopée, Personnages, Réglages, Trophées), roster des 112 unités possédées, écran Collection (Graal grisé,
+Le test de fumée simule boot, déverrouillage, ouverture des 4 apps (Astéria, Personnages, Réglages, Trophées), roster des 112 unités possédées, écran Collection (Graal grisé,
 récompense de complétion réclamée, clic → fiche détaillée dans l'app Personnages, retour, fiche du Graal non invoqué), réglages bonus (mode daltonien persisté,
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
 Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★) et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v2 (3 reliques forgées, bonus d'ensemble Pacte/Trinité actifs, Écaille améliorée en rang R avec sous-stat, 8 matières),

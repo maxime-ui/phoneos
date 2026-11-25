@@ -1,11 +1,11 @@
-/* Test de stress Épopée : batailles aléatoires longues (mode infini + quêtes) */
+/* Test de stress Astéria : batailles aléatoires longues (mode infini + quêtes) */
 const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("/tmp/node_modules/jsdom");
 
 const root = "/workspace/phoneos";
 let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/epopee.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
+const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/asteria.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   html = html.replace('<script src="' + file + '"></script>', "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "</script>");
@@ -45,7 +45,7 @@ setTimeout(() => {
   }
 
   function launchBattle() {
-    OSref().openApp("epopee");
+    OSref().openApp("asteria");
     const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
     if (!questTab) return;
     questTab.click();
@@ -95,10 +95,10 @@ setTimeout(() => {
   // Boss du Mode Histoire : forcer la progression et enchaîner les tentatives
   let bossTurns = 0;
   try {
-    window.localStorage.setItem("phoneos:epopee-story", JSON.stringify({ done: 3, music: false }));
+    window.localStorage.setItem("phoneos:asteria-story", JSON.stringify({ done: 3, music: false }));
     window.eval("OS").closeApp();
     for (let attempt = 0; attempt < 4; attempt++) {
-      OSref().openApp("epopee");
+      OSref().openApp("asteria");
       const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
       storyTab.click();
       const chapter4 = [...document.querySelectorAll(".story-chapter")].find((b) => b.textContent.includes("Gortak"));

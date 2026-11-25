@@ -1,4 +1,4 @@
-/* App : Épopée — gacha + combat au tour par tour (personnages fictifs) */
+/* App : Astéria — gacha + combat au tour par tour (personnages fictifs) */
 "use strict";
 
     const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" }, 4: { label: "SS", color: "#ff8c5a" } };
@@ -367,12 +367,12 @@ function evoSkillLabelsOf(u, evo) {
 }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.epopeeData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, EVO_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, relicFxOf, byId, coreFx, corePower, evoSkillLabelsOf };
 
 
 OS.registerApp({
-  id: "epopee",
-  name: "Épopée",
+  id: "asteria",
+  name: "Astéria",
   icon: "⚔️",
   color: "#6b4f9e",
   render(body) {
@@ -409,7 +409,11 @@ OS.registerApp({
     let infiniteBest = OS.store.get("infinite-best", 0);
 
     function loadSave() {
-      const saved = OS.store.get("epopee", null);
+      ["", "-story", "-daily", "-raid"].forEach(function (suffix) {
+        const legacy = OS.store.get("epopee" + suffix, null);
+        if (legacy !== null && OS.store.get("asteria" + suffix, null) === null) OS.store.set("asteria" + suffix, legacy);
+      });
+      const saved = OS.store.get("asteria", null);
       if (saved) return saved;
       return { quartz: 30, owned: { bron: 1, tilia: 1, nerys: 1 }, team: ["bron", "tilia", "nerys"] };
     }
@@ -419,11 +423,11 @@ OS.registerApp({
     if (!save.loot) save.loot = {};
     if (!save.evo) save.evo = {};
     if (!save.relics) save.relics = {};
-    function persist() { OS.store.set("epopee", save); }
+    function persist() { OS.store.set("asteria", save); }
 
-    let storyState = OS.store.get("epopee-story", { done: 0, music: false, diff: "moyen" });
+    let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "moyen" });
     if (!storyState.diff) storyState.diff = "moyen";
-    function persistStory() { OS.store.set("epopee-story", storyState); }
+    function persistStory() { OS.store.set("asteria-story", storyState); }
 
     /* ---------- Missions quotidiennes ---------- */
 
@@ -439,8 +443,8 @@ OS.registerApp({
       const d = new Date();
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
-    let daily = OS.store.get("epopee-daily", null);
-    function persistDaily() { OS.store.set("epopee-daily", daily); }
+    let daily = OS.store.get("asteria-daily", null);
+    function persistDaily() { OS.store.set("asteria-daily", daily); }
     function ensureDaily() {
       const tk = todayKey();
       if (!daily || daily.date !== tk) {
@@ -465,8 +469,8 @@ OS.registerApp({
       const wk = Math.ceil(((d - t) / 86400000 + t.getDay() + 1) / 7);
       return d.getFullYear() + "-S" + wk;
     }
-    let raid = OS.store.get("epopee-raid", null);
-    function persistRaid() { OS.store.set("epopee-raid", raid); }
+    let raid = OS.store.get("asteria-raid", null);
+    function persistRaid() { OS.store.set("asteria-raid", raid); }
     function ensureRaid() {
       const wk = weekKey();
       if (!raid || raid.week !== wk) {
