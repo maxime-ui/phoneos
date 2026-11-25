@@ -225,6 +225,70 @@ OS.registerApp({
     if (!storyState.diff) storyState.diff = "moyen";
     function persistStory() { OS.store.set("epopee-story", storyState); }
 
+    /* ---------- Missions quotidiennes ---------- */
+
+    const DAILY_TYPES = [
+      { t: "cards", label: "Jouer 30 cartes en combat", goal: 30, reward: 20 },
+      { t: "pulls", label: "Invoquer 10 héros", goal: 10, reward: 25 },
+      { t: "wins", label: "Gagner 3 quêtes", goal: 3, reward: 30 },
+      { t: "heals", label: "Soigner 8 fois", goal: 8, reward: 20 },
+      { t: "floor", label: "Atteindre l'étage 3 en Mode Infini", goal: 3, reward: 25 },
+      { t: "story", label: "Vaincre 1 boss d'histoire", goal: 1, reward: 40 },
+    ];
+    function todayKey() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+    let daily = OS.store.get("epopee-daily", null);
+    function persistDaily() { OS.store.set("epopee-daily", daily); }
+    function ensureDaily() {
+      const tk = todayKey();
+      if (!daily || daily.date !== tk) {
+        const picks = DAILY_TYPES.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+        daily = { date: tk, missions: picks.map((d) => ({ t: d.t, label: d.label, goal: d.goal, reward: d.reward, p: 0, claimed: false })) };
+        persistDaily();
+      }
+    }
+    function trackDaily(type, amt, absolute) {
+      if (!daily) return;
+      daily.missions.forEach((m) => {
+        if (m.t !== type || m.claimed) return;
+        m.p = absolute === "abs" ? Math.max(m.p, amt) : Math.min(m.goal, m.p + (amt || 1));
+      });
+      persistDaily();
+    }
+    function dailyPanel() {
+      ensureDaily();
+      const wrap = document.createElement("div");
+      wrap.className = "daily-panel";
+      const h = document.createElement("div");
+      h.className = "team-hint";
+      h.textContent = "Missions du jour — renouvelées chaque jour réel :";
+      wrap.appendChild(h);
+      daily.missions.forEach((m) => {
+        const line = document.createElement("div");
+        line.className = "daily-mission" + (m.claimed ? " claimed" : "");
+        const done = m.p >= m.goal;
+        line.innerHTML = "<b>" + m.label + "</b><small>" + Math.min(m.p, m.goal) + " / " + m.goal + (m.claimed ? " · ✓ réclamé" : "") + "</small>";
+        if (done && !m.claimed) {
+          const b = document.createElement("button");
+          b.className = "pull-btn claim-btn";
+          b.textContent = "+" + m.reward + " ◆";
+          b.addEventListener("click", () => {
+            m.claimed = true;
+            save.quartz += m.reward;
+            persist();
+            persistDaily();
+            OS.sfx.play("unlock");
+            renderQuests();
+          });
+          line.appendChild(b);
+        }
+        wrap.appendChild(line);
+      });
+      return wrap;
+    }
+
     /* ---------- Squelette UI ---------- */
 
     const tabsRow = document.createElement("div");
@@ -277,6 +341,7 @@ OS.registerApp({
         return [];
       }
       save.quartz -= cost;
+      trackDaily("pulls", n);
       const pool = UNITS.filter((u) => u.cls === cls && u.id !== "graal");
       const ssr = pool.filter((u) => u.r === 3);
       const results = [];
@@ -303,6 +368,7 @@ OS.registerApp({
         return [];
       }
       save.quartz -= n === 1 ? 3 : 30;
+      trackDaily("pulls", n);
       const results = [];
       for (let i = 0; i < n; i++) {
         const unit = rollUnit();
@@ -531,6 +597,7 @@ OS.registerApp({
       setActiveTab(tabBattle);
       content.innerHTML = "";
       content.appendChild(quartzBar());
+      content.appendChild(dailyPanel());
 
       const team = teamUnits();
       if (team.length < 1) {
@@ -620,6 +687,8 @@ OS.registerApp({
       const unit = battle.units[gi];
 
       if (u.cls === "Soigneur") {
+        trackDaily("cards");
+        trackDaily("heals");
         const needy = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b]);
         const wi = needy[0];
         const heal = Math.round(unit.atk * 0.30 * (u.id === "edele" ? 1.5 : 1) * (0.9 + Math.random() * 0.2));
@@ -634,6 +703,7 @@ OS.registerApp({
         return;
       }
 
+      trackDaily("cards");
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
       dmg = Math.round(dmg * teamAtkMult() * (battle.storyMult || 1));
       let crit = false;
@@ -882,9 +952,11 @@ OS.registerApp({
             battle.log.unshift("✦ Dragon des cendres vaincu en Enfer+ : Astrée, Héritière des braises (SS) rejoint votre collection ! (+50 ◆)");
           }
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
+          trackDaily("story");
         }
       } else {
         reward = win ? TIER[battle.tier].reward : 2;
+        if (win) trackDaily("wins");
       }
       OS.sfx.play(win ? "victory" : "defeat");
       save.quartz += reward;
@@ -896,6 +968,7 @@ OS.registerApp({
 
     function advanceFloor() {
       battle.floor++;
+      trackDaily("floor", battle.floor, "abs");
       battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
       battle.gauge = Math.min(100, battle.gauge + 15);
@@ -1569,6 +1642,7 @@ OS.registerApp({
 
     /* ---------- Démarrage ---------- */
     persist();
+    ensureDaily();
     renderSummon();
   },
 });

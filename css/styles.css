@@ -1019,3 +1019,15 @@ button { font-family: inherit; }
 .trophy-graal.unlocked { border-color: #ff8c5a; box-shadow: 0 0 12px rgba(255, 140, 90, 0.25); }
 .trophy-graal.locked { opacity: 0.7; }
 .graal-name { font-size: 14px; color: #ff8c5a; margin-bottom: 4px; }
+
+/* ---------- Missions quotidiennes ---------- */
+.daily-panel { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
+.daily-mission {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #1a2030; border-radius: 10px; padding: 8px 10px; font-size: 12px;
+  border: 1px solid #2a3145;
+}
+.daily-mission b { display: block; }
+.daily-mission small { color: #aab2c6; }
+.daily-mission.claimed { opacity: 0.5; }
+.daily-mission .claim-btn { font-size: 11px; padding: 7px 10px; }

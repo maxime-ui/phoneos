@@ -111,6 +111,19 @@ setTimeout(() => {
   const portalCard = document.querySelector(".pull-results .unit-card");
   check("portail : personnage Soigneur invoqué", !!portalCard && portalCard.querySelector(".unit-cls").textContent.includes("Soigneur"));
 
+  // Missions quotidiennes : seed contrôlé pour aujourd'hui (date réelle, même jour)
+  const today = new Date();
+  const tk = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+  window.eval('(function(){localStorage.setItem("phoneos:epopee-daily",JSON.stringify({date:"' + tk + '",missions:[{t:"cards",label:"Jouer 30 cartes en combat",goal:30,reward:20,p:0,claimed:false},{t:"pulls",label:"Invoquer 10 héros",goal:10,reward:25,p:10,claimed:false},{t:"wins",label:"Gagner 3 quêtes",goal:3,reward:30,p:1,claimed:false}]}));})()');
+  window.eval("OS").openApp("epopee");
+  const questTabD = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  questTabD.click();
+  check("3 missions du jour affichées", document.querySelectorAll(".daily-mission").length === 3);
+  check("mission 'Invoquer' prête à réclamer", !!document.querySelector(".daily-mission .claim-btn"));
+  document.querySelector(".daily-mission .claim-btn").click();
+  check("réclamation mission +25 ◆", JSON.parse(window.localStorage.getItem("phoneos:epopee")).quartz === 370);
+  check("mission réclamée marquée ✓", JSON.parse(window.localStorage.getItem("phoneos:epopee-daily")).missions[1].claimed === true);
+
   // Quête facile : le Soigneur soigne au lieu d'attaquer
   const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   check("onglet quêtes présent", !!questTab);
@@ -128,6 +141,8 @@ setTimeout(() => {
   check("3 cartes jouées -> log enrichi (" + beforeLog + " → " + afterLog + ")", afterLog > beforeLog);
   const logText = document.querySelector(".battle-log") ? document.querySelector(".battle-log").textContent : "";
   check("Soigneur soigne l'allié le plus blessé", logText.includes("soigne"));
+  const dailyCards = JSON.parse(window.localStorage.getItem("phoneos:epopee-daily")).missions.find((m) => m.t === "cards");
+  check("mission cartes progresse en combat (3 jouées)", !!dailyCards && dailyCards.p >= 3);
 
   // Mode Infini : démarrage sans erreur, étage affiché
   window.eval("OS").openApp("epopee");
