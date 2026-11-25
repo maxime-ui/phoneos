@@ -290,7 +290,8 @@ setTimeout(() => {
   check("onglet Collection présent", !!colTab);
   colTab.click();
   check("collection affiche les " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
-  check("chaque carte de héros possède un portrait visible autonome", document.querySelectorAll(".col-grid .unit-card img.hero-art[src]").length === unitIds.length && [...document.querySelectorAll(".col-grid .unit-card img.hero-art")].every((img) => fs.existsSync(path.join(root, img.getAttribute("src").replace(/^\.\//, "")))));
+  const collectionPortraits = [...document.querySelectorAll(".col-grid .unit-card .hero-art")];
+  check("chaque carte de héros possède son portrait SVG unique", collectionPortraits.length === unitIds.length && collectionPortraits.every((portrait) => portrait.tagName.toLowerCase() === "svg" && !!portrait.getAttribute("data-portrait-id")) && new Set(collectionPortraits.map((portrait) => portrait.outerHTML)).size === collectionPortraits.length);
   check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("filtres Collection classe/rareté/possession présents", document.querySelectorAll(".collection-filters select").length === 3);
   const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
