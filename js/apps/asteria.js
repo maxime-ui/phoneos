@@ -21,7 +21,7 @@
       "Capitaine": "foudre", "Golem": "terre", "Oracle": "eau",
       "Muraille": "terre", "Invocateur": "arcane", "Fantassin": "foudre",
       "Nécromant": "nature", "Banshee": "eau", "Sanguinaire": "feu",
-      "Colosse de givre": "eau",
+      "Colosse de givre": "eau", "Duelliste": "vent", "Artilleur": "feu", "Alchimiste": "nature", "Sentinelle": "terre", "Prédateur": "foudre", "Chronomancien": "arcane",
     };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
@@ -29,7 +29,7 @@
       dur: { label: "Difficile", hp: 28000, atk: 2050, reward: 20 },
       infini: { label: "Infini", hp: 7000, atk: 780, reward: 0, infinite: true },
     };
-    const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche", "Fantassin d'élite", "Nécromant errant", "Banshee des marais", "Sanguinaire du brasier", "Colosse de givre", "Ombre du serment"];
+    const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche", "Fantassin d'élite", "Nécromant errant", "Banshee des marais", "Sanguinaire du brasier", "Colosse de givre", "Ombre du serment", "Dueliste des failles", "Canonnière cendrée", "Alchimiste du néant", "Sentinelle prismatique", "Prédateur nocturne", "Chronomancien brisé", "Hydre des brumes", "Reine des épines", "Garde astral", "Dévoreur de runes"];
 
     const DIFF_ORDER = ["facile", "moyen", "difficile", "impossible", "enfer", "enferPlus"];
 
@@ -126,6 +126,9 @@
       Soigneur: { fx: { gauge: 5 }, label: "Jauge +5 % par carte" },
       Défenseur: { fx: { renvoi: 8 }, label: "Renvoi +8 %" },
       Tueur: { fx: { execute: 12 }, label: "+12 % (cible < 50 % PV)" },
+      Artificier: { fx: { gauge: 5 }, label: "Jauge +5 % par carte" },
+      Druide: { fx: { hp: 8 }, label: "PV max +8 %" },
+      Occultiste: { fx: { crit: 8 }, label: "Critique +8 %" },
     };
     const EVO3 = {
       Chevalier: { fx: { renvoi: 10 }, label: "Renvoi +10 %" },
@@ -137,6 +140,9 @@
       Soigneur: { fx: { heal: 30 }, label: "Soins +30 %" },
       Défenseur: { fx: { rempart: 5 }, label: "Encaissement +5 %" },
       Tueur: { fx: { fureur: 10 }, label: "Tueur +10 % (cible blessée)" },
+      Artificier: { fx: { dmg: 10 }, label: "Dégâts +10 %" },
+      Druide: { fx: { heal: 20 }, label: "Soins +20 %" },
+      Occultiste: { fx: { execute: 10 }, label: "Exécution +10 %" },
     };
     const EVO3B = {
       Chevalier: { fx: { dmg: 6 }, label: "Dégâts +6 %" },
@@ -148,6 +154,9 @@
       Soigneur: { fx: { hp: 8 }, label: "PV max +8 %" },
       Défenseur: { fx: { esquive: 8 }, label: "Esquive +8 %" },
       Tueur: { fx: { gauge: 4 }, label: "Jauge +4 % par carte" },
+      Artificier: { fx: { teamAtk: 3 }, label: "ATK d’équipe +3 %" },
+      Druide: { fx: { heal: 8 }, label: "Soins +8 %" },
+      Occultiste: { fx: { dmg: 5 }, label: "Dégâts +5 %" },
     };
     const PASSIVE_INFO = {
       gauvin: ["Serment renforcé", "renvoie 10 % de plus", { renvoi: 10 }],
@@ -172,7 +181,19 @@
       rin: ["Destin lié", "jauge de départ +15 %", { jaugeInit: 15 }],
       vespera: ["Âme veillée", "PV max +8 %", { hp: 8 }],
       takumi: ["Écailles d'épaule", "PV max +12 %", { hp: 12 }],
-      graal: ["Héritière des braises", "dégâts +18 % et jauge de départ +20 %", { dmg: 18, jaugeInit: 20 }],
+      graal: ["Héritière des braises", "dégâts +10 % et jauge de départ +10 %", { dmg: 10, jaugeInit: 10 }],
+      elyndra: ["Noyau résonant", "ATK d’équipe +6 %", { teamAtk: 6 }],
+      maelis: ["Floraison protectrice", "soins +18 % et PV +5 %", { heal: 18, hp: 5 }],
+      nyxar: ["Dette du crépuscule", "dégâts +10 %", { dmg: 10 }],
+      toren: ["Rivet de guerre", "dégâts +7 %", { dmg: 7 }],
+      sylwen: ["Sève apaisante", "soins +12 %", { heal: 12 }],
+      vhal: ["Marque du bannissement", "exécution +12 %", { execute: 12 }],
+      brena: ["Mécanisme de secours", "jauge +4 % par carte", { gauge: 4 }],
+      lirio: ["Pollen calme", "soins +8 %", { heal: 8 }],
+      zarek: ["Encre noire", "dégâts +5 %", { dmg: 5 }],
+      pavel: ["Clé d’apprenti", "ATK d’équipe +2 %", { teamAtk: 2 }],
+      nima: ["Herbe vivace", "PV +5 %", { hp: 5 }],
+      orik: ["Cendre froide", "critique +5 %", { crit: 5 }],
       sirona: ["Cœur du baume", "soins +15 %", { heal: 15 }],
       gorm: ["Mur d'os", "renvoie 12 %", { renvoi: 12 }],
       poppy: ["Petite jauge", "jauge +4 % par carte", { gauge: 4 }],
@@ -211,6 +232,12 @@
       "Banshee": { desc: "Hurlement : draine 12 % de la jauge d'Ultime de l'équipe" },
       "Sanguinaire": { desc: "Soif de sang : frappe très fort les membres les plus blessés" },
       "Colosse de givre": { desc: "Carapace de givre : subit 15 % de dégâts en moins" },
+      "Duelliste": { desc: "Riposte précise : cible le héros le plus rapide" },
+      "Artilleur": { desc: "Barrage : frappe toute l’équipe" },
+      "Alchimiste": { desc: "Transmutation : empoisonne et se soigne" },
+      "Sentinelle": { desc: "Formation : réduit les dégâts reçus" },
+      "Prédateur": { desc: "Marquage : traque le héros le plus blessé" },
+      "Chronomancien": { desc: "Distorsion : ralentit la jauge d’Ultime" },
     };
     const UNITS = [
       /* --- SSR (5 %) --- */
@@ -359,7 +386,20 @@
       { id: "oskar", name: "Oskar", r: 1, cls: "Archer", atk: 1100, hp: 6800, cards: ["V", "R", "B"] },
 
       /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
-      { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2650, hp: 14500, cards: ["R", "R", "R"] },
+      { id: "elyndra", name: "Elyndra, forgeuse d’étoiles", r: 3, cls: "Artificier", atk: 1840, hp: 10100, cards: ["B", "R", "V"] },
+      { id: "maelis", name: "Maélis, gardienne des racines", r: 3, cls: "Druide", atk: 1580, hp: 10800, cards: ["B", "B", "V"] },
+      { id: "nyxar", name: "Nyxar, veilleur du voile", r: 3, cls: "Occultiste", atk: 1900, hp: 9500, cards: ["B", "R", "B"] },
+      { id: "toren", name: "Toren des enclumes", r: 2, cls: "Artificier", atk: 1430, hp: 9300, cards: ["R", "B", "V"] },
+      { id: "sylwen", name: "Sylwen la sève-lune", r: 2, cls: "Druide", atk: 1160, hp: 9500, cards: ["B", "V", "B"] },
+      { id: "vhal", name: "Vhal l’exilé", r: 2, cls: "Occultiste", atk: 1510, hp: 8900, cards: ["B", "R", "V"] },
+      { id: "brena", name: "Brena la mécaniste", r: 2, cls: "Artificier", atk: 1390, hp: 9700, cards: ["R", "V", "B"] },
+      { id: "lirio", name: "Lirio des clairières", r: 1, cls: "Druide", atk: 880, hp: 7900, cards: ["B", "V", "B"] },
+      { id: "zarek", name: "Zarek", r: 1, cls: "Occultiste", atk: 1080, hp: 7300, cards: ["B", "R", "V"] },
+      { id: "pavel", name: "Pavel l’apprenti", r: 1, cls: "Artificier", atk: 1030, hp: 7600, cards: ["R", "B", "V"] },
+      { id: "nima", name: "Nima", r: 1, cls: "Druide", atk: 860, hp: 8000, cards: ["B", "B", "V"] },
+      { id: "orik", name: "Orik des cendres", r: 1, cls: "Occultiste", atk: 1060, hp: 7400, cards: ["B", "R", "B"] },
+      /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
+      { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2380, hp: 13200, cards: ["R", "R", "B"] },
     ];
     const CLASS_BONUS = {
       Chevalier: "Encaisse : ripostes subies réduites de 25 %",
@@ -371,6 +411,9 @@
       "Soigneur": "Cure : soigne l'allié le plus blessé (30 % d'ATK) au lieu d'attaquer",
       "Défenseur": "Rempart : dégâts subis par toute l'équipe réduits de 10 % tant qu'il est debout",
       "Tueur": "Tueur de géants : +30 % de dégâts, mais attire les ripostes en priorité",
+      "Artificier": "Ingénieur : renforce l’ATK de l’équipe et accélère la jauge",
+      "Druide": "Gardien sylvestre : soigne les alliés et renforce leur endurance",
+      "Occultiste": "Voile : maudit l’ennemi et amplifie les dégâts d’exécution",
     };
     const SKILL_INFO = {
       gauvin: ["Serment d'acier", "renvoie 30 % des dégâts de la riposte qu'il subit"],
