@@ -9,12 +9,16 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
+  width: 100%;
   height: 100%;
+  min-height: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: var(--bg-unlocked);
   color: #eef1f8;
   overflow: hidden;
 }
+body { display: flex; flex-direction: column; }
+
 
 .hidden { display: none !important; }
 button { font-family: inherit; }
@@ -66,10 +70,21 @@ button { font-family: inherit; }
 
 /* ---------- Page d'app ---------- */
 .app-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #68799f rgba(255,255,255,.07);
   padding: 18px 22px 30px;
 }
+.app-body::-webkit-scrollbar { width: 10px; }
+.app-body::-webkit-scrollbar-track { background: rgba(255,255,255,.06); border-radius: 8px; }
+.app-body::-webkit-scrollbar-thumb { background: #68799f; border: 2px solid #171d2b; border-radius: 8px; }
+.app-body::-webkit-scrollbar-thumb:hover { background: #91a5d2; }
 .app-body.padend { padding-bottom: 46px; }
 
 /* ---------- Notifications ---------- */
@@ -735,3 +750,31 @@ body.cb .rb-score { color: #0fb3a3; }
 /* Laboratoire de test libre */
 .battle-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
 .battle-actions .pull-btn { flex:1 1 220px; }
+
+
+/* Astéria 2.0 — filtres, portails et portraits */
+.collection-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:10px; border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(255,255,255,.035); }
+.collection-filter { display:flex; flex-direction:column; gap:5px; min-width:0; color:#b9c3d9; font-size:11px; }
+.collection-filter select { width:100%; min-width:0; padding:9px 7px; color:#eef1f8; background:#202a40; border:1px solid #465473; border-radius:8px; font:inherit; font-size:12px; }
+.collection-filter option { color:#eef1f8; background:#202a40; }
+.portal-detail { display:flex; flex-direction:column; gap:10px; padding:12px; border:1px solid rgba(227,178,60,.32); border-radius:14px; background:linear-gradient(145deg,rgba(49,39,75,.55),rgba(15,21,35,.9)); }
+.portal-detail-head { display:flex; flex-direction:column; gap:4px; }
+.portal-detail-head strong { color:#f2d48a; font-size:16px; }
+.portal-detail-head span { color:#b8c2d8; font-size:12px; }
+.portal-rates { display:flex; flex-wrap:wrap; gap:7px; }
+.portal-rate { padding:6px 9px; border:1px solid rgba(255,255,255,.13); border-radius:20px; font-size:12px; font-weight:700; }
+.portal-rate.r3 { color:#ffcf77; background:rgba(255,190,75,.12); }
+.portal-rate.r2 { color:#d5a5ff; background:rgba(166,112,230,.12); }
+.portal-rate.r1 { color:#aab8cf; background:rgba(150,165,190,.1); }
+.portal-roster { max-height:none; }
+.portal-btn.active { border-color:#e3b23c; box-shadow:0 0 0 1px rgba(227,178,60,.35); }
+.portrait-art { overflow:visible; }
+.unit-portrait .portrait-art { min-width:100%; min-height:100%; }
+@media(max-width:600px) {
+  .app-body { padding:12px 10px 24px; }
+  .collection-filters { grid-template-columns:1fr; }
+  .gacha-tabs { flex-wrap:wrap; }
+  .gacha-tabs button { flex:1 1 30%; }
+  .pull-row { flex-wrap:wrap; }
+  .pull-row > .pull-btn { min-width:calc(50% - 6px); }
+}
