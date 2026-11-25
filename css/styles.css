@@ -683,3 +683,12 @@ body.cb .rb-score { color: #0fb3a3; }
   line-height: 1.35;
 }
 .battle-synergy strong { color: #e8c77d; }
+
+
+/* Astéria 2.0 — galerie de portraits */
+.unit-card { position: relative; overflow: hidden; }
+.unit-portrait { height: 118px; margin: -10px -10px 9px; overflow: hidden; border-radius: 12px 12px 5px 5px; background: #101522; }
+.unit-portrait img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 28%; }
+.unit-card.r3 .unit-portrait { height: 148px; }
+.unit-card .unit-name, .unit-card .unit-cls { position:relative; }
+@media (max-width: 380px) { .unit-portrait { height: 96px; } .unit-card.r3 .unit-portrait { height: 118px; } }
