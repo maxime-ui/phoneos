@@ -1012,7 +1012,7 @@ OS.registerApp({
       const evoLines = evoSkillLabels(u, p.evo || 0);
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
-      const portraitClass = ({ "Chevalier": "chevalier", "Mage": "mage", "Archer": "archer", "Berserker": "berserker", "Rôdeur": "rodeur", "Héros": "heros" })[u.cls] || "heros";
+      const portraitClass = ({ "Chevalier": "chevalier", "Mage": "mage", "Archer": "archer", "Berserker": "berserker", "Rôdeur": "rodeur", "Héros": "heros", "Soigneur": "soigneur", "Défenseur": "defenseur", "Tueur": "tueur" })[u.cls] || "heros";
       c.innerHTML =
         '<div class="unit-portrait"><img loading="lazy" alt="" src="assets/asteria/heroes/' + portraitClass + '.svg"></div>' +
         '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
