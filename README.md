@@ -5,18 +5,7 @@ Aucune dépendance, aucun back-end : ouvrez `index.html` dans votre navigateur.
 
 📖 **Guide complet du jeu** : [GUIDE.md](GUIDE.md) — tout y est expliqué (OS, combat, héros, reliques, raid, histoire, stratégies).
 
-## Fonctionnalités
-
-- **Séquence de boot** animée avec barre de progression
-- **Écran de verrouillage** avec code PIN (1234), horloge et date
-- **Écran d'accueil** avec grille d'applications et dock
-- **Barre d'état système** : heure réelle, batterie simulée (décharge lente), mode avion
-- **Boutons physiques simulés** : power (éteindre/redémarrer), volume +/- avec retour visuel
-- **Multitâche** : vue des applications récentes, fermeture individuelle ou globale
-- **Notifications** empilées avec animation d'entrée/sortie
-- **Barre de navigation** système : retour, accueil, multitâche
-
-Applications incluses :
+## Applications incluses
 
 | App | Fonctions |
 |---|---|
@@ -102,23 +91,3 @@ npm install jsdom   # uniquement pour le test
 node test/smoke.test.js    # 142 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
 ```
-
-## Ajouter une application
-
-Dans `js/apps/` :
-
-```js
-OS.registerApp({
-  id: "monapp",
-  name: "MonApp",
-  icon: "🚀",           // emoji ou caractère
-  color: "#5b6b94",     // couleur d'icône
-  dock: false,          // true pour l'épingler dans le dock
-  render(body) { /* construire l'UI dans body */ },
-  onBack() {},          // optionnel : interception du bouton retour
-});
-```
-
-Puis référencez le fichier dans `index.html` (avant `js/main.js`).
-Les apps de jeu peuvent lire les données partagées via `OS.epopeeData`
-(UNITS, LOOT, EVO_REQ, reliques, passifs… — voir `js/apps/heroes.js` pour un exemple).
