@@ -366,7 +366,7 @@ setTimeout(() => {
   const portalSummon = [...document.querySelectorAll(".portal-detail .pull-btn")].find((b) => b.textContent.includes("×1"));
   if (portalSummon) portalSummon.click();
   const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
-  check("invocation depuis portail : −5 ◆ et pity persistée", saveAfterPortal.quartz === 345 && saveAfterPortal.pity["Soigneur"] >= 1);
+  check("invocation depuis portail : −5 ◆ et compteur de pity persisté (0 si SSR)", saveAfterPortal.quartz === 345 && Object.prototype.hasOwnProperty.call(saveAfterPortal.pity, "Soigneur") && Number.isFinite(saveAfterPortal.pity["Soigneur"]) && saveAfterPortal.pity["Soigneur"] >= 0);
   const portalCard = document.querySelector(".portal-detail .pull-results .unit-card");
   check("portail : personnage Soigneur invoqué", !!portalCard && portalCard.querySelector(".unit-cls").textContent.includes("Soigneur"));
 
