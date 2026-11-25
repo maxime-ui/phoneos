@@ -45,3 +45,16 @@ La connexion GitHub permet de pousser le code, mais ne fournit pas à elle seule
 ## Nettoyage des anciennes sauvegardes
 
 Au premier démarrage de cette version, une opération unique supprime les anciennes clés de progression Astéria/Épopée connues. Les préférences globales (son, affichage, accessibilité) ne sont pas touchées. Le nettoyage est marqué dans le stockage local pour ne pas se répéter.
+
+
+## Combat 2.0 — rupture de posture
+
+- Chaque dégât direct contribue à une jauge de rupture égale à 28 % des PV max de l'ennemi.
+- Lorsque le seuil est atteint, la posture est rompue et la prochaine action ennemie est annulée.
+- La brûlure continue de se résoudre pendant le tour interrompu.
+- Une jauge et une alerte dédiées sont affichées pendant le combat.
+- Le test de fumée vérifie la présence de l'intention, de la jauge et de l'action de garde.
+
+## État de validation
+
+Aucun workflow GitHub Actions n'est configuré sur la branche au moment de la vérification. Les tests ont été enrichis, mais ils ne sont pas déclarés exécutés ici.
