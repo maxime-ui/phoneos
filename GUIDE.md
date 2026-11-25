@@ -65,6 +65,10 @@ Les **doublons** montent le niveau d'un héros : +8 % ATK/PV par copie
 | SSR (doré) | 5 % | 35 — chaque SSR a un **passif unique** |
 | SS (orange) | — | 1 : **Astrée, Héritière des braises** (le Graal, voir §7) |
 
+Chaque héros possède **son propre visuel** : un portrait SVG procédural unique
+(palette, coiffure, arme et emblème variant par héros) affiché dans l'Équipe,
+la Collection et l'app Personnages — grisés tant qu'ils ne sont pas possédés.
+
 ### 3.2 Les 11 classes et bonus d'équipe
 
 | Classe | Rôle | Bonus |
@@ -296,7 +300,7 @@ compétiteurs — affichée dans la Salle des trophées.
 
 - **Collection** (Astéria) : tout le roster, héros manquants grisés ; paliers de
   25/50/75/100 % → +50/+100/+200/+500 ◆ ; touchez un héros → fiche détaillée.
-- **App Personnages** : fiche de chaque héros (stats réelles, compétence, passif,
+- **App Personnages** : fiche de chaque héros (portrait SVG unique, stats réelles, compétence, passif,
   éveils, talents, doublons, coût d'évolution suivante, comment invoquer les absents).
 - **Missions quotidiennes** : 3 missions par jour réel (cartes jouées, invocations,
   victoires, soins, étages Infini, boss d'histoire) — réclamation dans l'onglet Quêtes.
@@ -336,6 +340,6 @@ compétiteurs — affichée dans la Salle des trophées.
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
 - Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
-- Tests : `node test/smoke.test.js` (197 vérifications) et
+- Tests : `node test/smoke.test.js` (198 vérifications) et
   `node test/stress.test.js` — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.

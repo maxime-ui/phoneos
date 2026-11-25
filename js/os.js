@@ -38,6 +38,21 @@ const OS = (() => {
     },
   };
 
+  /* ---------- Erreurs JS visibles (page locale, sans console) ---------- */
+  function errorShown() {
+    let bar = document.getElementById("js-error-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "js-error-bar";
+      document.body.appendChild(bar);
+    }
+    return bar;
+  }
+  function trapError(msg) {
+    errorShown().textContent = "⚠ Erreur JavaScript — " + msg;
+    errorShown().classList.add("show");
+  }
+
   /* ---------- Horloge ---------- */
   function fmtTime(d = new Date()) {
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -209,6 +224,8 @@ const OS = (() => {
   /* ---------- Init ---------- */
   function init() {
     state.volume = store.get("volume", 60);
+    window.addEventListener("error", (e) => trapError(e.message || "erreur inconnue"));
+    window.addEventListener("unhandledrejection", (e) => trapError((e.reason && e.reason.message) || "promesse rejetée"));
     bindGlobal();
     buildTabs();
     tick();

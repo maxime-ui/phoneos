@@ -72,6 +72,7 @@ setTimeout(() => {
   const teamTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR.click();
   check("roster de 132 unités possédées", document.querySelectorAll(".roster .unit-card").length === unitIds.length - 1);
+  check("visuels : chaque héros possède son portrait SVG", document.querySelectorAll(".roster .unit-card svg.hero-portrait").length === unitIds.length - 1);
   const helpText = $("#app-body").textContent;
   check("aides de classe Soigneur/Défenseur/Tueur", helpText.includes("Soigneur") && helpText.includes("Défenseur") && helpText.includes("Tueur"));
 

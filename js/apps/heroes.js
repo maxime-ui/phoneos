@@ -35,9 +35,14 @@ OS.registerApp({
 
       const head = document.createElement("div");
       head.className = "sheet-head";
+      const pSvg = (OS.art && typeof OS.art.portrait === "function") ? OS.art.portrait(u, evo) : "";
       head.innerHTML =
-        '<span class="tag-chip" style="background:' + rar.color + '">' + rar.label + "</span>" +
-        '<span class="unit-name sheet-name">' + u.name + " " + "★".repeat(evo) + "</span>";
+        '<div class="unit-portrait sheet-portrait">' + pSvg + "</div>" +
+        '<div class="sheet-title">' +
+          '<div><span class="tag-chip" style="background:' + rar.color + '">' + rar.label + "</span> " +
+          '<span class="unit-name sheet-name">' + u.name + " " + "\u2605".repeat(evo) + "</span></div>" +
+          '<div class="unit-cls">' + u.cls + "</div>" +
+        "</div>";
       panel.appendChild(head);
 
       const cls = document.createElement("div");
@@ -144,9 +149,15 @@ OS.registerApp({
         const owned = !!sv.owned[u.id];
         const card = document.createElement("div");
         card.className = "unit-card r" + u.r + (owned ? "" : " locked");
+        const pSvg = (OS.art && typeof OS.art.portrait === "function") ? OS.art.portrait(u, sv.evo[u.id] || 0) : "";
         card.innerHTML =
-          '<div class="unit-name">' + u.name + " " + "★".repeat(sv.evo[u.id] || 0) + "</div>" +
-          '<span class="unit-cls">' + u.cls + " · " + (D.RARITY[u.r] ? D.RARITY[u.r].label : "R") + "</span>";
+          '<div class="unit-top">' +
+            '<div class="unit-portrait">' + pSvg + "</div>" +
+            '<div class="unit-main">' +
+              '<div class="unit-name">' + u.name + " " + "\u2605".repeat(sv.evo[u.id] || 0) + "</div>" +
+              '<span class="unit-cls">' + u.cls + " · " + (D.RARITY[u.r] ? D.RARITY[u.r].label : "R") + "</span>" +
+            "</div>" +
+          "</div>";
         card.addEventListener("click", () => {
           OS.sfx.play("ui");
           showSheet(u.id);

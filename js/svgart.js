@@ -170,6 +170,110 @@ OS.art = (() => {
     </g>`;
   }
 
+  /* ---------- Portrait procédural unique par héros ---------- */
+  function h32(s) {
+    let x = 2166136261;
+    for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = (x * 1677761) >>> 0; }
+    return x;
+  }
+
+  const P_SKINS = ["#e8b98c", "#d99b6c", "#b97a4b", "#8a5a38", "#f0c9a2", "#c98d63"];
+  const P_HAIRS = ["#2b2320", "#5d3a1e", "#b8742e", "#d9b36a", "#8c2f2f", "#4f6bd4", "#3d7a52", "#e0e0e0", "#7d3bd4"];
+  const P_OUTFIT = ["#39415a", "#5c3b2e", "#2f5f8f", "#8c2f39", "#3d7a52", "#6b4e9a", "#a06a2c", "#4a5470"];
+  const P_ACCENT = ["#e3b23c", "#ff8c5a", "#3bd4c4", "#ff7b7b", "#9fb0c8", "#ffd970", "#8f6bd9"];
+  const P_BG2 = ["#232b4d", "#3d2d4d", "#2d3d2d", "#4d2d2d", "#2d4055", "#40332d"];
+
+  function portrait(u, evo) {
+    const RAR = { 1: "#7d869c", 2: "#4f9eff", 3: "#e3b23c", 4: "#ff8c5a" };
+    const h = h32(u.id);
+    const ch = (salt, arr) => arr[(h >>> salt) % arr.length];
+    const skin = ch(3, P_SKINS), hair = ch(6, P_HAIRS), outfit = ch(9, P_OUTFIT), accent = ch(12, P_ACCENT);
+    const bg2 = ch(15, P_BG2), rc = RAR[u.r] || RAR[1];
+    const deco = (h >>> 18) % 4;
+    const gid = "pg" + (h >>> 0).toString(36);
+    let s = `<svg class="hero-portrait" viewBox="0 0 64 64" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${u.name}">`;
+    s += gradient(gid, bg2, "#0d1220");
+    s += `<rect width="64" height="64" fill="url(#${gid})"/>`;
+    if (deco === 0) {
+      s += `<g fill="#dfe6f5">`;
+      [[12, 10, 1.1], [52, 14, 0.9], [46, 6, 0.7], [8, 22, 0.6]].forEach(([cx, cy, r]) => { s += `<circle cx="${cx}" cy="${cy}" r="${r}" opacity="0.55"/>`; });
+      s += "</g>";
+    } else if (deco === 1) {
+      s += `<circle cx="50" cy="12" r="6" fill="#dfe6f5" opacity="0.5"/><circle cx="53" cy="10" r="5" fill="url(#${gid})"/>`;
+    } else if (deco === 2) {
+      s += `<g opacity="0.14" stroke="#dfe6f5" stroke-width="3">` +
+        `<line x1="-8" y1="52" x2="26" y2="18"/><line x1="6" y1="66" x2="40" y2="32"/><line x1="30" y1="66" x2="64" y2="32"/></g>`;
+    } else {
+      s += `<circle cx="32" cy="30" r="20" fill="${rc}" opacity="0.10"/><circle cx="32" cy="30" r="26" fill="none" stroke="${rc}" stroke-width="1" opacity="0.25"/>`;
+    }
+    
+    /* arme en arrière-plan selon la classe */
+    s += `<g opacity="0.85">`;
+    const w = u.cls;
+    if (w === "Chevalier" || w === "Défenseur" || w === "Valkyrie") {
+      s += `<rect x="52" y="8" width="3" height="40" rx="1.5" fill="#9fb0c8" transform="rotate(12 52 28)"/>`;
+    } else if (w === "Berserker" || w === "Tueur") {
+      s += `<rect x="8" y="14" width="4" height="30" rx="2" fill="#8a6a4a" transform="rotate(-14 10 28)"/><path d="M6 12 L14 14 L10 22 Z" fill="#9fb0c8" transform="rotate(-14 10 18)"/>`;
+    } else if (w === "Mage" || w === "Invocateur") {
+      s += `<line x1="54" y1="10" x2="50" y2="46" stroke="#8a6a4a" stroke-width="2.4"/><circle cx="54" cy="9" r="3.5" fill="${accent}" opacity="0.95"/>`;
+    } else if (w === "Archer" || w === "Rôdeur") {
+      s += `<path d="M50 8 Q40 28 50 48" fill="none" stroke="#8a6a4a" stroke-width="2.4"/><line x1="50" y1="8" x2="50" y2="48" stroke="#dfe6f5" stroke-width="0.8"/>`;
+    } else if (w === "Soigneur") {
+      s += `<circle cx="54" cy="12" r="5.5" fill="none" stroke="${accent}" stroke-width="1.6" opacity="0.9"/>`;
+    } else {
+      s += `<rect x="51" y="8" width="3" height="40" rx="1.5" fill="#9fb0c8" transform="rotate(12 52 28)"/>`;
+    }
+    s += `</g>`;
+    
+    /* buste */
+    s += `<path d="M14 64 Q15 46 24 42 L40 42 Q49 46 50 64 Z" fill="${outfit}"/>`;
+    s += `<path d="M28 42 L32 48 L36 42 Z" fill="${skin}"/>`;
+    if ((h >>> 21) % 2 === 0) s += `<path d="M14 64 Q15 46 24 42 L27 42 Q20 48 20 64 Z" fill="${accent}" opacity="0.35"/>`;
+    s += `<rect x="29.4" y="34" width="5.2" height="7" fill="${skin}"/>`;
+    s += `<circle cx="32" cy="27" r="8.4" fill="${skin}"/>`;
+    
+    /* yeux + coiffure */
+    s += `<circle cx="29" cy="27.5" r="1" fill="#1c2030"/><circle cx="35" cy="27.5" r="1" fill="#1c2030"/>`;
+    const hairStyle = (h >>> 24) % 4;
+    if (hairStyle === 0) s += `<path d="M23.5 26 Q23 16 32 16 Q41 16 40.5 26 Q38 19 32 19 Q26 19 23.5 26 Z" fill="${hair}"/>`;
+    else if (hairStyle === 1) s += `<path d="M23.5 27 Q22 14 32 14 Q42 14 40.5 27 L41 36 L38 30 Q39 20 32 19 Q25 20 26 30 L23 36 Z" fill="${hair}"/>`;
+    else if (hairStyle === 2) s += `<path d="M24 24 Q24 15 32 15 Q40 15 40 24 Q40 20 32 18.5 Q24 20 24 24 Z" fill="${hair}"/><circle cx="32" cy="12.5" r="3.4" fill="${hair}"/>`;
+    else s += `<path d="M23.5 25 Q23.5 15.5 32 15.5 Q40.5 15.5 40.5 25 Q40.5 19.5 32 18 Q23.5 19.5 23.5 25 Z" fill="${hair}"/><rect x="23" y="22" width="18" height="2.4" rx="1.2" fill="${accent}" opacity="0.85"/>`;
+    
+    /* coiffure de classe */
+    const cls2 = u.cls;
+    if (cls2 === "Chevalier") {
+      s += `<path d="M23.5 25 Q23.5 14.5 32 14.5 Q40.5 14.5 40.5 25 L38.5 25 Q38.5 17 32 17 Q25.5 17 25.5 25 Z" fill="#9fb0c8"/>` +
+        `<path d="M32 11 Q35 8 36 4 Q38 9 34 12 Z" fill="${accent}"/>`;
+    } else if (cls2 === "Défenseur") {
+      s += `<path d="M22.5 27 Q22.5 13.5 32 13.5 Q41.5 13.5 41.5 27 L38 27 L38 22.5 L26 22.5 L26 27 Z" fill="#9fb0c8"/><rect x="27.5" y="24.5" width="9" height="2" fill="#1c2030"/>`;
+    } else if (cls2 === "Berserker") {
+      s += `<path d="M25 17 L20 8 L26 14 Z" fill="#e0e0e0"/><path d="M39 17 L44 8 L38 14 Z" fill="#e0e0e0"/>`;
+    } else if (cls2 === "Mage") {
+      s += `<path d="M20 20 L32 4 L44 20 Z" fill="${outfit}"/><rect x="19" y="19" width="26" height="3.4" rx="1.7" fill="${accent}"/>`;
+    } else if (cls2 === "Archer" || cls2 === "Rôdeur") {
+      s += `<path d="M22 28 Q20.5 13 32 12.5 Q43.5 13 42 28 L42 33 L22 33 Z" fill="${outfit}" opacity="0.92"/><circle cx="32" cy="24" r="7.4" fill="${skin}"/><circle cx="29" cy="24.5" r="1" fill="#1c2030"/><circle cx="35" cy="24.5" r="1" fill="#1c2030"/><path d="M42 14 L48 12 L43 18 Z" fill="${accent}"/>`;
+    } else if (cls2 === "Héros") {
+      s += `<rect x="24" y="20.5" width="16" height="2.8" rx="1.4" fill="${accent}"/><path d="M45 8 l1.5 3 3 .4 -2.2 2.2 .5 3.1 -2.8-1.6 -2.8 1.6 .5-3.1 -2.2-2.2 3-.4 Z" fill="${accent}" opacity="0.9"/>`;
+    } else if (cls2 === "Soigneur") {
+      s += `<path d="M22 30 Q21 13 32 12.5 Q43 13 42 30 L42 34 L22 34 Z" fill="#e8ecf6" opacity="0.94"/><circle cx="32" cy="24" r="7.4" fill="${skin}"/><circle cx="29" cy="24.5" r="1" fill="#1c2030"/><circle cx="35" cy="24.5" r="1" fill="#1c2030"/><ellipse cx="32" cy="9" rx="8" ry="2" fill="none" stroke="${accent}" stroke-width="1.4" opacity="0.9"/><line x1="32" y1="44" x2="32" y2="50" stroke="${accent}" stroke-width="2"/><line x1="29" y1="47" x2="35" y2="47" stroke="${accent}" stroke-width="2"/>`;
+    } else if (cls2 === "Tueur") {
+      s += `<rect x="24.6" y="25" width="14.8" height="4.4" rx="2" fill="#1c2030" opacity="0.9"/><path d="M25.5 25.5 L38.5 25.5" stroke="${accent}" stroke-width="1" opacity="0.9"/>`;
+    } else if (cls2 === "Invocateur") {
+      s += `<path d="M22 29 Q21 13 32 12.5 Q43 13 42 29 L42 34 L22 34 Z" fill="#2d2440" opacity="0.95"/><circle cx="29" cy="26" r="1.2" fill="#b18cff"/><circle cx="35" cy="26" r="1.2" fill="#b18cff"/><circle cx="32" cy="36" r="2" fill="none" stroke="#b18cff" stroke-width="1.2" opacity="0.8"/>`;
+    } else if (cls2 === "Valkyrie") {
+      s += `<path d="M23.5 25 Q23.5 14 32 14 Q40.5 14 40.5 25 L38.5 25 Q38.5 16.5 32 16.5 Q25.5 16.5 25.5 25 Z" fill="#9fb0c8"/>` +
+        `<path d="M22 16 Q14 14 10 8 Q18 9 23 13 Z" fill="#dfe6f5" opacity="0.9"/><path d="M42 16 Q50 14 54 8 Q46 9 41 13 Z" fill="#dfe6f5" opacity="0.9"/>`;
+    }
+    
+    /* évolutions : lueur puis constellation */
+    if (evo >= 1) s += `<ellipse cx="32" cy="34" rx="21" ry="24" fill="${rc}" opacity="0.10"/>`;
+    if (evo >= 2) s += `<ellipse cx="32" cy="32" rx="24" ry="28" fill="#ffffff" opacity="0.06"/>`;
+    if (evo >= 3) s += `<circle cx="18" cy="14" r="1.6" fill="#e3b23c"/><circle cx="32" cy="8.5" r="2" fill="#ffd970"/><circle cx="46" cy="14" r="1.4" fill="#e3b23c"/>`;
+    s += `</svg>`;
+    return s;
+  }
+
   /* Scène : ciel + décor + acteurs */
   function scene(opts) {
     const skies = {
@@ -200,5 +304,5 @@ OS.art = (() => {
     return out;
   }
 
-  return { scene, silhouette, dragon };
+  return { scene, silhouette, dragon, portrait };
 })();

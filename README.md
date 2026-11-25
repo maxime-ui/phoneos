@@ -31,7 +31,7 @@ Raccourcis clavier : **1–4** pour changer d'app, **F** plein écran, **Échap*
 
 **Roster**
 
-- **154 personnages (72 R · 46 SR · 35 SSR · 1 SS) en 11 classes** : Chevalier, Berserker, Mage, Archer, Rôdeur, Héros + **Soigneur** (soigne l'allié le plus blessé), **Défenseur** (réduit les dégâts de l'équipe), **Tueur de boss** (+30/+45 % dégâts, attire les ripostes), **Invocateur** (une ombre frappe en plus à chaque carte), **Valkyrie** (soigne l'allié le plus blessé après chaque carte) — archétypes 100 % originaux
+- **154 personnages (72 R · 46 SR · 35 SSR · 1 SS) en 11 classes**, chacun avec son **visuel unique** (portrait SVG procédural : palette, coiffure, arme et emblème propres au héros, grisés tant qu'ils ne sont pas possédés) : Chevalier, Berserker, Mage, Archer, Rôdeur, Héros + **Soigneur** (soigne l'allié le plus blessé), **Défenseur** (réduit les dégâts de l'équipe), **Tueur de boss** (+30/+45 % dégâts, attire les ripostes), **Invocateur** (une ombre frappe en plus à chaque carte), **Valkyrie** (soigne l'allié le plus blessé après chaque carte) — archétypes 100 % originaux
 - **25 compétences uniques** (à la carte, lors de l'Ultime, y compris Invocateur et Valkyrie) + **60 passifs nommés actifs en combat** (renvoi, exécution, soin, jauge, critique, esquive, PV max, ATK d'équipe…) et **statistiques de classe à l'éveil** (chaque classe a ses forces : PV en plus pour les Chevaliers, ATK pour les Mages…)
 - Montée en niveau par doublons (+8 %/copie, plafond +96 %)
 - **Évolutions** (Forge dans l'onglet Équipe) : ★→★★★★, +10 % ATK/PV par rang, **éveils par rang** (Éveil I jauge de départ, Éveil II dégâts + talent de classe, Éveil III talent + second talent de classe — 2 talents empilables, 20 talents de classe, **Éveil IV** payé avec un **matériau de classe**), **silhouettes évoluées** (aura, halo, couronne d'étoiles dorées, y compris dans les scènes)
@@ -73,7 +73,7 @@ js/apps/asteria.js   Gacha + combat + collection + mode histoire + raid + forge
 js/apps/heroes.js   App Personnages (fiches détaillées des héros, lecture seule)
 js/apps/settings.js Réglages (vitesse du jeu, vitesse des dialogues, daltonien, son, notifications)
 js/apps/trophies.js Salle des trophées
-test/smoke.test.js  Test de fumée (197 vérifications)
+test/smoke.test.js  Test de fumée (198 vérifications)
 test/stress.test.js Simulation de joueur (tirages, ultimes, boss)
 ```
 
@@ -97,6 +97,6 @@ Mode Infini, **Entraînement (héros grisés testables, mannequins, aucun gain)*
 
 ```bash
 npm install jsdom   # uniquement pour le test
-node test/smoke.test.js    # 197 vérifications
+node test/smoke.test.js    # 198 vérifications
 node test/stress.test.js   # simulation de joueur : batailles aléatoires, ultimes, boss
 ```

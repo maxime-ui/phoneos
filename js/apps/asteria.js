@@ -673,6 +673,9 @@ OS.registerApp({
       return { quartz: 30, owned: { bron: 1, tilia: 1, nerys: 1 }, team: ["bron", "tilia", "nerys"] };
     }
     let save = loadSave();
+    if (!save.owned || typeof save.owned !== "object" || Array.isArray(save.owned)) save.owned = { bron: 1, tilia: 1, nerys: 1 };
+    if (!Array.isArray(save.team)) save.team = Object.keys(save.owned).slice(0, 3);
+    if (!save.team.some((id) => save.owned[id])) save.team = Object.keys(save.owned).slice(0, 3);
     if (!save.pity) save.pity = {};
     if (!save.pity30) save.pity30 = {};
     if (!save.collected) save.collected = [];
@@ -1055,16 +1058,22 @@ OS.registerApp({
       const stars = "★".repeat(p.evo || 0);
       const passive = PASSIVE_INFO[u.id];
       const evoLines = evoSkillLabels(u, p.evo || 0);
+      const portraitSvg = (OS.art && typeof OS.art.portrait === "function") ? OS.art.portrait(u, p.evo || 0) : "";
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
       c.innerHTML =
-        '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
-        '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
-        '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
-        (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + '</div>' : "") +
-        (passive ? '<div class="unit-passive">✧ Passif : ' + passive[0] + " — " + passive[1] + "</div>" : "") +
-        (evoLines.length ? '<div class="unit-evo">' + evoLines.join("<br>") + "</div>" : "") +
-        '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
+        '<div class="unit-top">' +
+          '<div class="unit-portrait">' + portraitSvg + "</div>" +
+          '<div class="unit-main">' +
+            '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
+            '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
+            '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
+            (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + "</div>" : "") +
+            (passive ? '<div class="unit-passive">✧ Passif : ' + passive[0] + " — " + passive[1] + "</div>" : "") +
+            (evoLines.length ? '<div class="unit-evo">' + evoLines.join("<br>") + "</div>" : "") +
+            '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>" +
+          "</div>" +
+        "</div>";
       return c;
     }
 
