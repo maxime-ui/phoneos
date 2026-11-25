@@ -132,6 +132,21 @@ recyclez seulement les copies au-delà du plafond utile.
 | **Poussière de relique** | Toutes les victoires ordinaires (quêtes, étages d'Infini, coffre) | Améliorer les reliques (rangs R/SR/SSR) |
 | **Cristal de relique** | Boss (difficulté haute), phases du Raid, étages multiples de 5, coffre | Améliorer les reliques (rangs SR/SSR) |
 
+### 3.5 — Bannières vedettes et nouveaux héros
+
+Trois bannières temporaires sont disponibles dans **Invoquer** :
+- **Maîtres de la forge** : Elyndra (SSR Artificier).
+- **Pacte de la sève-lune** : Maélis (SSR Druide).
+- **Secrets du crépuscule** : Nyxar (SSR Occultiste).
+
+Chaque bannière conserve ses propres compteurs : SSR garanti au 50ᵉ tirage, puis héros vedette garanti au 100ᵉ. Les trois héros vedettes sont également présents dans le pool SSR général. Le roster total est de **145 héros** : 69 R, 42 SR, 33 SSR et 1 SS. Aucun nouveau SS n’a été ajouté.
+
+### 3.6 — Passifs, synergies et ultimes
+
+Tous les héros possèdent maintenant un passif, spécifique ou attribué selon leur classe. Les trois nouvelles classes apportent des synergies dédiées : Atelier vivant (Artificier + Druide), Cycle du voile (Druide + Occultiste) et Mécanique interdite (Artificier + Occultiste).
+
+Les ultimes de classe sont distincts de la jauge partagée : ils se chargent automatiquement à chaque cycle complet et se déclenchent au bout de **3 à 5 tours** selon la classe. L’interface de combat indique le compteur de chaque héros. Les ennemis disposent eux aussi d’un ultime au **4ᵉ tour ennemi**, avec des effets différents selon leur archétype.
+
 ---
 
 ## 4. Le Reliquaire (système de reliques v4)
@@ -217,6 +232,18 @@ phases vaincues (+30 ◆ × phases, matières, Poussières, Cristaux) plus un
 Week-end réel : **fortune** (récompenses ×2) ou **invocateurs** (SSR ×2).
 (En dehors des week-ends, aucun événement.)
 
+### 5.5 — Nouveaux archétypes ennemis
+
+Six archétypes s’ajoutent aux treize existants :
+- **Duelliste** : vise le héros le plus offensif.
+- **Artilleur** : frappe toute l’équipe.
+- **Alchimiste** : applique un poison périodique et se régénère.
+- **Sentinelle** : réduit les dégâts reçus avec sa formation.
+- **Prédateur** : cible les héros blessés et augmente sa puissance.
+- **Chronomancien** : draine la jauge d’Ultime et déforme le rythme du combat.
+
+Les 19 archétypes ont chacun une calibration PV/ATQ. Les nouveaux ennemis sont intégrés aux combats de quête, aux rencontres de l’histoire et aux vagues adaptées du Mode Infini. Le journal de combat annonce les ultimes ennemis.
+
 ---
 
 ## 6. Le Mode Histoire
@@ -241,6 +268,10 @@ Week-end réel : **fortune** (récompenses ×2) ou **invocateurs** (SSR ×2).
   Siphon d'âmes, Souffle de cendres, Oriflamme maudite…), +2 Élixirs, +2 Cristaux
   et le fameux **Graal** (voir §7).
 
+### 6.1 — Les sept nouveaux chapitres
+
+La suite ajoute **La forge des étoiles**, **La forêt qui se souvient**, **Les cloches sans écho**, **La marche des armées**, **Les secondes volées**, **Le dernier engrenage** et **Une bannière pour demain**. Chaque chapitre possède des dialogues, une escarmouche et un boss narratif. Les nouvelles bannières de gloire sont liées aux boss des chapitres 19, 21 et 23.
+
 ---
 
 ## 7. Le Graal — Astrée, Héritière des braises
@@ -264,6 +295,10 @@ compétiteurs — affichée dans la Salle des trophées.
   victoires, soins, étages Infini, boss d'histoire) — réclamation dans l'onglet Quêtes.
 - **Salle des trophées** : bannières, records des boss par difficulté (Enfer+
   distingué), record d'Infini, statut du Graal.
+
+### 8.1 — Musiques des menus
+
+Le moteur Web Audio dispose de thèmes différents pour les invocations, l’équipe/forge, l’entraînement, la collection, les combats et l’histoire. Le thème change avec le menu actif ; les commandes globales de son et de volume restent respectées.
 
 ---
 
@@ -297,39 +332,3 @@ compétiteurs — affichée dans la Salle des trophées.
   missions, meilleur étage, Réglages.
 - Tests : `npm run check:syntax` puis `npm test` (test de fumée jsdom) — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.
-
-
-### 3.3bis — Bannières vedettes et nouveaux héros
-
-Trois bannières temporaires sont disponibles dans **Invoquer** :
-- **Maîtres de la forge** : Elyndra (SSR Artificier).
-- **Pacte de la sève-lune** : Maélis (SSR Druide).
-- **Secrets du crépuscule** : Nyxar (SSR Occultiste).
-
-Chaque bannière conserve ses propres compteurs : SSR garanti au 50ᵉ tirage, puis héros vedette garanti au 100ᵉ. Les trois héros vedettes sont également présents dans le pool SSR général. Le roster total est de **145 héros** : 69 R, 42 SR, 33 SSR et 1 SS. Aucun nouveau SS n’a été ajouté.
-
-### 3.3ter — Passifs, synergies et ultimes
-
-Tous les héros possèdent maintenant un passif, spécifique ou attribué selon leur classe. Les trois nouvelles classes apportent des synergies dédiées : Atelier vivant (Artificier + Druide), Cycle du voile (Druide + Occultiste) et Mécanique interdite (Artificier + Occultiste).
-
-Les ultimes de classe sont distincts de la jauge partagée : ils se chargent automatiquement à chaque cycle complet et se déclenchent au bout de **3 à 5 tours** selon la classe. L’interface de combat indique le compteur de chaque héros. Les ennemis disposent eux aussi d’un ultime au **4ᵉ tour ennemi**, avec des effets différents selon leur archétype.
-
-### 5.5 Nouveaux archétypes ennemis
-
-Six archétypes s’ajoutent aux treize existants :
-- **Duelliste** : vise le héros le plus offensif.
-- **Artilleur** : frappe toute l’équipe.
-- **Alchimiste** : applique un poison périodique et se régénère.
-- **Sentinelle** : réduit les dégâts reçus avec sa formation.
-- **Prédateur** : cible les héros blessés et augmente sa puissance.
-- **Chronomancien** : draine la jauge d’Ultime et déforme le rythme du combat.
-
-Les 19 archétypes ont chacun une calibration PV/ATQ. Les nouveaux ennemis sont intégrés aux combats de quête, aux rencontres de l’histoire et aux vagues adaptées du Mode Infini. Le journal de combat annonce les ultimes ennemis.
-
-### 6.1 Les sept nouveaux chapitres
-
-La suite ajoute **La forge des étoiles**, **La forêt qui se souvient**, **Les cloches sans écho**, **La marche des armées**, **Les secondes volées**, **Le dernier engrenage** et **Une bannière pour demain**. Chaque chapitre possède des dialogues, une escarmouche et un boss narratif. Les nouvelles bannières de gloire sont liées aux boss des chapitres 19, 21 et 23.
-
-### 8.1 Musiques des menus
-
-Le moteur Web Audio dispose de thèmes différents pour les invocations, l’équipe/forge, l’entraînement, la collection, les combats et l’histoire. Le thème change avec le menu actif ; les commandes globales de son et de volume restent respectées.
