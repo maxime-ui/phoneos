@@ -154,3 +154,14 @@ Le menu Entraînement permet de sélectionner n'importe lequel des héros du ros
 - Les transitions de victoire et de défaite vérifient que le combat d'histoire est bien dans l'état attendu avant de continuer ou de réessayer.
 - Les scènes invalides et les configurations de boss incomplètes reviennent proprement à la carte au lieu de bloquer le récit.
 - Le test de fumée vérifie que l'onglet Histoire reste actif pendant une scène et à la fin d'un chapitre.
+
+
+## Correctifs interface, entraînement, collection et invocation
+
+- Les portraits SVG utilisent désormais les attributs href et xlink:href pour une meilleure compatibilité des références externes aux symboles du roster et du bestiaire.
+- Cliquer directement sur un héros dans Entraînement lance son combat individuel contre une cible aléatoire immortelle. Le rendu reste dans l'onglet Entraînement pendant les actions, soins et fins de combat.
+- La Collection propose trois filtres combinables : classe, rareté et possession.
+- Cliquer sur un portail de classe ouvre d'abord son aperçu : héros du pool, probabilités par rareté, compteur de pity et actions d'invocation ×1/×10. L'ouverture du portail ne consomme aucun quartz.
+- Les taux affichés suivent les probabilités effectives du tirage et tiennent compte des raretés absentes du pool. La garantie SSR est indiquée seulement pour les portails qui contiennent des SSR.
+- Le conteneur principal est désormais un vrai conteneur flex à hauteur d'écran, avec barre de défilement visible et défilement tactile.
+- Les tests smoke couvrent le lancement direct de l'entraînement, les filtres de Collection et l'aperçu des portails.
