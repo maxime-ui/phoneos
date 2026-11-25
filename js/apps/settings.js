@@ -118,6 +118,7 @@ OS.registerApp({
       about.className = "about-line";
       about.innerHTML =
         "Astéria — RPG gacha en page web (HTML/CSS/JS)<br>" +
+        "Raccourcis : 1–4 apps · F plein écran · Échap retour<br>" +
         "Plein écran : bouton ⛶ dans la barre supérieure · sauvegarde automatique dans le navigateur";
       sys.appendChild(about);
 
