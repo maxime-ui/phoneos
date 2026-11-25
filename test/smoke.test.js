@@ -824,6 +824,15 @@ setTimeout(() => {
   document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "f" }));
   check("raccourci F : réaction plein écran (repli jsdom)", document.querySelectorAll(".notif").length === nF + 1);
 
+  // Raccourcis globaux : navigation 1–4 et protection des combinaisons système.
+  const nCtrlF = document.querySelectorAll(".notif").length;
+  document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "f", ctrlKey: true, bubbles: true }));
+  check("Ctrl+F ne déclenche pas le plein écran", document.querySelectorAll(".notif").length === nCtrlF);
+  document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "2", bubbles: true }));
+  check("raccourci 2 : ouverture de Personnages", !!document.querySelector("#top-tabs .top-tab.active[data-app='heroes']"));
+  document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "1", bubbles: true }));
+  check("raccourci 1 : retour à Astéria", !!document.querySelector("#top-tabs .top-tab.active[data-app='asteria']"));
+
   window.eval("OS").closeApp();
 
   // closeApp ramène sur Astéria (page web unique, pas d'écran d'accueil)
