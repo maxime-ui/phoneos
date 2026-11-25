@@ -18,6 +18,7 @@ OS.registerApp({
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
       normal: { label: "Normal", hp: 14000, atk: 1250, reward: 10 },
       dur: { label: "Difficile", hp: 26000, atk: 1900, reward: 20 },
+      infini: { label: "Infini", hp: 7000, atk: 780, reward: 0, infinite: true },
     };
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
 
@@ -132,6 +133,23 @@ OS.registerApp({
       "Rôdeur": "Esquive : 25 % de chance d'éviter une riposte",
       "Héros": "Protagoniste : +5 % de dégâts à chaque tour qui passe (montée en puissance)",
     };
+
+    const SKILL_INFO = {
+      gauvin: ["Serment d'acier", "renvoie 30 % des dégâts de la riposte qu'il subit"],
+      aldric: ["Bannière de Hautefeuille", "+10 % d'ATK pour toute l'équipe tant qu'il est debout"],
+      morgane: ["Runes de sagesse", "l'Ultime se charge +5 % par carte jouée"],
+      kaelith: ["Pluie d'étoiles", "ses cartes Rapide infligent 40 % de dégâts en plus"],
+      draven: ["Frénésie du dernier souffle", "enragé dès 70 % PV (+30 % au lieu de +20 %)"],
+      seraphine: ["Aurore", "bouclier : 20 % de chance de dévier chaque riposte"],
+      ravenne: ["Sceau maudit", "chaque carte Arcane maudit l'ennemi : +10 % dégâts, cumulable"],
+      aelis: ["Salve des mille flèches", "critiques à 50 % de chance (au lieu de 35 %)"],
+      kairo: ["Charge du dragon", "15 % de chance de frapper deux fois"],
+      okatsuro: ["Ombres jumelles", "esquive les ripostes à 40 % (au lieu de 25 %)"],
+      barrok: ["Poing élastique", "renvoie 35 % des dégâts de la riposte qu'il subit"],
+      enzo: ["Déflagration", "ses Brut enflamment l'ennemi : 4 % PV max/tour, 3 cumuls max"],
+      kargan: ["Fureur titanesque", "enragé dès 80 % PV (+35 % de dégâts)"],
+      valen: ["Gardien du trône", "+30 % d'ATK permanent quand un allié tombe K.O."],
+    };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
     function unitPower(u) {
@@ -139,6 +157,8 @@ OS.registerApp({
       const mult = 1 + 0.08 * Math.min(count - 1, 12);
       return { ...u, lvl: count, atk: Math.round(u.atk * mult), hp: Math.round(u.hp * mult) };
     }
+
+    let infiniteBest = OS.store.get("infinite-best", 0);
 
     function loadSave() {
       const saved = OS.store.get("epopee", null);
@@ -249,6 +269,7 @@ OS.registerApp({
         '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
         '<div class="unit-name">' + u.name + "</div>" +
         '<div class="unit-cls">' + u.cls + (p.lvl > 1 ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
+        (SKILL_INFO[u.id] ? '<div class="unit-skill">✦ ' + SKILL_INFO[u.id][0] + ' — ' + SKILL_INFO[u.id][1] + '</div>' : "") +
         '<div class="unit-stats">ATK ' + p.atk + " · PV " + p.hp + "</div>";
       return c;
     }
@@ -342,7 +363,9 @@ OS.registerApp({
         const t = TIER[key];
         const b = document.createElement("button");
         b.className = "pull-btn tier-" + key;
-        b.innerHTML = "Quête " + t.label + "<br><small>→ " + t.reward + " ◆</small>";
+        b.innerHTML = t.infinite
+          ? "Mode Infini<br><small>→ record : étage " + infiniteBest + "</small>"
+          : "Quête " + t.label + "<br><small>→ " + t.reward + " ◆</small>";
         b.addEventListener("click", () => startBattle(key));
         row.appendChild(b);
       });
@@ -358,13 +381,19 @@ OS.registerApp({
       const etype = types[Math.floor(Math.random() * types.length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const golemMult = etype === "Golem" ? 1.15 : 1;
+      const scale = key === "infini" ? Math.pow(1.16, 0) : 1;
       battle = {
-        enemy: { name, type: etype, hp: Math.round(t.hp * golemMult), maxHp: Math.round(t.hp * golemMult), atk: t.atk },
+        mode: key === "infini" ? "infini" : "quest",
+        floor: 1,
+        enemy: { name, type: etype, hp: Math.round(t.hp * golemMult * scale), maxHp: Math.round(t.hp * golemMult * scale), atk: Math.round(t.atk * (key === "infini" ? 1.08 : 1)) },
         tier: key,
         units: team,
         hp: team.map((u) => u.hp),
         gauge: 0,
         picks: 0,
+        curse: 0,
+        burn: 0,
+        valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
       newHand();
@@ -405,20 +434,57 @@ OS.registerApp({
       const unit = battle.units[gi];
 
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
+      dmg = Math.round(dmg * teamAtkMult());
       let crit = false;
-      const critChance = card.type === "V" ? (u.cls === "Archer" ? 0.35 : 0.25) : 0;
+      const critBase = u.cls === "Archer" ? 0.35 : 0.25;
+      const critChance = card.type === "V" ? (u.id === "aelis" ? 0.5 : critBase) : 0;
       if (card.type === "V" && Math.random() < critChance) { dmg *= 2; crit = true; }
       if (u.cls === "Mage" && card.type === "B") dmg = Math.round(dmg * 1.3);
-      if (u.cls === "Berserker" && battle.hp[gi] < u.hp / 2) dmg = Math.round(dmg * 1.2);
-      if (battle.heroStacks && battle.heroStacks[gi] > 1) dmg = Math.round(dmg * (1 + 0.05 * (battle.heroStacks[gi] - 1)));
-      if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
+      if (u.cls === "Berserker") {
+        const threshold = u.id === "draven" ? 0.7 : 0.5;
+        const rage = u.id === "draven" ? 1.3 : 1.2;
+        if (battle.hp[gi] < u.hp * threshold) dmg = Math.round(dmg * rage);
+      }
+      if (u.cls === "Héros" && battle.heroStacks && battle.heroStacks[gi] > 1) {
+        dmg = Math.round(dmg * (1 + 0.05 * (battle.heroStacks[gi] - 1)));
+      }
+      if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
+
       battle.gauge = Math.min(100, battle.gauge + (card.type === "B" ? (u.cls === "Mage" ? 28 : 22) : 8));
-      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
-      battle.log.unshift((crit ? "CRIT ! " : "") + unit.name + " (" + c.label + ") → " + dmg + " dégâts");
+      if (u.id === "morgane") battle.gauge = Math.min(100, battle.gauge + 5);
+      if (u.id === "ravenne" && card.type === "B") {
+        battle.curse++;
+        battle.log.unshift(unit.name + " maudit l'ennemi (+" + (battle.curse * 10) + " % dégâts)");
+      }
+
+      const hits = (u.id === "kairo" && Math.random() < 0.15) ? 2 : 1;
+      for (let h = 0; h < hits; h++) {
+        hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""));
+        if (battle.enemy.hp <= 0) break;
+      }
+      if (u.id === "enzo" && card.type === "R" && battle.enemy.hp > 0) {
+        battle.burn = Math.min(3, battle.burn + 1);
+        battle.log.unshift(unit.name + " enflamme l'ennemi (brûlure ×" + battle.burn + ")");
+      }
 
       if (battle.enemy.hp <= 0) return endBattle(true);
       if (battle.picks >= 3) enemyTurn();
       renderQuests();
+    }
+
+    function teamAtkMult() {
+      let mult = 1;
+      if (battle.units.some((u, i) => u.id === "aldric" && battle.hp[i] > 0)) mult += 0.10;
+      mult += battle.valenFury * 0.30;
+      return mult;
+    }
+
+    function hitEnemy(base, actorName, label) {
+      let dmg = base;
+      if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
+      dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
+      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
     }
 
     function useUltimate() {
@@ -426,7 +492,7 @@ OS.registerApp({
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + 0.05 * (battle.heroStacks[si] - 1)) : 1;
-      const dmg = Math.round(strongest.atk * 2.4 * heroMult * (0.95 + Math.random() * 0.1));
+      const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
       battle.picks = 3;
@@ -438,14 +504,34 @@ OS.registerApp({
 
     function attackAlly(ti, raw) {
       const target = battle.units[ti];
-      if (target.cls === "Rôdeur" && Math.random() < 0.25) {
+      const dodgeChance = target.id === "okatsuro" ? 0.40 : target.cls === "Rôdeur" ? 0.25 : 0;
+      if (Math.random() < dodgeChance) {
         battle.log.unshift(target.name + " esquive la riposte !");
+        return;
+      }
+      const shieldBearer = battle.units.findIndex((u, i) => u.id === "seraphine" && battle.hp[i] > 0);
+      if (shieldBearer !== ti && shieldBearer !== -1 && Math.random() < 0.20) {
+        battle.log.unshift("Séraphine dévie l'attaque avec son bouclier !");
         return;
       }
       let dmg = raw;
       if (target.cls === "Chevalier") dmg = Math.round(dmg * 0.75);
       battle.hp[ti] = Math.max(0, battle.hp[ti] - dmg);
       battle.log.unshift(battle.enemy.name + " frappe " + target.name + " → " + dmg + " dégâts");
+
+      if (target.id === "gauvin" && battle.enemy.hp > 0) {
+        hitEnemy(Math.round(dmg * 0.30), target.name, "serment d'acier (renvoi)");
+      } else if (target.id === "barrok" && battle.enemy.hp > 0) {
+        hitEnemy(Math.round(dmg * 0.35), target.name, "poing élastique (renvoi)");
+      }
+      if (battle.hp[ti] === 0 && battle.enemy.hp > 0) {
+        battle.log.unshift(target.name + " tombe K.O.");
+        const valenAlive = battle.units.some((u, i) => u.id === "valen" && battle.hp[i] > 0);
+        if (valenAlive) {
+          battle.valenFury++;
+          battle.log.unshift("Valen rugit de douleur : +" + (battle.valenFury * 30) + " % d'ATK pour lui");
+        }
+      }
     }
 
     function enemyTurn() {
@@ -485,16 +571,51 @@ OS.registerApp({
           ti = targets[Math.floor(Math.random() * targets.length)];
           attackAlly(ti, Math.round(battle.enemy.atk * 0.9 * (0.8 + Math.random() * 0.4)));
       }
+      if (battle.burn > 0 && battle.enemy.hp > 0) {
+        const burnDmg = Math.round(battle.enemy.maxHp * 0.04 * battle.burn);
+        battle.enemy.hp = Math.max(0, battle.enemy.hp - burnDmg);
+        battle.log.unshift("Brûlure → " + burnDmg + " dégâts");
+        if (battle.enemy.hp <= 0) return endBattle(true);
+      }
       if (!aliveIdx().length) return endBattle(false);
       newHand();
     }
 
     function endBattle(win) {
-      const reward = win ? TIER[battle.tier].reward : 2;
+      if (win && battle.mode === "infini") return advanceFloor();
+      let reward;
+      if (battle.mode === "infini") {
+        reward = Math.max(2, battle.floor * 3);
+        if (battle.floor > infiniteBest) {
+          infiniteBest = battle.floor;
+          OS.store.set("infinite-best", infiniteBest);
+          battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
+        }
+      } else {
+        reward = win ? TIER[battle.tier].reward : 2;
+      }
       save.quartz += reward;
       persist();
-      battle.log.unshift(win ? "Victoire ! +" + reward + " ◆" : "Défaite… +2 ◆ (réconfort)");
+      battle.log.unshift(win ? "Victoire ! +" + reward + " ◆" : "Défaite… +" + reward + " ◆ (réconfort)");
       battle.over = true;
+      renderQuests();
+    }
+
+    function advanceFloor() {
+      battle.floor++;
+      battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
+      battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
+      battle.gauge = Math.min(100, battle.gauge + 15);
+      battle.curse = 0;
+      battle.burn = 0;
+      const scale = Math.pow(1.16, battle.floor - 1);
+      const etype = Object.keys(ENEMY_TYPES)[Math.floor(Math.random() * Object.keys(ENEMY_TYPES).length)];
+      const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
+      const golemMult = etype === "Golem" ? 1.15 : 1;
+      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.08, battle.floor)) };
+      battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
+      newHand();
+      renderQuests();
     }
 
     function bar(label, cur, max, cls) {
@@ -519,7 +640,8 @@ OS.registerApp({
         done.textContent = battle.enemy.hp <= 0 ? "VICTOIRE" : "DÉFAITE";
         view.appendChild(done);
       } else {
-        view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
+        const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor : "";
+        view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";

@@ -90,6 +90,20 @@ setTimeout(() => {
   }
   const afterLog = document.querySelectorAll(".battle-log > div").length;
   check("3 cartes jouées -> log enrichi (" + beforeLog + " → " + afterLog + ")", afterLog > beforeLog);
+
+  // Mode Infini : démarrage sans erreur, étage affiché
+  window.eval("OS").openApp("epopee");
+  const questTab2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  questTab2.click();
+  const infBtn = [...document.querySelectorAll(".pull-btn")].find((b) => b.classList.contains("tier-infini"));
+  check("bouton Mode Infini présent", !!infBtn);
+  infBtn.click();
+  check("vue infini affichée (étage 1)", !!document.querySelector(".battle") && document.body.textContent.includes("Étage 1"));
+  for (let draws = 0; draws < 3; draws++) {
+    const card = document.querySelector(".hand-card:not([disabled])");
+    if (card) card.click();
+  }
+  check("infini : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 2);
   window.eval("OS").closeApp();
 
   // Retour -> home

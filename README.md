@@ -19,7 +19,7 @@ Applications incluses :
 | App | Fonctions |
 |---|---|
 | Snake | Jeu d'arcade : grille 15×15, record sauvegardé, clavier + croix directionnelle |
-| Épopée | Gacha (invocations R/SR/SSR, quartz) + combat au tour par tour façon FGO : cartes Brut/Arcane/Rapide, jauge d'Ultime, quêtes à 3 difficultés, 88 personnages fictifs répartis en 6 classes (Chevalier, Berserker, Mage, Archer, Rôdeur, Héros — libération inspirée des archétypes manga, tous 100 % originaux), montée en niveau par doublons (+8 % ATK/PV par copie, plafond +96 %), 5 archétypes d'ennemis (Brute, Assassin, Sorcier, Capitaine, Golem) |
+| Épopée | Gacha (invocations R/SR/SSR, quartz) + combat au tour par tour façon FGO : cartes Brut/Arcane/Rapide, jauge d'Ultime, quêtes à 3 difficultés, 88 personnages fictifs répartis en 6 classes (Chevalier, Berserker, Mage, Archer, Rôdeur, Héros — libération inspirée des archétypes manga, tous 100 % originaux), montée en niveau par doublons (+8 % ATK/PV par copie, plafond +96 %), 5 archétypes d'ennemis (Brute, Assassin, Sorcier, Capitaine, Golem), 14 compétences uniques sur les SSR (renvoi, double frappe, bouclier, malédiction, brûlure…), Mode Infini (ennemis +16 %/étage, récompense au record, sauvegarde du meilleur étage) |
 | 2048 | Puzzle de fusion : tuiles colorées, record sauvegardé, clavier + croix directionnelle |
 | Calc | Calculatrice avec parenthèses, aperçu du résultat en direct |
 | Téléphone | Clavier téléphonique, appel simulé avec chrono d'appel |
