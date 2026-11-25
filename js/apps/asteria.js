@@ -1532,14 +1532,15 @@ OS.registerApp({
         hp: team.map((u) => u.hp),
         gauge: 0,
         picks: 0,
+        guard: false,
         curse: 0,
         burn: 0,
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
-      battle.intent = enemyIntent(battle.enemy.type);
-      battle.gauge = initialGauge(team, 60);
+      battle.guard = false;
       battle.intent = enemyIntent(etype);
+      battle.gauge = initialGauge(team, 60);
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
