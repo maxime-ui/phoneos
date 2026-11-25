@@ -1162,10 +1162,11 @@ OS.registerApp({
       }
 
       line.innerHTML =
-        '<div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
+        '<div class="relic-visual"><img loading="lazy" alt="" src="assets/asteria/equipment/' + k + '.svg"></div><div class="relic-details"><div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
         (tier < 1 ? '<div class="forge-evo">' + rel.effect + " (au rang N)</div>" : "") +
         statsTxt + actionTxt;
 
+      line.innerHTML += "</div>";
       if (tier >= 1) {
         const wornId = save.relicsEquip[k] || "";
         const holder = wornId ? byId(wornId) : null;
