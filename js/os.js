@@ -127,8 +127,10 @@ const OS = (() => {
 
   /* ---------- Volume (réglage interne) ---------- */
   function setVolume(v) {
-    state.volume = Math.max(0, Math.min(100, v));
+    const value = Number(v);
+    state.volume = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
     store.set("volume", state.volume);
+    if (OS.sfx && typeof OS.sfx.setVolume === "function") OS.sfx.setVolume(state.volume);
   }
 
   /* ---------- Barre d'apps ---------- */

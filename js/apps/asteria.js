@@ -2,7 +2,27 @@
 "use strict";
 
     const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" }, 4: { label: "SS", color: "#ff8c5a" } };
-    const CARD = { R: { label: "Brut", color: "#c34a2f", mult: 1.5 }, B: { label: "Arcane", color: "#3b6bd4", mult: 1.0 }, V: { label: "Rapide", color: "#3ba75c", mult: 0.8 } };
+    const CARD = {
+      R: { label: "Brut", color: "#c34a2f", mult: 1.5, element: "feu" },
+      B: { label: "Arcane", color: "#3b6bd4", mult: 1.0, element: "arcane" },
+      V: { label: "Rapide", color: "#3ba75c", mult: 0.8, element: "vent" },
+    };
+    const ELEMENTS = {
+      feu: { label: "Feu", icon: "🔥", strong: "nature", weak: "eau" },
+      eau: { label: "Eau", icon: "💧", strong: "feu", weak: "foudre" },
+      foudre: { label: "Foudre", icon: "⚡", strong: "eau", weak: "terre" },
+      nature: { label: "Nature", icon: "🌿", strong: "terre", weak: "feu" },
+      terre: { label: "Terre", icon: "🪨", strong: "foudre", weak: "nature" },
+      arcane: { label: "Arcane", icon: "🔮", strong: null, weak: null },
+      vent: { label: "Vent", icon: "🌪️", strong: null, weak: null },
+    };
+    const ENEMY_AFFINITY = {
+      "Brute": "terre", "Assassin": "vent", "Sorcier": "feu",
+      "Capitaine": "foudre", "Golem": "terre", "Oracle": "eau",
+      "Muraille": "terre", "Invocateur": "arcane", "Fantassin": "foudre",
+      "Nécromant": "nature", "Banshee": "eau", "Sanguinaire": "feu",
+      "Colosse de givre": "eau",
+    };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
       normal: { label: "Normal", hp: 15000, atk: 1330, reward: 10 },
@@ -514,8 +534,75 @@ function evoSkillLabelsOf(u, evo) {
   return out;
 }
 
+function artSlug(value) { return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+    function portraitEscape(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+    function characterPortraitMarkup(id, name, cls, rarity) {
+      const seed = String(id || name || "asteria");
+      const h = hashStr(seed + "|" + name + "|" + cls);
+      const pick = (arr, shift) => arr[Math.floor((h / Math.pow(2, shift)) % arr.length)];
+      const skin = pick(["#f1c7a2","#d99b73","#f4d8bd","#a9684e","#e8b88e","#c98768","#f0c5a0"], 0);
+      const hair = pick(["#241d2c","#493027","#b87935","#d8c18a","#e7e0d2","#8e3542","#253b50","#6b7891","#171923","#c65c32"], 4);
+      const eye = pick(["#65c8d8","#8eaf72","#a78be8","#c58a43","#d8dce8","#d65b69"], 8);
+      const cloth = pick(["#344b72","#684b82","#315c58","#7b3d42","#4a5368","#87653c","#26364e","#725f9c"], 12);
+      const accent = ({ "Chevalier":"#e4b85e", "Mage":"#a88af0", "Archer":"#72c995", "Berserker":"#e4774f", "Rôdeur":"#68b9a2", "Héros":"#e8c66c", "Soigneur":"#72d6bd", "Défenseur":"#9db4cf", "Tueur":"#d96a8c" })[cls] || "#d6b77a";
+      const skin2 = pick(["#f7d8c2","#c98768","#e7b28d","#b9785b"], 16);
+      const hairShape = Math.floor((h / 65536) % 5);
+      const fringe = [
+        "M29 54 Q24 19 59 17 Q94 18 91 55 L79 47 Q68 31 54 42 L42 58 Z",
+        "M27 58 Q17 22 51 15 Q88 12 94 48 L81 43 Q74 55 58 45 Q42 37 27 58 Z",
+        "M25 62 Q20 31 39 20 Q73 4 91 34 L89 62 L76 45 Q60 54 48 43 L34 65 Z",
+        "M30 48 Q37 12 65 17 Q94 19 91 50 Q75 35 65 41 Q47 34 30 48 Z",
+        "M24 59 Q21 16 59 13 Q100 17 96 62 L83 53 Q72 40 60 48 Q42 39 24 59 Z"
+      ][hairShape];
+      const classGear = cls === "Mage" ? '<path d="M25 44 L60 5 L95 44 L82 39 L60 19 L38 39 Z" fill="' + accent + '" opacity=".9"/><circle cx="60" cy="27" r="5" fill="#d9c8ff"/>' :
+        cls === "Archer" || cls === "Rôdeur" ? '<path d="M15 37 Q-1 67 19 94 Q27 102 29 89 Q12 65 28 46" fill="none" stroke="' + accent + '" stroke-width="4"/><path d="M15 37 L30 47" stroke="#f2e7c7" stroke-width="2"/>' :
+        cls === "Berserker" || cls === "Tueur" ? '<path d="M27 82 L8 55 L28 61 L36 48 L42 75 Z M93 82 L112 55 L92 61 L84 48 L78 75 Z" fill="' + accent + '"/>' :
+        cls === "Soigneur" ? '<circle cx="60" cy="19" r="14" fill="none" stroke="' + accent + '" stroke-width="3"/><path d="M60 10 V28 M51 19 H69" stroke="' + accent + '" stroke-width="3"/>' :
+        '<path d="M25 81 L35 62 L47 72 L60 61 L73 72 L85 62 L96 82 L88 111 L32 111 Z" fill="' + accent + '" opacity=".85"/>';
+      const idSafe = portraitEscape(artSlug(seed));
+      return '<svg class="portrait-art hero-art" data-portrait-id="' + idSafe + '" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + portraitEscape(name) + '" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bg-' + idSafe + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="' + cloth + '"/><stop offset="1" stop-color="#111827"/></linearGradient><linearGradient id="cape-' + idSafe + '" x1="0" y1="0" x2="0" y2="1"><stop stop-color="' + accent + '"/><stop offset="1" stop-color="' + cloth + '"/></linearGradient></defs><rect x="2" y="2" width="116" height="136" rx="18" fill="url(#bg-' + idSafe + ')"/><path d="M7 111 Q60 71 113 111 V136 H7Z" fill="#101827" opacity=".6"/><circle cx="60" cy="55" r="43" fill="' + accent + '" opacity=".13"/><path d="M13 140 Q15 103 38 94 L60 104 L83 94 Q107 104 108 140Z" fill="url(#cape-' + idSafe + ')"/><path d="M39 89 L60 103 L81 89 L92 140 H28Z" fill="' + cloth + '" stroke="' + accent + '" stroke-width="2"/>' + classGear + '<path d="M43 83 L77 83 L80 101 Q60 116 40 101Z" fill="' + skin2 + '"/><path d="M30 52 Q28 26 60 23 Q91 25 90 56 L84 81 Q76 99 60 99 Q43 98 35 80Z" fill="' + skin + '" stroke="#342b36" stroke-width="2"/><path d="M29 58 Q19 47 28 39 Q20 12 55 13 Q93 8 94 42 Q99 51 90 64 L82 43 Q65 35 51 42 Q40 48 29 58Z" fill="' + hair + '"/><path d="' + fringe + '" fill="' + hair + '"/><path d="M42 63 Q49 58 55 63 M66 63 Q73 58 79 63" fill="none" stroke="#4a2d2b" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="49" cy="68" rx="3.2" ry="2.4" fill="' + eye + '"/><ellipse cx="72" cy="68" rx="3.2" ry="2.4" fill="' + eye + '"/><path d="M60 69 L57 79 L63 80" fill="none" stroke="#a56f5d" stroke-width="2"/><path d="M52 87 Q60 ' + (90 + Math.floor((h / 1024) % 5)) + ' 69 86" fill="none" stroke="#7d3f48" stroke-width="2.4" stroke-linecap="round"/><path d="M31 61 Q23 69 35 81 M89 61 Q97 69 85 81" fill="none" stroke="' + hair + '" stroke-width="7" stroke-linecap="round"/><path d="M38 104 L60 116 L82 104" fill="none" stroke="' + accent + '" stroke-width="3"/><path d="M16 121 L31 111 L37 140 H12Z M104 121 L89 111 L83 140 H108Z" fill="' + accent + '" opacity=".85"/><circle cx="' + (pick([27,93,60,37,83], 20)) + '" cy="' + (pick([115,122,128], 24)) + '" r="3" fill="' + eye + '"/><rect x="5" y="5" width="110" height="130" rx="15" fill="none" stroke="' + accent + '" stroke-width="' + (rarity >= 3 ? 3 : 1.5) + '" opacity=".9"/></svg>';
+    }
+    function heroPortraitMarkup(id) {
+      const unit = UNITS.find((u) => u.id === id);
+      return characterPortraitMarkup(id, unit ? unit.name : String(id || "Héros"), unit ? unit.cls : "Héros", unit ? unit.r : 1);
+    }
+    function enemyPortraitMarkup(type, name) {
+      const seed = "enemy-" + String(type || "monstre") + "-" + String(name || type || "ennemi");
+      const h = hashStr(seed);
+      const pick = (arr, shift) => arr[Math.floor((h / Math.pow(2, shift)) % arr.length)];
+      const hide = pick(["#7d9b8a","#4b7890","#8e658f","#9a6548","#6f7a9e","#a18c58","#536b58","#a94d50"], 0);
+      const dark = pick(["#17212b","#24202d","#32231e","#1d293b","#302b24"], 4);
+      const eye = pick(["#ffcf68","#ff6f61","#9df4ff","#dca6ff","#d7f47b"], 8);
+      const horn = pick(["#d5c3a0","#b9d1db","#e4a36f","#b4a1db","#d7d9c9"], 12);
+      const spikes = Math.floor((h / 65536) % 4);
+      const horns = [
+        '<path d="M37 48 Q10 39 17 12 Q34 24 43 39 M82 48 Q110 36 102 10 Q84 24 77 40" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M39 44 L27 9 L52 34 M80 44 L94 8 L68 34" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M40 43 Q18 18 36 5 Q42 23 55 33 M78 43 Q100 18 84 5 Q77 23 64 33" fill="' + horn + '" stroke="' + dark + '" stroke-width="3"/>',
+        '<path d="M38 46 L12 30 L31 58 M82 46 L108 30 L89 58" fill="' + horn + '" stroke="' + dark + '" stroke-width="4"/>'
+      ][spikes];
+      const idSafe = portraitEscape(artSlug(seed));
+      return '<svg class="portrait-art enemy-art" data-portrait-id="' + idSafe + '" viewBox="0 0 120 140" role="img" aria-label="Portrait de ' + portraitEscape(name || type) + '" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="enemy-' + idSafe + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="' + hide + '"/><stop offset="1" stop-color="' + dark + '"/></linearGradient></defs><rect x="2" y="2" width="116" height="136" rx="17" fill="url(#enemy-' + idSafe + ')"/><circle cx="60" cy="63" r="48" fill="' + eye + '" opacity=".1"/>' + horns + '<path d="M14 140 Q16 99 37 94 L60 105 L84 94 Q105 100 108 140Z" fill="' + dark + '" stroke="' + horn + '" stroke-width="2"/><path d="M31 51 Q27 23 60 20 Q94 23 90 55 L83 92 Q74 111 60 111 Q43 110 36 91Z" fill="' + hide + '" stroke="' + dark + '" stroke-width="4"/><path d="M35 55 Q25 31 48 25 L60 34 L73 22 Q97 34 86 57 L79 46 L68 53 L60 44 L48 55Z" fill="' + dark + '"/><path d="M38 65 L55 61 L51 74Z M82 65 L65 61 L69 74Z" fill="' + eye + '" stroke="' + dark + '" stroke-width="2"/><ellipse cx="48" cy="67" rx="3" ry="4" fill="#1b1720"/><ellipse cx="72" cy="67" rx="3" ry="4" fill="#1b1720"/><path d="M60 69 L54 88 L66 88Z" fill="' + dark + '"/><path d="M43 91 Q60 ' + (99 + Math.floor((h / 1024) % 7)) + ' 77 91 L72 103 L48 103Z" fill="#211923" stroke="' + horn + '" stroke-width="2"/><path d="M49 93 L54 101 L59 93 L64 101 L70 93" fill="none" stroke="' + horn + '" stroke-width="2"/><path d="M25 112 L39 98 L45 140 H13Z M95 112 L81 98 L75 140 H107Z" fill="' + hide + '"/><path d="M22 117 L33 110 M98 117 L87 110" stroke="' + horn + '" stroke-width="4"/><rect x="5" y="5" width="110" height="130" rx="14" fill="none" stroke="' + eye + '" stroke-width="2.5"/></svg>';
+    }
+
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
+
+OS.asteriaData.teamSynergyInfo = function () {
+  return [
+    { classes: ["Mage", "Archer"], name: "Convergence arcanique", effect: "+8 % dégâts d'équipe" },
+    { classes: ["Chevalier", "Soigneur"], name: "Serment protecteur", effect: "−10 % dégâts reçus" },
+    { classes: ["Berserker", "Rôdeur"], name: "Traque coordonnée", effect: "+6 % dégâts d'équipe" },
+  ];
+};
+OS.asteriaData.elementInfo = function () {
+  return {
+    cards: Object.fromEntries(Object.entries(CARD).map(([key, card]) => [key, { label: card.label, element: card.element }])),
+    elements: ELEMENTS,
+    enemyAffinity: ENEMY_AFFINITY,
+  };
+};
+
 
 
 OS.registerApp({
@@ -574,16 +661,41 @@ OS.registerApp({
       return Math.min(cap, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0) + (extra || 0));
     }
 
-    let infiniteBest = OS.store.get("infinite-best", 0);
+    /*
+     * Astéria 2.0 : espace de sauvegarde isolé.
+     * Aucun import automatique depuis "asteria" ou "epopee" :
+     * la nouvelle progression démarre volontairement de zéro.
+     * Les anciennes données restent intactes dans leurs clés historiques.
+     */
+    const SAVE_PREFIX = "asteria-v2";
+    // Nettoyage unique des anciennes sauvegardes Astéria/Épopée.
+    // Les préférences globales du téléphone ne sont pas concernées.
+    (function clearLegacyGameSavesOnce() {
+      const cleanupKey = "phoneos:asteria-v2-legacy-cleanup";
+      try {
+        if (localStorage.getItem(cleanupKey) === "done") return;
+        [
+          "phoneos:asteria", "phoneos:asteria-story", "phoneos:asteria-daily",
+          "phoneos:asteria-raid", "phoneos:asteria-infinite-best",
+          "phoneos:epopee", "phoneos:epopee-story", "phoneos:epopee-daily",
+          "phoneos:epopee-raid", "phoneos:infinite-best"
+        ].forEach((key) => localStorage.removeItem(key));
+        localStorage.setItem(cleanupKey, "done");
+      } catch (_) {
+        // Si le stockage est indisponible, la nouvelle sauvegarde reste isolée.
+      }
+    })();
+    let infiniteBest = OS.store.get(SAVE_PREFIX + "-infinite-best", 0);
 
     function loadSave() {
-      ["", "-story", "-daily", "-raid"].forEach(function (suffix) {
-        const legacy = OS.store.get("epopee" + suffix, null);
-        if (legacy !== null && OS.store.get("asteria" + suffix, null) === null) OS.store.set("asteria" + suffix, legacy);
-      });
-      const saved = OS.store.get("asteria", null);
-      if (saved) return saved;
-      return { quartz: 30, owned: { bron: 1, tilia: 1, nerys: 1 }, team: ["bron", "tilia", "nerys"] };
+      const saved = OS.store.get(SAVE_PREFIX, null);
+      if (saved && saved.schemaVersion === 2) return saved;
+      return {
+        schemaVersion: 2,
+        quartz: 30,
+        owned: { bron: 1, tilia: 1, nerys: 1 },
+        team: ["bron", "tilia", "nerys"],
+      };
     }
     let save = loadSave();
     if (!save.pity) save.pity = {};
@@ -596,13 +708,13 @@ OS.registerApp({
       const wornId = save.relicsEquip[k];
       if (wornId && (!save.owned || !save.owned[wornId])) save.relicsEquip[k] = null;
     });
-    function persist() { OS.store.set("asteria", save); }
+    function persist() { OS.store.set(SAVE_PREFIX, save); }
 
-    let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "facile" });
+    let storyState = OS.store.get(SAVE_PREFIX + "-story", { done: 0, music: false, diff: "facile" });
     if (!storyState.diff) storyState.diff = "facile";
     if (!Array.isArray(storyState.cleared)) storyState.cleared = [];
     if (!diffUnlockedSt(storyState, storyState.diff)) storyState.diff = "facile";
-    function persistStory() { OS.store.set("asteria-story", storyState); }
+    function persistStory() { OS.store.set(SAVE_PREFIX + "-story", storyState); }
 
     /* ---------- Missions quotidiennes ---------- */
 
@@ -618,8 +730,8 @@ OS.registerApp({
       const d = new Date();
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
-    let daily = OS.store.get("asteria-daily", null);
-    function persistDaily() { OS.store.set("asteria-daily", daily); }
+    let daily = OS.store.get(SAVE_PREFIX + "-daily", null);
+    function persistDaily() { OS.store.set(SAVE_PREFIX + "-daily", daily); }
     function ensureDaily() {
       const tk = todayKey();
       if (!daily || daily.date !== tk) {
@@ -629,6 +741,7 @@ OS.registerApp({
       }
     }
     function trackDaily(type, amt, absolute) {
+      if (battle && battle.mode === "train") return;
       if (!daily) return;
       daily.missions.forEach((m) => {
         if (m.t !== type || m.claimed) return;
@@ -644,8 +757,8 @@ OS.registerApp({
       const wk = Math.ceil(((d - t) / 86400000 + t.getDay() + 1) / 7);
       return d.getFullYear() + "-S" + wk;
     }
-    let raid = OS.store.get("asteria-raid", null);
-    function persistRaid() { OS.store.set("asteria-raid", raid); }
+    let raid = OS.store.get(SAVE_PREFIX + "-raid", null);
+    function persistRaid() { OS.store.set(SAVE_PREFIX + "-raid", raid); }
     function ensureRaid() {
       const wk = weekKey();
       if (!raid || raid.week !== wk) {
@@ -886,6 +999,83 @@ OS.registerApp({
       return results;
     }
 
+    let portalOwnershipFilter = "all";
+    function renderPortalDetails(cls, results) {
+      const panel = content.querySelector(".portal-detail") || document.createElement("div");
+      panel.className = "portal-detail";
+      panel.innerHTML = "";
+      const pool = UNITS.filter((u) => u.cls === cls && u.id !== "graal");
+      const ssrRate = 0.05 * eventSsrBoost();
+      const weights = { 3: ssrRate, 2: 0.25 - ssrRate, 1: 0.75 };
+      const actual = { 1: 0, 2: 0, 3: 0 };
+      [3, 2, 1].forEach((wanted) => {
+        const fallback = pool.filter((u) => u.r === wanted).length ? wanted : [2, 1, 3].find((r) => pool.some((u) => u.r === r));
+        if (fallback) actual[fallback] += weights[wanted];
+      });
+      const heading = document.createElement("div");
+      heading.className = "portal-detail-head";
+      heading.innerHTML = "<strong>Portail " + cls + "</strong><span>Personnages disponibles dans ce portail</span>";
+      panel.appendChild(heading);
+      const rates = document.createElement("div");
+      rates.className = "portal-rates";
+      [3, 2, 1].forEach((r) => {
+        const chip = document.createElement("span");
+        chip.className = "portal-rate r" + r;
+        chip.textContent = RARITY[r].label + " · " + (actual[r] * 100).toFixed(1).replace(".", ",") + " %";
+        rates.appendChild(chip);
+      });
+      panel.appendChild(rates);
+      const pity = document.createElement("div");
+      pity.className = "team-hint";
+      const hasSsr = pool.some((u) => u.r === 3);
+      pity.textContent = "Pity du portail : " + (save.pity[cls] || 0) + "/30" + (hasSsr ? ((save.pity[cls] || 0) >= 29 ? " · prochain tirage SSR garanti" : " · SSR garanti au 30e tirage") : " · aucun SSR dans cette classe");
+      panel.appendChild(pity);
+      const filterWrap = document.createElement("label");
+      filterWrap.className = "portal-owned-filter";
+      filterWrap.innerHTML = "<span>Afficher les personnages</span>";
+      const ownership = document.createElement("select");
+      [["all","Tous"],["owned","Possédés"],["missing","Non possédés"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; ownership.appendChild(option); });
+      ownership.value = portalOwnershipFilter;
+      ownership.addEventListener("change", () => { portalOwnershipFilter = ownership.value; renderPortalDetails(cls, results); });
+      filterWrap.appendChild(ownership);
+      panel.appendChild(filterWrap);
+      const list = document.createElement("div");
+      list.className = "roster col-grid portal-roster";
+      const visiblePool = pool.filter((u) => portalOwnershipFilter === "all" || (portalOwnershipFilter === "owned" ? !!save.owned[u.id] : !save.owned[u.id]));
+      const count = document.createElement("div");
+      count.className = "team-hint portal-count";
+      count.textContent = visiblePool.length + " / " + pool.length + " personnages affichés";
+      panel.appendChild(count);
+      if (!visiblePool.length) { const empty = document.createElement("div"); empty.className = "team-hint"; empty.textContent = "Aucun personnage dans cette catégorie."; list.appendChild(empty); }
+      visiblePool.slice().sort((a,b) => b.r-a.r || a.name.localeCompare(b.name)).forEach((u) => list.appendChild(unitCard(u)));
+      panel.appendChild(list);
+      const actions = document.createElement("div");
+      actions.className = "pull-row";
+      [1, 10].forEach((n) => {
+        const b = document.createElement("button");
+        b.className = "pull-btn";
+        b.textContent = "Invoquer " + (n === 1 ? "×1 — 5 ◆" : "×10 — 45 ◆");
+        b.addEventListener("click", () => {
+          const got = classPull(cls, n);
+          if (!got.length) return;
+          content.querySelector(".quartz-bar").replaceWith(quartzBar());
+          const portalBtn = [...content.querySelectorAll(".portal-btn")].find((x) => x.dataset.portal === cls);
+          if (portalBtn) portalBtn.innerHTML = "Portail " + cls + "<br><small>pity " + (save.pity[cls] || 0) + "/30</small>";
+          OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
+          renderPortalDetails(cls, got);
+        });
+        actions.appendChild(b);
+      });
+      panel.appendChild(actions);
+      if (results && results.length) {
+        const resultBox = document.createElement("div");
+        resultBox.className = "pull-results";
+        results.forEach((u) => resultBox.appendChild(unitCard(u)));
+        panel.appendChild(resultBox);
+      }
+      if (!panel.isConnected) content.appendChild(panel);
+    }
+
     function renderSummon() {
       setActiveTab(tabSummon);
       content.innerHTML = "";
@@ -913,19 +1103,11 @@ OS.registerApp({
       [...new Set(UNITS.map((u) => u.cls))].forEach((cls) => {
         const b = document.createElement("button");
         b.className = "pull-btn portal-btn";
+        b.dataset.portal = cls;
         b.innerHTML = "Portail " + cls + "<br><small>pity " + (save.pity[cls] || 0) + "/30</small>";
         b.addEventListener("click", () => {
-          const got = classPull(cls, 1);
-          if (!got.length) return;
-          content.querySelector(".quartz-bar").replaceWith(quartzBar());
-          OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
-          grid.querySelectorAll(".portal-btn").forEach((btn, i) => {
-            const c = [...new Set(UNITS.map((u) => u.cls))][i];
-            btn.innerHTML = "Portail " + c + "<br><small>pity " + (save.pity[c] || 0) + "/30</small>";
-          });
-          const box = content.querySelector(".pull-results");
-          box.innerHTML = "";
-          got.forEach((u) => box.appendChild(unitCard(u)));
+          grid.querySelectorAll(".portal-btn").forEach((btn) => btn.classList.toggle("active", btn === b));
+          renderPortalDetails(cls);
         });
         grid.appendChild(b);
       });
@@ -968,6 +1150,7 @@ OS.registerApp({
       const c = document.createElement("div");
       c.className = "unit-card r" + u.r;
       c.innerHTML =
+        '<div class="unit-portrait">' + heroPortraitMarkup(u.id) + '</div>' +
         '<div class="unit-rarity">' + RARITY[u.r].label + (p.lvl > 1 ? " · Niveau " + p.lvl : "") + "</div>" +
         '<div class="unit-name">' + u.name + (stars ? ' <span class="evo-stars">' + stars + "</span>" : "") + "</div>" +
         '<div class="unit-cls">' + u.cls + (p.lvl > 1 || p.evo ? " · +" + Math.round((p.atk / u.atk - 1) * 100) + " %" : "") + "</div>" +
@@ -1115,10 +1298,11 @@ OS.registerApp({
       }
 
       line.innerHTML =
-        '<div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
+        '<div class="relic-visual"><img loading="lazy" alt="" src="assets/asteria/equipment/' + k + '.svg"></div><div class="relic-details"><div class="unit-name">' + rel.name + " " + relicTierChip(tier) + "</div>" +
         (tier < 1 ? '<div class="forge-evo">' + rel.effect + " (au rang N)</div>" : "") +
         statsTxt + actionTxt;
 
+      line.innerHTML += "</div>";
       if (tier >= 1) {
         const wornId = save.relicsEquip[k] || "";
         const holder = wornId ? byId(wornId) : null;
@@ -1270,8 +1454,26 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Entraînement — testez tous les héros, même non possédés. Aucun gain, aucune perte : pure simulation.";
+      hint.textContent = "Mode Entraînement — testez chaque héros, même non possédé, dans un vrai duel contre un adversaire équilibré. Aucun gain ni perte sur votre sauvegarde.";
       content.appendChild(hint);
+
+      // Une fois un héros choisi, le laboratoire devient un écran de combat dédié.
+      // Le roster complet reste dans l'écran de sélection, pas au-dessus du combat.
+      if (battle && battle.mode === "train") {
+        const selected = document.createElement("div");
+        selected.className = "roster training-selected";
+        const selectedCard = unitCard(battle.units[0]);
+        selectedCard.classList.add("in-team");
+        selected.appendChild(selectedCard);
+        content.appendChild(selected);
+        const change = document.createElement("button");
+        change.className = "pull-btn";
+        change.textContent = "↩ Changer de héros";
+        change.addEventListener("click", () => { battle = null; renderTraining(); });
+        content.appendChild(change);
+        content.appendChild(battleView());
+        return;
+      }
 
       const box = document.createElement("div");
       box.className = "roster";
@@ -1282,33 +1484,41 @@ OS.registerApp({
         card.classList.add("selectable");
         if (!save.owned[u.id]) card.classList.add("locked");
         if (trainPick === u.id) card.classList.add("in-team");
-        card.addEventListener("click", () => { trainPick = u.id; renderTraining(); });
+        card.addEventListener("click", () => { trainPick = u.id; startTrainingBattle(); });
         box.appendChild(card);
       });
 
       const oppHint = document.createElement("div");
       oppHint.className = "team-hint";
-      oppHint.textContent = "Adversaire d'entraînement :";
+      oppHint.textContent = trainPick ? "Héros sélectionné : " + byId(trainPick).name + " · Lancez un duel réel contre un adversaire aléatoire." : "Choisissez un héros pour commencer le test.";
       content.appendChild(oppHint);
       const row = document.createElement("div");
       row.className = "pull-row";
-      TRAIN_OPPONENTS.forEach((op) => {
-        const b = document.createElement("button");
-        b.className = "pull-btn tier-infini";
-        b.innerHTML = op.name + "<br><small>" + op.type + " · " + op.hp + " PV · atk " + op.atk + "</small>";
-        b.addEventListener("click", () => startTrainingBattle(op));
-        row.appendChild(b);
-      });
+      const start = document.createElement("button");
+      start.className = "pull-btn tier-infini";
+      start.textContent = "⚔ Tester ce héros contre un mob aléatoire";
+      start.disabled = !trainPick;
+      start.addEventListener("click", startTrainingBattle);
+      row.appendChild(start);
       content.appendChild(row);
-      if (battle && battle.mode === "train" && battle.over) content.appendChild(battleView());
+      if (battle && battle.mode === "train") content.appendChild(battleView());
     }
 
-    function startTrainingBattle(op) {
+    function startTrainingBattle() {
       const u = trainPick ? byId(trainPick) : null;
       if (!u) return;
       const unit = corePower(u, save);
+      const types = Object.keys(ENEMY_TYPES);
+      const type = types[Math.floor(Math.random() * types.length)];
+      const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
+      const op = {
+        name, type,
+        hp: Math.max(9000, Math.round(unit.atk * 30)),
+        atk: Math.max(120, Math.round(unit.hp * 0.05)),
+      };
       battle = {
         mode: "train",
+        trainingDamage: 0,
         floor: 1,
         enemy: { name: op.name, type: op.type, hp: op.hp, maxHp: op.hp, atk: op.atk },
         tier: "train",
@@ -1316,14 +1526,18 @@ OS.registerApp({
         hp: [unit.hp],
         gauge: Math.min(60, unitFx(unit).jaugeInit || 0),
         picks: 0,
+        guard: false,
         curse: 0,
         burn: 0,
-        log: ["----- ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [aucun gain] -----"],
+        valenFury: 0,
+        breakGauge: 0,
+        intent: enemyIntent(type),
+        log: ["----- DUEL D'ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [" + type + "] · combat réel · aucun gain/perte -----"],
       };
       battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
       newHand();
       OS.sfx.play("ult");
-      renderQuests();
+      renderBattle();
     }
 
     function recyclePanel() {
@@ -1358,6 +1572,8 @@ OS.registerApp({
     }
 
     /* ---------- Collection ---------- */
+
+    let collectionFilters = { cls: "all", rarity: "all", ownership: "all" };
 
     function renderCollection() {
       setActiveTab(tabCollection);
@@ -1400,13 +1616,33 @@ OS.registerApp({
       });
       content.appendChild(rew);
 
+      const filters = document.createElement("div");
+      filters.className = "collection-filters";
+      const makeFilter = (label, key, options) => {
+        const wrap = document.createElement("label");
+        wrap.className = "collection-filter";
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        const select = document.createElement("select");
+        options.forEach((o) => { const opt = document.createElement("option"); opt.value = o.value; opt.textContent = o.label; select.appendChild(opt); });
+        select.value = collectionFilters[key];
+        select.addEventListener("change", () => { collectionFilters[key] = select.value; renderCollection(); });
+        wrap.append(caption, select);
+        filters.appendChild(wrap);
+      };
+      makeFilter("Classe", "cls", [{value:"all",label:"Toutes les classes"}, ...[...new Set(UNITS.map((u)=>u.cls))].sort().map((v)=>({value:v,label:v}))]);
+      makeFilter("Rareté", "rarity", [{value:"all",label:"Toutes les raretés"}, ...Object.keys(RARITY).sort((a,b)=>Number(b)-Number(a)).map((v)=>({value:v,label:RARITY[v].label}))]);
+      makeFilter("Possession", "ownership", [{value:"all",label:"Tous les héros"}, {value:"owned",label:"Possédés"}, {value:"missing",label:"Non possédés"}]);
+      content.appendChild(filters);
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Tous les héros du jeu — les non possédés sont grisés (touchez un héros pour sa fiche)";
+      hint.textContent = "Tous les héros du jeu — touchez une carte pour ouvrir sa fiche";
       content.appendChild(hint);
       const grid = document.createElement("div");
       grid.className = "roster col-grid";
-      UNITS.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
+      const filteredUnits = UNITS.filter((u) => (collectionFilters.cls === "all" || u.cls === collectionFilters.cls) && (collectionFilters.rarity === "all" || String(u.r) === collectionFilters.rarity) && (collectionFilters.ownership === "all" || (collectionFilters.ownership === "owned" ? !!save.owned[u.id] : !save.owned[u.id])));
+      if (!filteredUnits.length) { const empty = document.createElement("div"); empty.className = "team-hint"; empty.textContent = "Aucun personnage ne correspond à ces filtres."; grid.appendChild(empty); }
+      filteredUnits.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
         if (save.owned[u.id]) {
           const card = unitCard(u);
           card.addEventListener("click", () => OS.heroes.open(u.id));
@@ -1416,6 +1652,7 @@ OS.registerApp({
         const c = document.createElement("div");
         c.className = "unit-card locked r" + u.r;
         c.innerHTML =
+          '<div class="unit-portrait">' + heroPortraitMarkup(u.id) + '</div>' +
           '<div class="unit-rarity">' + RARITY[u.r].label + "</div>" +
           '<div class="unit-name">' + u.name + "</div>" +
           '<div class="unit-cls">Non invoqué…</div>' +
@@ -1470,6 +1707,32 @@ OS.registerApp({
       if (battle) content.appendChild(battleView());
     }
 
+    function renderBattle() {
+      if (battle && battle.mode === "train") renderTraining();
+      else renderQuests();
+    }
+
+    function enemyPortrait(type, name) { return enemyPortraitMarkup(type, name); }
+
+    function enemyIntent(type) {
+      const intents = {
+        "Brute": ["Frappe écrasante", "Cible le héros le plus blessé · dégâts élevés"],
+        "Assassin": ["Marque mortelle", "Vise le héros avec la plus forte ATK · risque de critique"],
+        "Sorcier": ["Déflagration", "Attaque toute l'équipe"],
+        "Capitaine": ["Ordre de charge", "Frappe une cible puis augmente sa propre ATK"],
+        "Golem": ["Poing de pierre", "Frappe lente et puissante · armure renforcée"],
+        "Oracle": ["Prière régénératrice", "Récupère des PV puis attaque"],
+        "Muraille": ["Percée du bastion", "Frappe une cible · défense élevée"],
+        "Invocateur": ["Appel des ombres", "Deux frappes sur des héros"],
+        "Fantassin": ["Rafale martiale", "Deux frappes rapides"],
+        "Nécromant": ["Drain funeste", "Se soigne puis attaque"],
+        "Banshee": ["Hurlement spectral", "Réduit la jauge d'Ultime puis attaque"],
+        "Sanguinaire": ["Traque des blessés", "Vise le héros ayant le moins de PV en proportion"],
+        "Colosse de givre": ["Onde glaciale", "Frappe une cible"],
+      };
+      return intents[type] || ["Attaque", "Frappe un héros au hasard"];
+    }
+
     function startBattle(key) {
       const team = teamUnits();
       const t = TIER[key];
@@ -1487,11 +1750,14 @@ OS.registerApp({
         hp: team.map((u) => u.hp),
         gauge: 0,
         picks: 0,
+        guard: false,
         curse: 0,
         burn: 0,
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
+      battle.guard = false;
+      battle.intent = enemyIntent(etype);
       battle.gauge = initialGauge(team, 60);
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
@@ -1523,6 +1789,7 @@ OS.registerApp({
       if (ph.elite) battle.elite = ph.elite;
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
+      battle.intent = enemyIntent(ph.type);
       battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
       if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
       battle.gauge = initialGauge(team, 60);
@@ -1576,7 +1843,7 @@ OS.registerApp({
         if (u.id === "nadila") battle.gauge = Math.min(100, battle.gauge + 5);
         OS.sfx.play("heal");
         if (battle.picks >= 3) enemyTurn();
-        renderQuests();
+        renderBattle();
         return;
       }
 
@@ -1619,7 +1886,7 @@ OS.registerApp({
       const hits = (u.id === "kairo" && Math.random() < 0.15) ? 2 : 1;
       let totalDealt = 0;
       for (let h = 0; h < hits; h++) {
-        totalDealt += hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""));
+        totalDealt += hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""), c.element);
         if (battle.enemy.hp <= 0) break;
       }
       if (u.id === "graal" && totalDealt > 0 && battle.enemy.hp > 0) {
@@ -1637,15 +1904,26 @@ OS.registerApp({
 
       if (battle.enemy.hp <= 0) return endBattle(true);
       if (battle.picks >= 3) enemyTurn();
-      renderQuests();
+      renderBattle();
     }
 
     function unitName(list) {
       return list.map((u) => u.name).join(" et ");
     }
 
+    function teamSynergies() {
+      const alive = battle.units.filter((u, i) => battle.hp[i] > 0);
+      const classes = new Set(alive.map((u) => u.cls));
+      const pairs = [];
+      if (classes.has("Mage") && classes.has("Archer")) pairs.push({ id: "precision", name: "Convergence arcanique", desc: "+8 % dégâts d'équipe", atk: 0.08 });
+      if (classes.has("Chevalier") && classes.has("Soigneur")) pairs.push({ id: "serment", name: "Serment protecteur", desc: "−10 % dégâts reçus", guard: 0.10 });
+      if (classes.has("Berserker") && classes.has("Rôdeur")) pairs.push({ id: "traque", name: "Traque coordonnée", desc: "+6 % dégâts d'équipe", atk: 0.06 });
+      return pairs;
+    }
+
     function teamAtkMult() {
       let mult = 1;
+      teamSynergies().forEach((synergy) => { mult += synergy.atk || 0; });
       battle.units.forEach((u, i) => {
         if (battle.hp[i] > 0) {
           if (u.id === "aldric") mult += 0.10;
@@ -1657,14 +1935,42 @@ OS.registerApp({
       return mult;
     }
 
-    function hitEnemy(base, actorName, label) {
+    function hitEnemy(base, actorName, label, element) {
       let dmg = base;
+      const affinity = ENEMY_AFFINITY[battle.enemy.type] || "arcane";
+      if (element && ELEMENTS[element]) {
+        if (ELEMENTS[element].strong === affinity) {
+          dmg = Math.round(dmg * 1.25);
+          battle.log.unshift("✧ Faiblesse exploitée : " + ELEMENTS[element].label + " frappe fort contre " + ELEMENTS[affinity].label + " (+25 %)");
+        } else if (ELEMENTS[element].weak === affinity) {
+          dmg = Math.round(dmg * 0.80);
+          battle.log.unshift("Résistance : " + ELEMENTS[affinity].label + " atténue " + ELEMENTS[element].label + " (−20 %)");
+        }
+        if (battle.lastElement && battle.lastElement !== element) {
+          dmg = Math.round(dmg * 1.15);
+          battle.log.unshift("⚡ Réaction élémentaire : " + ELEMENTS[battle.lastElement].label + " + " + ELEMENTS[element].label + " (+15 %)");
+        }
+        battle.lastElement = element;
+      }
       if (battle.enemy.type === "Golem") dmg = Math.round(dmg * 0.8);
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
       else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
+      if (battle.mode === "train") battle.trainingDamage = (battle.trainingDamage || 0) + dmg;
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
+
+      // Jauge de rupture : les assauts coordonnés peuvent interrompre la riposte.
+      if (battle.enemy.hp > 0 && !battle.staggered) {
+        battle.breakGauge = (battle.breakGauge || 0) + dmg;
+        const threshold = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
+        if (battle.breakGauge >= threshold) {
+          battle.breakGauge = 0;
+          battle.staggered = true;
+          battle.log.unshift("✦ RUPTURE ! " + battle.enemy.name + " est déséquilibré : sa prochaine action est interrompue.");
+          OS.sfx.play("crit");
+        }
+      }
       return dmg;
     }
 
@@ -1674,14 +1980,15 @@ OS.registerApp({
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" || strongest.id === "graal" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
       const dmg = Math.round(strongest.atk * 2.4 * heroMult * (1 + (unitFx(strongest).dmg || 0) / 100) * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
-      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      // Les ultimes passent par le même pipeline que les cartes : résistances,
+      // malédiction et jauge de rupture restent cohérentes quel que soit le type d’attaque.
+      hitEnemy(dmg, strongest.name, "Ultime", null);
       battle.gauge = 0;
       battle.picks = 3;
       OS.sfx.play("ult");
-      battle.log.unshift("✦ ULTIME de " + strongest.name + " → " + dmg + " dégâts !");
       if (battle.enemy.hp <= 0) return endBattle(true);
       enemyTurn();
-      renderQuests();
+      renderBattle();
     }
 
     function attackAlly(ti, raw) {
@@ -1696,7 +2003,12 @@ OS.registerApp({
         battle.log.unshift("Séraphine dévie l'attaque avec son bouclier !");
         return 0;
       }
-      let dmg = raw;
+      let dmg = battle.guard ? Math.round(raw * 0.65) : raw;
+      const protection = teamSynergies().find((synergy) => synergy.guard);
+      if (protection) {
+        dmg = Math.round(dmg * (1 - protection.guard));
+        battle.log.unshift(protection.name + " : dégâts réduits de " + Math.round(protection.guard * 100) + " %");
+      }
       const defenders = battle.units.filter((u, i) => u.cls === "Défenseur" && battle.hp[i] > 0);
       if (defenders.length) {
         const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10) + (unitFx(u).rempart || 0) / 100, 0));
@@ -1736,6 +2048,21 @@ OS.registerApp({
     function enemyTurn() {
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
+      // Une rupture annule la riposte annoncée, mais n'efface pas les dégâts périodiques.
+      if (battle.staggered) {
+        battle.staggered = false;
+        battle.log.unshift("⛓ " + battle.enemy.name + " perd son tour : rupture de posture !");
+        if (battle.burn > 0 && battle.enemy.hp > 0) {
+          const burnDmg = Math.round(battle.enemy.maxHp * 0.04 * battle.burn);
+          battle.enemy.hp = Math.max(0, battle.enemy.hp - burnDmg);
+          battle.log.unshift("Brûlure → " + burnDmg + " dégâts");
+          if (battle.enemy.hp <= 0) return endBattle(true);
+        }
+        battle.guard = false;
+        battle.intent = enemyIntent(battle.enemy.type);
+        newHand();
+        return;
+      }
       const type = battle.enemy.type;
       let ti;
       switch (type) {
@@ -1861,15 +2188,17 @@ OS.registerApp({
         }
       }
       if (!aliveIdx().length) return endBattle(false);
+      battle.guard = false;
+      battle.intent = enemyIntent(battle.enemy.type);
       newHand();
     }
 
     function endBattle(win) {
       if (battle.mode === "train") {
         battle.over = true;
-        battle.log.unshift(win ? "Mannequin détruit ! Entraînement réussi (aucun gain)." : "Le mannequin tient bon… (aucun gain)");
+        battle.log.unshift(win ? "Adversaire vaincu ! Test réussi — aucun gain ni progression enregistrée." : "Votre héros est K.O. — test terminé, aucune perte ni progression enregistrée.");
         OS.sfx.play(win ? "victory" : "defeat");
-        renderQuests();
+        renderBattle();
         return;
       }
       if (win && battle.mode === "infini") return advanceFloor();
@@ -1881,6 +2210,10 @@ OS.registerApp({
         battle.enemy = { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk };
         battle.elite = ph.elite;
         battle.hp = battle.units.map((u) => u.hp);
+        battle.breakGauge = 0;
+        battle.staggered = false;
+        battle.guard = false;
+        battle.intent = enemyIntent(ph.type);
         battle.gauge = Math.min(100, battle.gauge + 30);
         battle.curse = 0;
         battle.burn = 0;
@@ -1890,7 +2223,7 @@ OS.registerApp({
         battle.log.unshift("----- RAID · Phase " + battle.raidPhase + "/3 : " + ph.name + " -----");
         if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
         newHand();
-        renderQuests();
+        renderBattle();
         return;
       }
       let reward;
@@ -1898,7 +2231,7 @@ OS.registerApp({
         reward = Math.max(2, battle.floor * 3);
         if (battle.floor > infiniteBest) {
           infiniteBest = battle.floor;
-          OS.store.set("infinite-best", infiniteBest);
+          OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
           battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
         }
       } else if (battle.mode === "histoire") {
@@ -1983,7 +2316,7 @@ OS.registerApp({
       persist();
       battle.log.unshift(win ? "Victoire ! +" + reward + " ◆" : "Défaite… +" + reward + " ◆ (réconfort)");
       battle.over = true;
-      renderQuests();
+      renderBattle();
     }
 
     function advanceFloor() {
@@ -2004,7 +2337,7 @@ OS.registerApp({
       battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.09, battle.floor)) };
       battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
       newHand();
-      renderQuests();
+      renderBattle();
     }
 
     function bar(label, cur, max, cls) {
@@ -2022,6 +2355,16 @@ OS.registerApp({
     function battleView() {
       const view = document.createElement("div");
       view.className = "battle";
+      if (battle.mode === "train") {
+        const lab = document.createElement("div");
+        lab.className = "team-hint";
+        lab.textContent = "Duel réel · l'adversaire riposte après vos 3 actions. Victoire et K.O. possibles ; aucune récompense ni perte de progression.";
+        view.appendChild(lab);
+        const score = document.createElement("div");
+        score.className = "training-score";
+        score.innerHTML = "<strong>Dégâts cumulés</strong><span>" + (battle.trainingDamage || 0).toLocaleString("fr-FR") + " infligés · Ennemi : " + Math.max(0, battle.enemy.hp).toLocaleString("fr-FR") + " PV · Héros : " + Math.max(0, battle.hp[0]).toLocaleString("fr-FR") + " PV · " + battle.picks + "/3 actions</span>";
+        view.appendChild(score);
+      }
 
       if (battle.over) {
         const won = battle.enemy.hp <= 0;
@@ -2073,12 +2416,55 @@ OS.registerApp({
           view.appendChild(row);
         }
       } else {
+        if (battle.mode === "train") {
+          const exit = document.createElement("button");
+          exit.className = "pull-btn";
+          exit.textContent = "↩ Quitter le test et revenir à l'entraînement";
+          exit.addEventListener("click", () => { battle = null; renderTraining(); });
+          const exitRow = document.createElement("div");
+          exitRow.className = "battle-actions";
+          exitRow.appendChild(exit);
+          view.appendChild(exitRow);
+        }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
           : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
+        const enemyPortraitBox = document.createElement("div");
+        enemyPortraitBox.className = "battle-enemy-art";
+        enemyPortraitBox.innerHTML = '<div class="enemy-portrait-frame">' + enemyPortrait(battle.enemy.type, battle.enemy.name) + '</div><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
+        view.appendChild(enemyPortraitBox);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
+        const breakMax = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
+        const breakValue = Math.min(100, Math.round((battle.breakGauge || 0) / breakMax * 100));
+        const breakWrap = document.createElement("div");
+        breakWrap.className = "hp-row break-gauge";
+        breakWrap.innerHTML = '<div class="hp-label">Rupture</div><div class="hp-track"><div class="hp-fill" style="width:' + breakValue + '%"></div></div><div class="hp-num">' + breakValue + '%</div>';
+        view.appendChild(breakWrap);
+        if (battle.staggered) {
+          const broken = document.createElement("div");
+          broken.className = "battle-break-alert";
+          broken.textContent = "⛓ Ennemi déséquilibré — prochaine action interrompue";
+          view.appendChild(broken);
+        }
+        const intent = battle.intent || enemyIntent(battle.enemy.type);
+        const intentBox = document.createElement("div");
+        intentBox.className = "battle-intent";
+        intentBox.innerHTML = '<strong>⚠ Prochaine action : ' + intent[0] + '</strong><span>' + intent[1] + '</span>';
+        view.appendChild(intentBox);
+        const affinity = ENEMY_AFFINITY[battle.enemy.type] || "arcane";
+        const affinityBox = document.createElement("div");
+        affinityBox.className = "battle-affinity";
+        affinityBox.textContent = ELEMENTS[affinity].icon + " Affinité ennemie : " + ELEMENTS[affinity].label + " · Faiblesse : " + (ELEMENTS[affinity].weak ? ELEMENTS[ELEMENTS[affinity].weak].label : "aucune");
+        view.appendChild(affinityBox);
+        const synergies = teamSynergies();
+        if (synergies.length) {
+          const synergyBox = document.createElement("div");
+          synergyBox.className = "battle-synergy";
+          synergyBox.innerHTML = "<strong>Synergie active</strong><span>" + synergies.map((x) => x.name + " · " + x.desc).join(" / ") + "</span>";
+          view.appendChild(synergyBox);
+        }
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
@@ -2117,6 +2503,19 @@ OS.registerApp({
         ult.textContent = "✦ Ultime (" + battle.gauge + "%)";
         ult.addEventListener("click", useUltimate);
         actions.appendChild(ult);
+        const guard = document.createElement("button");
+        guard.className = "pull-btn" + (battle.guard ? " disabled" : "");
+        guard.textContent = battle.guard ? "🛡 Garde active" : "🛡 Garde d'équipe (1 action)";
+        guard.disabled = battle.guard || battle.picks >= 3;
+        guard.addEventListener("click", () => {
+          if (!battle || battle.guard || battle.picks >= 3) return;
+          battle.guard = true;
+          battle.picks++;
+          battle.log.unshift("🛡 L'équipe se met en garde : les dégâts reçus sont réduits de 35 % jusqu'à la fin du tour ennemi.");
+          if (battle.picks >= 3) enemyTurn();
+          renderBattle();
+        });
+        actions.appendChild(guard);
         view.appendChild(actions);
         if (battle.mode === "train") {
           const trow = document.createElement("div");
@@ -2513,7 +2912,8 @@ OS.registerApp({
           const locked = i > storyState.done;
           const done = i < storyState.done;
           c.className = "story-chapter" + (locked ? " locked" : "") + (done ? " done" : "");
-          c.innerHTML = "<b>" + (i + 1) + ". " + ch.title + "</b><small>" + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small>";
+          const regionArt = ["foret", "volcan", "ruines"][i % 3];
+          c.innerHTML = '<span class="story-chapter-art"><img loading="lazy" alt="" src="assets/asteria/scenes/' + regionArt + '.svg"></span><span class="story-chapter-copy"><b>' + (i + 1) + ". " + ch.title + '</b><small>' + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small></span>";
           if (!locked) c.addEventListener("click", () => { OS.sfx.play("page"); openScene(i); });
           list.appendChild(c);
         });
@@ -2524,6 +2924,9 @@ OS.registerApp({
 
     function renderStory() {
       clearTyping();
+      // Une victoire/défaite d'histoire est terminée : sortir du combat avant
+      // de revenir à la carte évite de conserver une équipe de combat obsolète.
+      if (battle && battle.mode === "histoire" && battle.over) battle = null;
       setActiveTab(tabStory);
       content.innerHTML = "";
       content.appendChild(quartzBar());
@@ -2609,6 +3012,11 @@ OS.registerApp({
 
     function renderScene() {
       clearTyping();
+      setActiveTab(tabStory);
+      if (!storyScene || !STORY[storyScene.idx] || !STORY[storyScene.idx].events[storyScene.step]) {
+        renderStory();
+        return;
+      }
       const ch = STORY[storyScene.idx];
       const ev = ch.events[storyScene.step];
       content.innerHTML = "";
@@ -2619,6 +3027,26 @@ OS.registerApp({
       art.className = "story-art-box";
       art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
       content.appendChild(art);
+      const actorStrip = document.createElement("div");
+      actorStrip.className = "story-actor-strip";
+      const cast = [];
+      ch.events.forEach((event) => {
+        if (event.s && !cast.some((entry) => entry.name === event.s)) cast.push({ name: event.s, boss: false });
+        if (event.boss && !cast.some((entry) => entry.name === event.boss.name)) cast.push({ name: event.boss.name, boss: true, type: event.boss.type });
+      });
+      cast.forEach((actor) => {
+        const actorCard = document.createElement("div");
+        actorCard.className = "story-actor";
+        const known = UNITS.find((u) => u.name === actor.name);
+        const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === actor.name || actor.name.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(actor.name.toLowerCase())));
+        const isEnemy = actor.boss || !!bossEvent || actor.name === "Gortak";
+        const portrait = isEnemy
+          ? enemyPortraitMarkup(actor.type || (bossEvent && bossEvent.boss.type) || "Brute", actor.name)
+          : heroPortraitMarkup(known ? known.id : "story-" + artSlug(actor.name));
+        actorCard.innerHTML = portrait + '<span>' + portraitEscape(actor.name) + '</span>';
+        actorStrip.appendChild(actorCard);
+      });
+      if (actorStrip.childElementCount) content.appendChild(actorStrip);
 
       const title = document.createElement("div");
       title.className = "story-title";
@@ -2656,6 +3084,10 @@ OS.registerApp({
         line.className = "story-line current";
         text.appendChild(line);
         content.appendChild(text);
+        const bossPortrait = document.createElement("div");
+        bossPortrait.className = "story-boss-portrait";
+        bossPortrait.innerHTML = enemyPortraitMarkup(ev.boss.type, ev.boss.name) + '<span>' + ev.boss.name + " · " + ev.boss.type + '</span>';
+        content.appendChild(bossPortrait);
         typeCurrentLine(line, ev.boss.intro);
 
         const boss = document.createElement("button");
@@ -2667,10 +3099,15 @@ OS.registerApp({
         const text = document.createElement("div");
         text.className = "story-text";
         if (ev.s) {
-          const sp = document.createElement("div");
-          sp.className = "story-speaker";
-          sp.textContent = ev.s;
-          text.appendChild(sp);
+          const speaker = document.createElement("div");
+          speaker.className = "story-speaker-card";
+          const known = UNITS.find((u) => u.name === ev.s);
+          const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === ev.s || ev.s.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(ev.s.toLowerCase())));
+          const speakerPortrait = bossEvent || ev.s === "Gortak"
+            ? enemyPortraitMarkup((bossEvent && bossEvent.boss.type) || "Brute", ev.s)
+            : heroPortraitMarkup(known ? known.id : "story-" + artSlug(ev.s));
+          speaker.innerHTML = speakerPortrait + '<span>' + portraitEscape(ev.s) + '</span>';
+          text.appendChild(speaker);
         }
         const line = document.createElement("div");
         line.className = "story-line current" + (ev.s ? "" : " narration");
@@ -2712,7 +3149,9 @@ OS.registerApp({
 
     function renderDoneChapter(i, subtitle) {
       clearTyping();
+      setActiveTab(tabStory);
       const ch = STORY[i];
+      if (!ch) { renderStory(); return; }
       content.innerHTML = "";
       content.appendChild(quartzBar());
 
@@ -2758,7 +3197,8 @@ OS.registerApp({
       const team = teamUnits();
       if (!team.length) { renderStory(); return; }
       const fx = BLESSING_FX[storyState.blessing] || {};
-      const d = STORY_DIFFS[storyState.diff || "moyen"];
+      const d = STORY_DIFFS[storyState.diff] || STORY_DIFFS.facile;
+      if (!cfg || !Number.isFinite(cfg.hp) || !Number.isFinite(cfg.atk)) { renderStory(); return; }
       const hp = Math.round(cfg.hp * (fx.hpMult || 1) * d.hp);
       storyScene = { idx: storyScene ? storyScene.idx : 0, step: storyScene ? storyScene.step : 0 };
       battle = {
@@ -2791,6 +3231,7 @@ OS.registerApp({
     }
 
     function onStoryContinue() {
+      if (!battle || battle.mode !== "histoire" || !battle.over || !battle.enemy || battle.enemy.hp > 0) return;
       const idx = battle.storyChapter;
       const step = battle.storyStep + 1;
       const fresh = !!battle.freshWin;
@@ -2800,13 +3241,14 @@ OS.registerApp({
     }
 
     function onStoryRetry() {
+      if (!battle || battle.mode !== "histoire" || !battle.over || battle.enemy.hp <= 0) return;
       storyScene = { idx: battle.storyChapter, step: battle.storyStep };
       openScene(battle.storyChapter, battle.storyStep);
     }
-
-    /* ---------- API diffé pour la barre supérieure ---------- */
+    /* ---------- API de données exposée dès le chargement ---------- */
+    
     OS.asteriaData.storyDiffs = function () {
-      const st = OS.store.get("asteria-story", {});
+      const st = OS.store.get(SAVE_PREFIX + "-story", {});
       const beaten = st.bossBeaten || {};
       let bn = 0;
       for (let t = 0; t < 5; t++) {
@@ -2820,13 +3262,13 @@ OS.registerApp({
       }));
     };
     OS.asteriaData.setStoryDiff = function (key) {
-      const st = OS.store.get("asteria-story", {});
+      const st = OS.store.get(SAVE_PREFIX + "-story", {});
       const infos = OS.asteriaData.storyDiffs();
       const info = infos.find((d) => d.key === key);
       if (!info || info.locked) return false;
       st.diff = key;
       if (st.done === undefined) st.done = 0;
-      OS.store.set("asteria-story", st);
+      OS.store.set(SAVE_PREFIX + "-story", st);
       document.dispatchEvent(new Event("asteria-diff"));
       return true;
     };

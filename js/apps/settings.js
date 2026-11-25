@@ -106,7 +106,10 @@ OS.registerApp({
       vol.min = "0";
       vol.max = "100";
       vol.value = String(OS.state.volume);
-      vol.addEventListener("change", () => OS.setVolume(Number(vol.value)));
+      vol.addEventListener("input", () => {
+        OS.setVolume(Number(vol.value));
+        rowV.querySelector(".set-sub").textContent = String(OS.state.volume) + " %";
+      });
       rowV.appendChild(vol);
       sound.appendChild(rowV);
 

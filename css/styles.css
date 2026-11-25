@@ -9,12 +9,16 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
+  width: 100%;
   height: 100%;
+  min-height: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: var(--bg-unlocked);
   color: #eef1f8;
   overflow: hidden;
 }
+body { display: flex; flex-direction: column; }
+
 
 .hidden { display: none !important; }
 button { font-family: inherit; }
@@ -66,10 +70,21 @@ button { font-family: inherit; }
 
 /* ---------- Page d'app ---------- */
 .app-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #68799f rgba(255,255,255,.07);
   padding: 18px 22px 30px;
 }
+.app-body::-webkit-scrollbar { width: 10px; }
+.app-body::-webkit-scrollbar-track { background: rgba(255,255,255,.06); border-radius: 8px; }
+.app-body::-webkit-scrollbar-thumb { background: #68799f; border: 2px solid #171d2b; border-radius: 8px; }
+.app-body::-webkit-scrollbar-thumb:hover { background: #91a5d2; }
 .app-body.padend { padding-bottom: 46px; }
 
 /* ---------- Notifications ---------- */
@@ -237,6 +252,26 @@ button { font-family: inherit; }
 
 /* Combat */
 .battle { display: flex; flex-direction: column; gap: 8px; }
+.battle-intent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(227,178,60,.42);
+  border-left: 3px solid #e3b23c;
+  border-radius: 9px;
+  background: linear-gradient(110deg, rgba(227,178,60,.12), rgba(0,0,0,.18));
+  color: #e8d7a8;
+  font-size: 12px;
+}
+.battle-intent strong { color: #f0c967; font-size: 13px; }
+.battle-intent span { color: #b6bed4; line-height: 1.4; }
+.battle-actions .pull-btn.disabled,
+.battle-actions .pull-btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 480px) {
+  .battle-actions { flex-wrap: wrap; }
+  .battle-actions .pull-btn { flex: 1 1 140px; }
+}
 .hp-row { display: grid; grid-template-columns: 92px 1fr 74px; gap: 8px; align-items: center; font-size: 12px; }
 .hp-row .hp-label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .hp-row.enemy .hp-label { color: #e07b7b; font-weight: 700; }
@@ -619,3 +654,155 @@ body.cb .portal-btn, body.cb .pull-btn.portal { border-style: dashed; }
 .rb-name { flex: 1; }
 .rb-score { color: #3bd4c4; font-weight: 700; }
 body.cb .rb-score { color: #0fb3a3; }
+
+/* Astéria 2.0 — posture break */
+.break-gauge .hp-label { color: #d7b86a; }
+.break-gauge .hp-track { background: rgba(215,184,106,.13); }
+.break-gauge .hp-fill { background: linear-gradient(90deg, #a87935, #f1d27b); }
+.battle-break-alert {
+  padding: 8px 11px;
+  border: 1px solid rgba(215,184,106,.45);
+  border-radius: 8px;
+  background: rgba(135,99,35,.16);
+  color: #f0d58b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* Astéria 2.0 — affinités élémentaires */
+.battle-affinity {
+  margin: 7px 0 10px;
+  padding: 8px 11px;
+  border: 1px solid rgba(125, 180, 255, .24);
+  border-radius: 10px;
+  background: linear-gradient(110deg, rgba(48, 77, 120, .22), rgba(92, 56, 120, .14));
+  color: var(--text-secondary, #b9c5dc);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+
+/* Astéria 2.0 — synergies de composition */
+.battle-synergy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 7px 0 10px;
+  padding: 8px 11px;
+  border: 1px solid rgba(226, 179, 91, .28);
+  border-radius: 10px;
+  background: linear-gradient(110deg, rgba(125, 87, 35, .18), rgba(71, 61, 110, .14));
+  color: var(--text-secondary, #c8c0aa);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+.battle-synergy strong { color: #e8c77d; }
+
+
+/* Astéria 2.0 — galerie de portraits */
+.unit-card { position: relative; overflow: hidden; }
+.unit-portrait { height: 118px; margin: -10px -10px 9px; overflow: hidden; border-radius: 12px 12px 5px 5px; background: #101522; }
+.unit-portrait img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 28%; }
+.unit-card.r3 .unit-portrait { height: 148px; }
+.unit-card .unit-name, .unit-card .unit-cls { position:relative; }
+@media (max-width: 380px) { .unit-portrait { height: 96px; } .unit-card.r3 .unit-portrait { height: 118px; } }
+
+
+/* Décor illustré du champ de bataille */
+.story-art-box { background-image: linear-gradient(180deg, rgba(10,14,28,.12), rgba(10,14,28,.55)), url("../assets/asteria/scenes/crepuscule-ruines.svg"); background-size: cover; background-position: center; border-radius: 14px; overflow: hidden; }
+.story-art-box > svg { position: relative; z-index: 1; }
+
+
+/* Bestiaire illustré et carte des chapitres */
+.battle-enemy-art { display:flex; align-items:center; gap:14px; margin:10px 0; padding:10px; border:1px solid rgba(180,160,220,.25); border-radius:14px; background:linear-gradient(120deg,rgba(27,30,49,.95),rgba(12,16,27,.88)); }
+.battle-enemy-art img { width:104px; height:112px; object-fit:contain; border-radius:10px; background:#0b101b; }
+.battle-enemy-art div { display:flex; flex-direction:column; gap:5px; }
+.battle-enemy-art strong { color:#f2e7d2; font-family:serif; font-size:1.05rem; }
+.battle-enemy-art span { color:#b6a4df; font-size:.82rem; }
+.story-chapter { display:flex; align-items:stretch; gap:10px; overflow:hidden; padding:7px; }
+.story-chapter-art { flex:0 0 94px; height:68px; overflow:hidden; border-radius:8px; background:#111827; }
+.story-chapter-art img { width:100%; height:100%; object-fit:cover; }
+.story-chapter-copy { display:flex; flex:1; flex-direction:column; justify-content:center; gap:5px; text-align:left; }
+.story-chapter-copy small { opacity:.75; }
+@media(max-width:380px) { .battle-enemy-art img { width:82px; height:92px; } .story-chapter-art { flex-basis:76px; height:60px; } }
+
+
+/* Reliquaire : icônes d'équipement */
+.relic-line { display:flex; align-items:flex-start; gap:12px; }
+.relic-visual { flex:0 0 76px; width:76px; height:76px; border-radius:12px; overflow:hidden; background:#101725; }
+.relic-visual img { width:100%; height:100%; object-fit:contain; }
+.relic-details { min-width:0; flex:1; }
+@media(max-width:380px) { .relic-visual { flex-basis:58px; width:58px; height:58px; } }
+
+
+/* Portraits individuels du roster et du bestiaire Astéria */
+.unit-portrait { display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.portrait-art { display:block; width:100%; height:100%; max-height:150px; object-fit:contain; }
+.unit-portrait .portrait-art { width:100%; height:112px; }
+.sheet-portrait { display:flex; justify-content:center; align-items:center; min-height:180px; margin:8px auto 14px; }
+.sheet-portrait .portrait-art { width:min(100%,190px); height:180px; }
+.battle-enemy-art .portrait-art { width:104px; height:120px; flex:0 0 104px; }
+
+.battle-enemy-art .enemy-portrait-frame { display:flex; flex:0 0 104px; align-items:center; justify-content:center; width:104px; height:120px; overflow:hidden; border-radius:10px; background:#0b101b; }
+.battle-enemy-art .enemy-portrait-frame .portrait-art { width:104px; height:120px; }
+
+/* Laboratoire de test libre */
+.battle-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.battle-actions .pull-btn { flex:1 1 220px; }
+
+
+/* Astéria 2.0 — filtres, portails et portraits */
+.collection-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:10px; border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(255,255,255,.035); }
+.collection-filter { display:flex; flex-direction:column; gap:5px; min-width:0; color:#b9c3d9; font-size:11px; }
+.collection-filter select { width:100%; min-width:0; padding:9px 7px; color:#eef1f8; background:#202a40; border:1px solid #465473; border-radius:8px; font:inherit; font-size:12px; }
+.collection-filter option { color:#eef1f8; background:#202a40; }
+.portal-detail { display:flex; flex-direction:column; gap:10px; padding:12px; border:1px solid rgba(227,178,60,.32); border-radius:14px; background:linear-gradient(145deg,rgba(49,39,75,.55),rgba(15,21,35,.9)); }
+.portal-detail-head { display:flex; flex-direction:column; gap:4px; }
+.portal-detail-head strong { color:#f2d48a; font-size:16px; }
+.portal-detail-head span { color:#b8c2d8; font-size:12px; }
+.portal-rates { display:flex; flex-wrap:wrap; gap:7px; }
+.portal-rate { padding:6px 9px; border:1px solid rgba(255,255,255,.13); border-radius:20px; font-size:12px; font-weight:700; }
+.portal-rate.r3 { color:#ffcf77; background:rgba(255,190,75,.12); }
+.portal-rate.r2 { color:#d5a5ff; background:rgba(166,112,230,.12); }
+.portal-rate.r1 { color:#aab8cf; background:rgba(150,165,190,.1); }
+.portal-roster { max-height:none; }
+.portal-btn.active { border-color:#e3b23c; box-shadow:0 0 0 1px rgba(227,178,60,.35); }
+.portrait-art { overflow:visible; }
+.unit-portrait .portrait-art { min-width:100%; min-height:100%; }
+@media(max-width:600px) {
+  .app-body { padding:12px 10px 24px; }
+  .collection-filters { grid-template-columns:1fr; }
+  .gacha-tabs { flex-wrap:wrap; }
+  .gacha-tabs button { flex:1 1 30%; }
+  .pull-row { flex-wrap:wrap; }
+  .pull-row > .pull-btn { min-width:calc(50% - 6px); }
+}
+
+
+/* Astéria — portraits autonomes et aides visuelles du récit/laboratoire */
+.portrait-art { display:block; object-fit:contain; }
+.unit-portrait { min-height:112px; }
+.unit-portrait .portrait-art { width:100%; height:112px; object-fit:contain; }
+.battle-enemy-art .portrait-art { width:104px; height:120px; object-fit:contain; }
+.training-score { display:flex; flex-direction:column; gap:4px; padding:10px 12px; border:1px solid rgba(227,178,60,.28); border-radius:10px; background:rgba(227,178,60,.07); }
+.training-score strong { color:#f1d58c; font-size:13px; }
+.training-score span { color:#c7d0e3; font-size:12px; }
+.portal-owned-filter { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#c6cee0; font-size:12px; }
+.portal-owned-filter select { min-width:150px; padding:9px; color:#eef1f8; background:#202a40; border:1px solid #465473; border-radius:8px; }
+.story-actor-strip { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+.story-actor { display:flex; align-items:center; gap:7px; padding:6px 9px; border-radius:10px; background:rgba(255,255,255,.06); color:#cbd4e8; font-size:11px; }
+.story-actor img { width:38px; height:46px; object-fit:contain; }
+.story-speaker-card { display:flex; align-items:center; gap:10px; margin-bottom:8px; color:#f2d48a; font-weight:700; }
+.story-speaker-card img { width:56px; height:64px; object-fit:contain; border-radius:8px; background:rgba(255,255,255,.06); }
+.story-boss-portrait { display:flex; align-items:center; gap:12px; margin:8px 0; color:#f2d48a; font-weight:700; }
+.story-boss-portrait img { width:86px; height:100px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,.06); }
+@media(max-width:520px) { .collection-filters { grid-template-columns:1fr; } .portal-owned-filter { align-items:stretch; flex-direction:column; } }
+
+/* Portraits Astéria générés individuellement : chaque identifiant possède son dessin SVG */
+.unit-portrait .portrait-art { width:100%; height:124px; display:block; object-fit:contain; }
+.battle-enemy-art .portrait-art { width:108px; height:124px; display:block; object-fit:contain; }
+.story-actor .portrait-art { width:54px; height:62px; display:block; object-fit:contain; flex:0 0 auto; }
+.story-speaker-card .portrait-art { width:68px; height:78px; display:block; object-fit:contain; flex:0 0 auto; border-radius:8px; background:rgba(255,255,255,.06); }
+.story-boss-portrait .portrait-art { width:96px; height:108px; display:block; object-fit:contain; flex:0 0 auto; border-radius:10px; background:rgba(255,255,255,.06); }
+.training-score { gap:5px; }

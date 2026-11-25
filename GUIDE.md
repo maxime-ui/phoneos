@@ -290,6 +290,5 @@ compétiteurs — affichée dans la Salle des trophées.
 - 100 % HTML/CSS/JS vanilla, aucune dépendance runtime.
 - Sauvegarde locale (`phoneos:*` dans localStorage) : Astéria, Histoire, Raid,
   missions, meilleur étage, Réglages.
-- Tests : `node test/smoke.test.js` (192 vérifications) et
-  `node test/stress.test.js` — voir le README.
+- Tests : `npm run check:syntax` puis `npm test` (test de fumée jsdom) — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.

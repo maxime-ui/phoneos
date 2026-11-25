@@ -1,0 +1,24 @@
+name: Astéria 2.0 — qualité
+on:
+  pull_request:
+    branches: [vibe/phoneos-270620]
+  push:
+    branches: [asteria-2.0]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer les dépendances de test
+        run: npm install --no-audit --no-fund
+      - name: Vérifier la syntaxe JavaScript
+        run: npm run check:syntax
+      - name: Exécuter le test de fumée complet
+        run: npm test
