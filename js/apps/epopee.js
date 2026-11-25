@@ -13,7 +13,7 @@ OS.registerApp({
 
     /* ---------- Données ---------- */
 
-    const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" } };
+    const RARITY = { 1: { label: "R", color: "#7d869c" }, 2: { label: "SR", color: "#4f9eff" }, 3: { label: "SSR", color: "#e3b23c" }, 4: { label: "SS", color: "#ff8c5a" } };
     const CARD = { R: { label: "Brut", color: "#c34a2f", mult: 1.5 }, B: { label: "Arcane", color: "#3b6bd4", mult: 1.0 }, V: { label: "Rapide", color: "#3ba75c", mult: 0.8 } };
     const TIER = {
       facile: { label: "Facile", hp: 7000, atk: 780, reward: 5 },
@@ -22,6 +22,13 @@ OS.registerApp({
       infini: { label: "Infini", hp: 7000, atk: 780, reward: 0, infinite: true },
     };
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche"];
+
+    const COLLECTION_REWARDS = [
+      { pct: 25, quartz: 50 },
+      { pct: 50, quartz: 100 },
+      { pct: 75, quartz: 200 },
+      { pct: 100, quartz: 500 },
+    ];
 
     const ENEMY_TYPES = {
       "Brute": { desc: "Frappe fort le membre le plus blessé" },
@@ -153,6 +160,8 @@ OS.registerApp({
       { id: "yuki", name: "Yuki", r: 1, cls: "Archer", atk: 1100, hp: 6800, cards: ["V", "R", "B"] },
       { id: "tora", name: "Tora", r: 1, cls: "Rôdeur", atk: 1030, hp: 7100, cards: ["V", "V", "B"] },
       { id: "piou", name: "Piou-Bleu", r: 1, cls: "Mage", atk: 950, hp: 7800, cards: ["B", "B", "V"] },
+      /* --- SS exclusive : Le Graal (Dragon des cendres en Enfer+) --- */
+      { id: "graal", name: "Astrée, Héritière des braises", r: 4, cls: "Héros", atk: 2400, hp: 13000, cards: ["R", "R", "R"] },
     ];
 
     const CLASS_BONUS = {
@@ -190,6 +199,7 @@ OS.registerApp({
       rin: ["Destin noirci", "+8 % de dégâts par tour qui passe (au lieu de +5 %)"],
       vespera: ["Veillées", "chaque carte jouée recharge +6 % d'Ultime"],
       takumi: ["Garde-rapprochée", "renvoie 20 % des dégâts de la riposte qu'il subit"],
+      graal: ["Héritage des braises", "+8 %/tour, renvoie 35 % des ripostes et soigne 15 % des dégâts infligés"],
     };
     const byId = (id) => UNITS.find((u) => u.id === id);
 
@@ -207,6 +217,8 @@ OS.registerApp({
       return { quartz: 30, owned: { bron: 1, tilia: 1, nerys: 1 }, team: ["bron", "tilia", "nerys"] };
     }
     let save = loadSave();
+    if (!save.pity) save.pity = {};
+    if (!save.collected) save.collected = [];
     function persist() { OS.store.set("epopee", save); }
 
     let storyState = OS.store.get("epopee-story", { done: 0, music: false, diff: "moyen" });
@@ -219,9 +231,10 @@ OS.registerApp({
     tabsRow.className = "gacha-tabs";
     const tabSummon = tab("Invoquer");
     const tabTeam = tab("Équipe");
+    const tabCollection = tab("Collection");
     const tabBattle = tab("Quêtes");
     const tabStory = tab("Histoire");
-    tabsRow.append(tabSummon, tabTeam, tabBattle, tabStory);
+    tabsRow.append(tabSummon, tabTeam, tabCollection, tabBattle, tabStory);
 
     function tab(label) {
       const b = document.createElement("button");
@@ -230,13 +243,14 @@ OS.registerApp({
         OS.sfx.play("ui");
         if (label === "Invoquer") renderSummon();
         else if (label === "Équipe") renderTeam();
+        else if (label === "Collection") renderCollection();
         else if (label === "Histoire") renderStory();
         else renderQuests();
       });
       return b;
     }
     function setActiveTab(btn) {
-      [tabSummon, tabTeam, tabBattle, tabStory].forEach((b) => b.classList.toggle("active", b === btn));
+      [tabSummon, tabTeam, tabCollection, tabBattle, tabStory].forEach((b) => b.classList.toggle("active", b === btn));
     }
 
     body.append(tabsRow);
@@ -246,11 +260,41 @@ OS.registerApp({
 
     /* ---------- Gacha ---------- */
 
-    function rollUnit() {
+    function rollUnit(pool) {
+      const base = (pool || UNITS).filter((u) => u.id !== "graal");
       const roll = Math.random();
-      const tier = roll < 0.05 ? 3 : roll < 0.25 ? 2 : 1;
-      const pool = UNITS.filter((u) => u.r === tier);
-      return pool[Math.floor(Math.random() * pool.length)];
+      const wanted = roll < 0.05 ? 3 : roll < 0.25 ? 2 : 1;
+      const arr = base.filter((u) => u.r === wanted).length
+        ? base.filter((u) => u.r === wanted)
+        : [2, 1, 3].map((r) => base.filter((u) => u.r === r)).find((a) => a.length) || base;
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function classPull(cls, n) {
+      const cost = n === 1 ? 5 : 45;
+      if (save.quartz < cost) {
+        notifyGacha("Pas assez de quartz ! Gagnez-en en quête.");
+        return [];
+      }
+      save.quartz -= cost;
+      const pool = UNITS.filter((u) => u.cls === cls && u.id !== "graal");
+      const ssr = pool.filter((u) => u.r === 3);
+      const results = [];
+      for (let i = 0; i < n; i++) {
+        save.pity[cls] = (save.pity[cls] || 0) + 1;
+        let unit;
+        if (ssr.length && save.pity[cls] >= 30) {
+          unit = ssr[Math.floor(Math.random() * ssr.length)];
+          save.pity[cls] = 0;
+        } else {
+          unit = rollUnit(pool);
+          if (unit.r === 3) save.pity[cls] = 0;
+        }
+        save.owned[unit.id] = (save.owned[unit.id] || 0) + 1;
+        results.push(unit);
+      }
+      persist();
+      return results;
     }
 
     function pull(n) {
@@ -288,6 +332,33 @@ OS.registerApp({
       const multi = pullBtn("Invoquer ×10 — 30 ◆", 10);
       buttons.append(single, multi);
       content.appendChild(buttons);
+
+      const portalTitle = document.createElement("div");
+      portalTitle.className = "team-hint";
+      portalTitle.textContent = "Portails de classe — 5 ◆ l'invocation · SSR garanti à 30 (pity par portail)";
+      content.appendChild(portalTitle);
+      const grid = document.createElement("div");
+      grid.className = "portal-grid";
+      [...new Set(UNITS.map((u) => u.cls))].forEach((cls) => {
+        const b = document.createElement("button");
+        b.className = "pull-btn portal-btn";
+        b.innerHTML = "Portail " + cls + "<br><small>pity " + (save.pity[cls] || 0) + "/30</small>";
+        b.addEventListener("click", () => {
+          const got = classPull(cls, 1);
+          if (!got.length) return;
+          content.querySelector(".quartz-bar").replaceWith(quartzBar());
+          OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
+          grid.querySelectorAll(".portal-btn").forEach((btn, i) => {
+            const c = [...new Set(UNITS.map((u) => u.cls))][i];
+            btn.innerHTML = "Portail " + c + "<br><small>pity " + (save.pity[c] || 0) + "/30</small>";
+          });
+          const box = content.querySelector(".pull-results");
+          box.innerHTML = "";
+          got.forEach((u) => box.appendChild(unitCard(u)));
+        });
+        grid.appendChild(b);
+      });
+      content.appendChild(grid);
 
       const result = document.createElement("div");
       result.className = "pull-results";
@@ -379,6 +450,72 @@ OS.registerApp({
         });
         box.appendChild(card);
       });
+    }
+
+    /* ---------- Collection ---------- */
+
+    function renderCollection() {
+      setActiveTab(tabCollection);
+      content.innerHTML = "";
+      content.appendChild(quartzBar());
+
+      const total = UNITS.length;
+      const have = UNITS.filter((u) => save.owned[u.id]).length;
+      const pct = Math.round((have / total) * 100);
+      const prog = document.createElement("div");
+      prog.className = "col-progress";
+      prog.innerHTML = '<div class="col-bar"><div class="col-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="team-hint">Collection : ' + have + " / " + total + " (" + pct + " %)</div>";
+      content.appendChild(prog);
+
+      const rew = document.createElement("div");
+      rew.className = "collect-rewards";
+      COLLECTION_REWARDS.forEach((rw) => {
+        const line = document.createElement("div");
+        line.className = "collect-line";
+        const done = pct >= rw.pct;
+        const claimed = save.collected.includes(rw.pct);
+        const lab = document.createElement("div");
+        lab.innerHTML = "<b>" + rw.pct + " %</b> — " + rw.quartz + " ◆ " + (claimed ? "✓ réclamé" : "");
+        line.appendChild(lab);
+        if (done && !claimed) {
+          const b = document.createElement("button");
+          b.className = "pull-btn claim-btn";
+          b.textContent = "Réclamer " + rw.quartz + " ◆";
+          b.addEventListener("click", () => {
+            save.collected.push(rw.pct);
+            save.quartz += rw.quartz;
+            persist();
+            OS.sfx.play("unlock");
+            renderCollection();
+          });
+          line.appendChild(b);
+        }
+        rew.appendChild(line);
+      });
+      content.appendChild(rew);
+
+      const hint = document.createElement("div");
+      hint.className = "team-hint";
+      hint.textContent = "Tous les héros du jeu — les non possédés sont grisés";
+      content.appendChild(hint);
+      const grid = document.createElement("div");
+      grid.className = "roster col-grid";
+      UNITS.slice().sort((a, b) => b.r - a.r || a.cls.localeCompare(b.cls) || a.atk - b.atk).forEach((u) => {
+        if (save.owned[u.id]) {
+          grid.appendChild(unitCard(u));
+          return;
+        }
+        const c = document.createElement("div");
+        c.className = "unit-card locked r" + u.r;
+        c.innerHTML =
+          '<div class="unit-rarity">' + RARITY[u.r].label + "</div>" +
+          '<div class="unit-name">' + u.name + "</div>" +
+          '<div class="unit-cls">Non invoqué…</div>' +
+          '<div class="unit-stats">ATK ??? · PV ???</div>';
+        grid.appendChild(c);
+      });
+      content.appendChild(grid);
     }
 
     /* ---------- Quêtes et combat ---------- */
@@ -512,7 +649,7 @@ OS.registerApp({
       if (u.cls === "Tueur") dmg = Math.round(dmg * (u.id === "orlan" ? 1.45 : 1.30));
       if (u.id === "raiden" && battle.enemy.hp / battle.enemy.maxHp < 0.25) dmg = Math.round(dmg * 2);
       if (u.cls === "Héros" && battle.heroStacks && battle.heroStacks[gi] > 1) {
-        const heroGrowth = u.id === "rin" ? 0.08 : 0.05;
+        const heroGrowth = (u.id === "rin" || u.id === "graal") ? 0.08 : 0.05;
         dmg = Math.round(dmg * (1 + heroGrowth * (battle.heroStacks[gi] - 1)));
       }
       if (u.id === "kaelith" && card.type === "V") dmg = Math.round(dmg * 1.4);
@@ -529,9 +666,18 @@ OS.registerApp({
       OS.sfx.play(crit ? "crit" : card.type === "V" ? "quick" : card.type === "B" ? "arcane" : "hit");
 
       const hits = (u.id === "kairo" && Math.random() < 0.15) ? 2 : 1;
+      let totalDealt = 0;
       for (let h = 0; h < hits; h++) {
-        hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""));
+        totalDealt += hitEnemy(hits === 2 ? Math.round(dmg * 0.75) : dmg, unit.name, (crit ? "CRIT ! " : "") + c.label + (hits === 2 && h === 1 ? " (double frappe !)" : ""));
         if (battle.enemy.hp <= 0) break;
+      }
+      if (u.id === "graal" && totalDealt > 0 && battle.enemy.hp > 0) {
+        const graalTarget = aliveIdx().sort((a, b) => battle.hp[a] - battle.hp[b])[0];
+        const healedD = Math.min(battle.units[graalTarget].hp - battle.hp[graalTarget], Math.round(totalDealt * 0.15));
+        if (healedD > 0) {
+          battle.hp[graalTarget] += healedD;
+          battle.log.unshift(unit.name + " canalise les braises : soigne " + battle.units[graalTarget].name + " (+" + healedD + " PV)");
+        }
       }
       if (u.id === "enzo" && card.type === "R" && battle.enemy.hp > 0) {
         battle.burn = Math.min(3, battle.burn + 1);
@@ -560,13 +706,14 @@ OS.registerApp({
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
+      return dmg;
     }
 
     function useUltimate() {
       if (!battle || battle.gauge < 100 || battle.picks >= 3) return;
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
-      const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
+      const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" || strongest.id === "graal" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
       const dmg = Math.round(strongest.atk * 2.4 * heroMult * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.gauge = 0;
@@ -610,6 +757,7 @@ OS.registerApp({
         gauvin: ["serment d'acier (renvoi)", 0.30],
         barrok: ["poing élastique (renvoi)", 0.35],
         takumi: ["garde-rapprochée (renvoi)", 0.20],
+        graal: ["héritage des braises (renvoi)", 0.35],
       };
       if (RENVOI[target.id] && battle.enemy.hp > 0) {
         hitEnemy(Math.round(dmg * RENVOI[target.id][1]), target.name, RENVOI[target.id][0]);
@@ -723,6 +871,15 @@ OS.registerApp({
             save.quartz += 25;
             persist();
             battle.log.unshift("✦ Bannière débloquée : " + BANNERS[after - 1].name + " (+25 ◆)");
+            OS.notify("🏆", "#6b4f2a", "Salle des trophées", "Bannière débloquée : " + BANNERS[after - 1].name, 5000);
+          }
+          if (battle.storyChapter === 11 && storyState.diff === "enferPlus" && !save.owned.graal) {
+            save.owned.graal = 1;
+            save.quartz += 50;
+            persist();
+            OS.sfx.play("ssr");
+            OS.notify("✦", "#8c2f2f", "Le Graal", "Astrée, Héritière des braises (SS) vous rejoint !", 6000);
+            battle.log.unshift("✦ Dragon des cendres vaincu en Enfer+ : Astrée, Héritière des braises (SS) rejoint votre collection ! (+50 ◆)");
           }
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
         }
@@ -1209,6 +1366,7 @@ OS.registerApp({
     }
 
     function typeCurrentLine(el, text) {
+      const speed = Math.max(0.5, Number(OS.store.get("game-speed", 1)) || 1);
       let pos = Math.min(2, text.length);
       el.textContent = text.slice(0, pos);
       typeTimer = setInterval(() => {
@@ -1219,7 +1377,7 @@ OS.registerApp({
           el.textContent = text;
           clearTyping();
         }
-      }, 30);
+      }, Math.max(8, Math.round(30 / speed)));
     }
 
     function renderScene() {

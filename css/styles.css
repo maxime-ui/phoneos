@@ -978,3 +978,44 @@ button { font-family: inherit; }
   .lock-pad { grid-template-columns: repeat(3, 62px); }
   .lock-pad button { height: 62px; }
 }
+
+/* ---------- Portails de classe ---------- */
+.portal-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.portal-grid .portal-btn { flex: 1 1 30%; font-size: 11px; padding: 10px 4px; }
+
+/* ---------- Vitesse (Réglages) ---------- */
+.seg-row { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
+.seg-row button {
+  flex: 1; padding: 7px 4px; font-size: 11px; border-radius: 9px;
+  border: 1px solid #3a4358; background: #232a3c; color: #dfe6f5;
+}
+.seg-row button.active { border-color: #e3b23c; color: #e3b23c; }
+
+/* ---------- Collection ---------- */
+.col-progress { margin-bottom: 10px; }
+.col-bar { height: 10px; border-radius: 6px; background: #232a3c; overflow: hidden; }
+.col-fill { height: 100%; background: linear-gradient(90deg, #4f9eff, #e3b23c); transition: width 0.4s; }
+.collect-rewards { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.collect-line {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #1a2030; border-radius: 10px; padding: 8px 10px; font-size: 12px;
+}
+.collect-line .claim-btn { font-size: 11px; padding: 7px 10px; }
+.unit-card.locked { opacity: 0.45; filter: grayscale(0.9); }
+.col-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); display: grid; gap: 8px; }
+
+/* ---------- Salle des trophées ---------- */
+.trophies h3 { margin: 16px 0 8px; font-size: 13px; color: #e3b23c; }
+.trophies-records { display: flex; flex-direction: column; gap: 6px; }
+.trophies-record {
+  background: #1a2030; border-radius: 10px; padding: 8px 10px;
+  font-size: 12px; border: 1px solid #2a3145;
+}
+.trophies-record.top { border-color: #e3b23c; }
+.trophy-graal {
+  background: #20161c; border-radius: 12px; padding: 12px;
+  border: 1px solid #8c2f2f;
+}
+.trophy-graal.unlocked { border-color: #ff8c5a; box-shadow: 0 0 12px rgba(255, 140, 90, 0.25); }
+.trophy-graal.locked { opacity: 0.7; }
+.graal-name { font-size: 14px; color: #ff8c5a; margin-bottom: 4px; }

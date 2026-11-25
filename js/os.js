@@ -91,6 +91,7 @@ const OS = (() => {
 
   /* ---------- Notifications ---------- */
   function notify(icon, iconBg, title, text, timeout = 4200) {
+    if (!store.get("notifications", true)) return;
     const tpl = document.getElementById("tpl-notification");
     const node = tpl.content.firstElementChild.cloneNode(true);
     node.querySelector(".notif-icon").textContent = icon;

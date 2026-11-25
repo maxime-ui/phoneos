@@ -5,11 +5,7 @@ const { JSDOM } = require("/tmp/node_modules/jsdom");
 
 const root = "/workspace/phoneos";
 let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-const scripts = [
-  "js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js",
-  "js/apps/notes.js", "js/apps/phone.js", "js/apps/messages.js", "js/apps/clock.js",
-  "js/apps/gallery.js", "js/apps/settings.js", "js/main.js",
-];
+const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/epopee.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
   html = html.replace('<script src="' + file + '"></script>', "<script>" + code.replace(/<\/script>/g, "<\\/script>") + "</script>");

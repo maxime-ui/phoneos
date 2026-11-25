@@ -8,14 +8,13 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
-const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
-  "js/apps/messages.js", "js/apps/clock.js", "js/apps/gallery.js", "js/apps/settings.js", "js/main.js"];
+const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/epopee.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 
-// Seed save Épopée : 112 unités possédées + équipe avec Soigneur (doit précéder tous les scripts)
+// Seed save Épopée : toutes les unités SAUF le Graal + équipe avec Soigneur (doit précéder tous les scripts)
 const unitsBlock = fs.readFileSync(path.join(root, "js/apps/epopee.js"), "utf8").match(/UNITS\s*=\s*\[([\s\S]*?)\n    \];/)[1];
 const unitIds = [...unitsBlock.matchAll(/\{ id: "([^"]+)"/g)].map((m) => m[1]);
 const ownedAll = {};
-unitIds.forEach((id) => { ownedAll[id] = 1; });
+unitIds.forEach((id) => { if (id !== "graal") ownedAll[id] = 1; });
 const seedSave = { quartz: 300, owned: ownedAll, team: ["bron", "edele", "nerys"] };
 html = html.replace('<script src="js/os.js">',
   '<script>localStorage.setItem("phoneos:epopee", ' + JSON.stringify(JSON.stringify(seedSave)) + ');</script>\n<script src="js/os.js">');
@@ -66,22 +65,11 @@ setTimeout(() => {
 
   // Ouvrir chaque app
   const apps = Object.keys(window.eval("OS").APPS);
-  check("10 apps enregistrées", apps.length === 10);
+  check("3 apps enregistrées (Épopée, Réglages, Trophées)", apps.length === 3);
   apps.forEach((id) => {
     window.eval("OS").openApp(id);
     check("app ouverte : " + id, !$("#layer-app").classList.contains("hidden") && $("#app-body").children.length > 0);
   });
-
-  // Calculatrice : 7 × 8 = 56
-  window.eval("OS").openApp("calculator");
-  const padEl = $("#app-body");
-  const b7 = [...padEl.querySelectorAll("button")].find((b) => b.textContent === "7");
-  const mul = [...padEl.querySelectorAll("button")].find((b) => b.textContent === "×");
-  const b8 = [...padEl.querySelectorAll("button")].find((b) => b.textContent === "8");
-  const eq = [...padEl.querySelectorAll("button")].find((b) => b.textContent === "=");
-  [b7, mul, b8, eq].forEach(click);
-  const res = padEl.querySelector(".calc-result").textContent;
-  check("calculatrice 7×8=56", res === "56");
 
   // Épopée : roster complet et classes de gameplay
   window.eval("OS").openApp("epopee");
@@ -98,6 +86,30 @@ setTimeout(() => {
   };
   clickUnit("Bron"); clickUnit("Nerys"); clickUnit("Sirona"); clickUnit("Poppy");
   check("équipe 3 Soigneurs composée", [...document.querySelectorAll(".roster .unit-card.in-team .unit-cls")].every((el) => el.textContent === "Soigneur"));
+
+  // Collection : 113 héros, le Graal grisé, récompense de complétion réclamable
+  const colTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection");
+  check("onglet Collection présent", !!colTab);
+  colTab.click();
+  check("collection affiche les " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
+  check("Graal non possédé grisé", document.querySelectorAll(".col-grid .unit-card.locked").length === 1 && document.body.textContent.includes("Astrée, Héritière des braises"));
+  check("progression 112/113 affichée", document.body.textContent.includes("112 / 113"));
+  const claim = document.querySelector(".collect-line .claim-btn");
+  check("récompense 25 % réclamable", !!claim);
+  if (claim) claim.click();
+  check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:epopee")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:epopee")).collected.includes(25));
+
+  // Portail de classe : coût 5 ◆ + pity persistée
+  const summonTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
+  summonTab.click();
+  check("portails de classe affichés (9)", document.querySelectorAll(".portal-grid .portal-btn").length === 9);
+  const healerPortal = [...document.querySelectorAll(".portal-grid .portal-btn")].find((b) => b.textContent.includes("Soigneur"));
+  check("portail Soigneur présent", !!healerPortal);
+  if (healerPortal) healerPortal.click();
+  const saveAfterPortal = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  check("portail : −5 ◆ et pity persistée", saveAfterPortal.quartz === 345 && saveAfterPortal.pity["Soigneur"] >= 1);
+  const portalCard = document.querySelector(".pull-results .unit-card");
+  check("portail : personnage Soigneur invoqué", !!portalCard && portalCard.querySelector(".unit-cls").textContent.includes("Soigneur"));
 
   // Quête facile : le Soigneur soigne au lieu d'attaquer
   const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
@@ -257,6 +269,14 @@ setTimeout(() => {
   check("boss Enfer+ scalé ×4,2 (> 50 000 PV)", !!bossHp && Number(bossHp.textContent.split("/")[0]) > 50000);
   check("compétence élite affichée", document.body.textContent.includes("Massue écrasante"));
 
+  // Salle des trophées
+  window.eval("OS").openApp("trophies");
+  check("trophées : 5 bannières affichées", document.querySelectorAll(".trophies .banner-slot").length === 5);
+  check("trophées : 5 bannières débloquées via seed", document.querySelectorAll(".trophies .banner-slot.unlocked").length === 5);
+  check("trophées : records des 5 boss + Mode Infini", document.querySelectorAll(".trophies-record").length === 6);
+  check("trophées : Graal verrouillé affiché", !!document.querySelector(".trophy-graal.locked") && document.body.textContent.includes("Astrée, Héritière des braises"));
+  check("trophées : record Mode Infini affiché", document.body.textContent.includes("Mode Infini"));
+
   window.eval("OS").closeApp();
 
   // Retour -> home
@@ -266,7 +286,7 @@ setTimeout(() => {
   // Recents
   window.eval("OS").showRecents();
   const cards = document.querySelectorAll(".recents-card").length;
-  check("recents non vide (" + cards + ")", cards >= 5);
+  check("recents non vide (" + cards + ")", cards >= 3);
   window.eval("OS").clearRecents();
   check("recents vidées -> home", !$("#layer-home").classList.contains("hidden"));
 

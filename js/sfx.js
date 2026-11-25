@@ -5,6 +5,7 @@ OS.sfx = (() => {
   let ctx = null;
   let musicOn = false;
   let musicVoice = null;
+  let muted = OS.store.get("sound-muted", false);
 
   function ac() {
     if (!ctx) {
@@ -21,6 +22,7 @@ OS.sfx = (() => {
   }
 
   function beep(opts) {
+    if (muted) return;
     const c = ac();
     if (!c || !musicOn && opts.music !== undefined) return;
     const t0 = c.currentTime + (opts.delay || 0);
@@ -38,6 +40,7 @@ OS.sfx = (() => {
   }
 
   function noise(dur, vol, filterFreq) {
+    if (muted) return;
     const c = ac();
     if (!c) return;
     const len = Math.floor(c.sampleRate * dur);
@@ -100,10 +103,10 @@ OS.sfx = (() => {
   let bar = 0;
 
   function scheduleBar() {
-    if (!musicOn) return;
+    if (!musicOn || muted) return;
     const c = ac();
     if (!c) return;
-    const beat = 0.14;
+    const beat = 0.14 / Math.max(0.5, OS.store.get("game-speed", 1));
     for (let i = 0; i < 8; i++) {
       const step = MELODY[(bar * 8 + i) % MELODY.length];
       if (step !== null) {
@@ -117,6 +120,16 @@ OS.sfx = (() => {
 
   return {
     play,
+    setMuted(v) {
+      muted = v;
+      OS.store.set("sound-muted", v);
+      if (v && musicVoice) {
+        clearTimeout(musicVoice);
+        musicVoice = null;
+      } else if (!v && musicOn) {
+        scheduleBar();
+      }
+    },
     setMusic(on) {
       musicOn = on;
       if (!on && musicVoice) {

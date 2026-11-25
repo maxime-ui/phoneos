@@ -71,6 +71,32 @@ OS.registerApp({
       rowB.appendChild(slider);
       display.appendChild(rowB);
 
+      const game = group("Jeu");
+      const speed = OS.store.get("game-speed", 1);
+      const rowS = row("Vitesse du jeu", speed + "× — vitesse des dialogues et de la musique");
+      const seg = document.createElement("div");
+      seg.className = "seg-row";
+      [[0.5, "Lent"], [1, "Normal"], [2, "Rapide"]].forEach(([v, lbl]) => {
+        const b = document.createElement("button");
+        b.textContent = lbl;
+        if (speed === v) b.classList.add("active");
+        b.addEventListener("click", () => {
+          OS.store.set("game-speed", v);
+          OS.sfx.play("ui");
+          renderAll();
+        });
+        seg.appendChild(b);
+      });
+      rowS.appendChild(seg);
+      game.appendChild(rowS);
+      game.appendChild(toggle("Son du jeu", "Effets sonores et musique chiptune", !OS.store.get("sound-muted", false), (v) => {
+        OS.sfx.setMuted(!v);
+        OS.sfx.play("ui");
+      }));
+      game.appendChild(toggle("Notifications système", "Bannières, trophées, évènements", OS.store.get("notifications", true), (v) => {
+        OS.store.set("notifications", v);
+      }));
+
       const sound = group("Son");
       const rowV = row("Volume", String(OS.state.volume) + " %");
       const vol = document.createElement("input");
@@ -123,7 +149,7 @@ OS.registerApp({
       });
       actions.append(reboot, wipe);
 
-      body.append(net, display, sound, batt, sys, actions);
+      body.append(net, display, game, sound, batt, sys, actions);
     }
 
     renderAll();
