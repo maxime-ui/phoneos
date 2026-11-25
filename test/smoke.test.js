@@ -682,7 +682,10 @@ setTimeout(() => {
   const graalCardT = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.textContent.includes("Astrée, Héritière des braises"));
   if (graalCardT) graalCardT.click();
   check("clic héros : combat d'entraînement lancé immédiatement", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("cible immortelle"));
-  check("héros non possédé sélectionnable", !!document.querySelector(".roster .unit-card.in-team"));
+  check("héros non possédé sélectionnable", !!document.querySelector(".training-selected .unit-card.in-team"));
+  const changeTrainingHero = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Changer de héros"));
+  check("laboratoire : combat isolé sans devoir défiler le roster complet", !!changeTrainingHero && !!document.querySelector(".training-selected .unit-card.in-team"));
+  if (changeTrainingHero) changeTrainingHero.click();
   const startTrain = [...document.querySelectorAll(".pull-row button")].find((b) => b.textContent.includes("mob aléatoire"));
   check("démarrage contre mob aléatoire proposé", !!startTrain && !startTrain.disabled);
   if (startTrain) startTrain.click();
