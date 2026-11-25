@@ -8,6 +8,24 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
+// Vérification statique du pack d'illustrations livré avec Astéria 2.0.
+const artFiles = [
+  "assets/asteria/heroes/chevalier.svg",
+  "assets/asteria/heroes/mage.svg",
+  "assets/asteria/heroes/archer.svg",
+  "assets/asteria/heroes/berserker.svg",
+  "assets/asteria/heroes/rodeur.svg",
+  "assets/asteria/heroes/heros.svg",
+  "assets/asteria/enemies/loup-ombre.svg",
+  "assets/asteria/enemies/golem-runique.svg",
+  "assets/asteria/enemies/sorciere-cendre.svg",
+  "assets/asteria/enemies/dragonnet.svg",
+  "assets/asteria/enemies/sentinelle.svg",
+  "assets/asteria/enemies/seigneur-abysses.svg",
+];
+artFiles.forEach((file) => {
+  if (!fs.existsSync(path.join(root, file))) throw new Error("Illustration manquante : " + file);
+});
 const scripts = ["js/os.js", "js/sfx.js", "js/svgart.js", "js/apps/asteria.js", "js/apps/heroes.js", "js/apps/settings.js", "js/apps/trophies.js", "js/main.js"];
 
 // Seed save Astéria : toutes les unités SAUF le Graal + équipe avec Soigneur (doit précéder tous les scripts)
