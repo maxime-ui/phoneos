@@ -8,7 +8,7 @@ let html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 // Inline chaque <script src> pour que les bindings globaux partagent la portée,
 // comme le font de vraies balises script dans un navigateur.
-const scripts = ["js/os.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
+const scripts = ["js/os.js", "js/apps/snake.js", "js/apps/game2048.js", "js/apps/epopee.js", "js/apps/calculator.js", "js/apps/notes.js", "js/apps/phone.js",
   "js/apps/messages.js", "js/apps/clock.js", "js/apps/gallery.js", "js/apps/settings.js", "js/main.js"];
 scripts.forEach((file) => {
   const code = fs.readFileSync(path.join(root, file), "utf8");
@@ -57,7 +57,7 @@ setTimeout(() => {
 
   // Ouvrir chaque app
   const apps = Object.keys(window.eval("OS").APPS);
-  check("9 apps enregistrées", apps.length === 9);
+  check("10 apps enregistrées", apps.length === 10);
   apps.forEach((id) => {
     window.eval("OS").openApp(id);
     check("app ouverte : " + id, !$("#layer-app").classList.contains("hidden") && $("#app-body").children.length > 0);
@@ -73,6 +73,24 @@ setTimeout(() => {
   [b7, mul, b8, eq].forEach(click);
   const res = padEl.querySelector(".calc-result").textContent;
   check("calculatrice 7×8=56", res === "56");
+
+  // Épopée : lancer une quête et jouer 3 cartes
+  window.eval("OS").openApp("epopee");
+  const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  check("onglet quêtes présent", !!questTab);
+  questTab.click();
+  const tierBtn = [...document.querySelectorAll(".pull-btn")].find((b) => b.classList.contains("tier-facile"));
+  check("bouton quête facile présent", !!tierBtn);
+  tierBtn.click();
+  check("vue combat affichée", !!document.querySelector(".battle"));
+  const beforeLog = document.querySelectorAll(".battle-log > div").length;
+  for (let draws = 0; draws < 3; draws++) {
+    const card = document.querySelector(".hand-card:not([disabled])");
+    if (card) card.click();
+  }
+  const afterLog = document.querySelectorAll(".battle-log > div").length;
+  check("3 cartes jouées -> log enrichi (" + beforeLog + " → " + afterLog + ")", afterLog > beforeLog);
+  window.eval("OS").closeApp();
 
   // Retour -> home
   window.eval("OS").closeApp();
