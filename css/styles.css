@@ -778,3 +778,23 @@ body.cb .rb-score { color: #0fb3a3; }
   .pull-row { flex-wrap:wrap; }
   .pull-row > .pull-btn { min-width:calc(50% - 6px); }
 }
+
+
+/* Astéria — portraits autonomes et aides visuelles du récit/laboratoire */
+.portrait-art { display:block; object-fit:contain; }
+.unit-portrait { min-height:112px; }
+.unit-portrait .portrait-art { width:100%; height:112px; object-fit:contain; }
+.battle-enemy-art .portrait-art { width:104px; height:120px; object-fit:contain; }
+.training-score { display:flex; flex-direction:column; gap:4px; padding:10px 12px; border:1px solid rgba(227,178,60,.28); border-radius:10px; background:rgba(227,178,60,.07); }
+.training-score strong { color:#f1d58c; font-size:13px; }
+.training-score span { color:#c7d0e3; font-size:12px; }
+.portal-owned-filter { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#c6cee0; font-size:12px; }
+.portal-owned-filter select { min-width:150px; padding:9px; color:#eef1f8; background:#202a40; border:1px solid #465473; border-radius:8px; }
+.story-actor-strip { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+.story-actor { display:flex; align-items:center; gap:7px; padding:6px 9px; border-radius:10px; background:rgba(255,255,255,.06); color:#cbd4e8; font-size:11px; }
+.story-actor img { width:38px; height:46px; object-fit:contain; }
+.story-speaker-card { display:flex; align-items:center; gap:10px; margin-bottom:8px; color:#f2d48a; font-weight:700; }
+.story-speaker-card img { width:56px; height:64px; object-fit:contain; border-radius:8px; background:rgba(255,255,255,.06); }
+.story-boss-portrait { display:flex; align-items:center; gap:12px; margin:8px 0; color:#f2d48a; font-weight:700; }
+.story-boss-portrait img { width:86px; height:100px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,.06); }
+@media(max-width:520px) { .collection-filters { grid-template-columns:1fr; } .portal-owned-filter { align-items:stretch; flex-direction:column; } }
