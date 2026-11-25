@@ -346,7 +346,7 @@ setTimeout(() => {
   check("carte Collection cliquable", !!colCard);
   if (colCard) colCard.click();
   check("clic Collection -> app Personnages ouverte", Object.keys(window.eval("OS").APPS).includes("heroes") && $("#app-body").querySelectorAll(".sheet-panel").length === 1);
-  check("fiche Morgane : doublons, passif et compétence", $("#app-body").textContent.includes("Doublons") && $("#app-body").textContent.includes("Passif :") && $("#app-body").textContent.includes("Compétence :"));
+  check("fiche Morgane : doublons, passif, compétence et ultime", $("#app-body").textContent.includes("Doublons") && $("#app-body").textContent.includes("Passif :") && $("#app-body").textContent.includes("Compétence :") && $("#app-body").textContent.includes("Ultime de classe :"));
   const backBtn = document.querySelector(".sheet-actions .pull-btn");
   check("bouton retour présent", !!backBtn);
   if (backBtn) backBtn.click();
