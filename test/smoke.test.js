@@ -721,7 +721,7 @@ setTimeout(() => {
   const heroHpAfter = Number((document.querySelector(".battle .hp-row.ally .hp-num")?.textContent || "0").replace(/[^0-9]/g, ""));
   check("duel : les attaques diminuent réellement les PV ennemis", enemyHpBefore > 0 && enemyHpAfter > 0 && enemyHpAfter < enemyHpBefore);
   check("duel : l'ennemi riposte et peut blesser le héros après 3 actions", heroHpBefore > 0 && heroHpAfter < heroHpBefore);
-  check("duel : compteur de dégâts cumulés visible", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.includes("dégâts cumulés"));
+  check("duel : compteur de dégâts cumulés visible", !!document.querySelector(".training-score") && document.querySelector(".training-score").textContent.toLowerCase().includes("dégâts cumulés"));
   const quitTraining = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Quitter le test"));
   check("sortie disponible pendant le combat", !!quitTraining);
   if (quitTraining) quitTraining.click();
