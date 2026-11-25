@@ -678,6 +678,16 @@ setTimeout(() => {
   check("volume : valeur plafonnée à 100 %", window.eval("OS").sfx.volume === 100);
   window.eval("OS").setVolume(60);
 
+  // Le moteur audio ignore les demandes répétées identiques sans dupliquer sa boucle.
+  window.eval("OS").sfx.setMusic(true);
+  check("audio : activation musique reflétée", window.eval("OS").sfx.musicPlaying === true);
+  window.eval("OS").sfx.setMusic(true);
+  window.eval("OS").sfx.setMusic(false);
+  check("audio : arrêt musique reflété", window.eval("OS").sfx.musicPlaying === false);
+  window.eval("OS").sfx.setMuted(true);
+  window.eval("OS").sfx.setMuted(true);
+  window.eval("OS").sfx.setMuted(false);
+
   // Barre supérieure avancée : sélecteur de difficulté direct + raccourci F
   window.eval('document.dispatchEvent(new Event("asteria-diff"))');
   const topDiff = document.getElementById("top-diff");
