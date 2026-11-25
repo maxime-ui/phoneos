@@ -1354,25 +1354,28 @@ OS.registerApp({
 
       const oppHint = document.createElement("div");
       oppHint.className = "team-hint";
-      oppHint.textContent = "Adversaire d'entraînement :";
+      oppHint.textContent = trainPick ? "Héros sélectionné : " + byId(trainPick).name + " · Lancez un test contre un adversaire aléatoire et immortel." : "Choisissez un héros pour commencer le test.";
       content.appendChild(oppHint);
       const row = document.createElement("div");
       row.className = "pull-row";
-      TRAIN_OPPONENTS.forEach((op) => {
-        const b = document.createElement("button");
-        b.className = "pull-btn tier-infini";
-        b.innerHTML = op.name + "<br><small>" + op.type + " · " + op.hp + " PV · atk " + op.atk + "</small>";
-        b.addEventListener("click", () => startTrainingBattle(op));
-        row.appendChild(b);
-      });
+      const start = document.createElement("button");
+      start.className = "pull-btn tier-infini";
+      start.textContent = "⚔ Tester ce héros contre un mob aléatoire";
+      start.disabled = !trainPick;
+      start.addEventListener("click", startTrainingBattle);
+      row.appendChild(start);
       content.appendChild(row);
-      if (battle && battle.mode === "train" && battle.over) content.appendChild(battleView());
+      if (battle && battle.mode === "train") content.appendChild(battleView());
     }
 
-    function startTrainingBattle(op) {
+    function startTrainingBattle() {
       const u = trainPick ? byId(trainPick) : null;
       if (!u) return;
       const unit = corePower(u, save);
+      const types = Object.keys(ENEMY_TYPES);
+      const type = types[Math.floor(Math.random() * types.length)];
+      const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
+      const op = { name, type, hp: 1000000000, atk: 0 };
       battle = {
         mode: "train",
         floor: 1,
@@ -1385,7 +1388,7 @@ OS.registerApp({
         guard: false,
         curse: 0,
         burn: 0,
-        log: ["----- ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [aucun gain] -----"],
+        log: ["----- LABORATOIRE : " + unit.name + " contre " + op.name + " [" + type + "] · cible immortelle · aucun gain/perte -----"],
       };
       battle.heroStacks = [unit.cls === "Héros" ? 0 : -1];
       newHand();
@@ -1782,8 +1785,8 @@ OS.registerApp({
       else if (battle.enemy.type === "Muraille") dmg = Math.round(dmg * 0.9);
       else if (battle.enemy.type === "Colosse de givre") dmg = Math.round(dmg * 0.85);
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
-      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
-      battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
+      if (battle.mode !== "train") battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts" + (battle.mode === "train" ? " · cible immortelle" : ""));
 
       // Jauge de rupture : les assauts coordonnés peuvent interrompre la riposte.
       if (battle.enemy.hp > 0 && !battle.staggered) {
@@ -1871,6 +1874,13 @@ OS.registerApp({
     }
 
     function enemyTurn() {
+      if (battle.mode === "train") {
+        battle.log.unshift("Le mannequin observe votre démonstration et ne riposte pas.");
+        battle.guard = false;
+        battle.intent = ["Observation", "Cible d'entraînement inoffensive"];
+        newHand();
+        return;
+      }
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
       // Une rupture annule la riposte annoncée, mais n'efface pas les dégâts périodiques.
@@ -2231,6 +2241,20 @@ OS.registerApp({
           view.appendChild(row);
         }
       } else {
+        if (battle.mode === "train") {
+          const exit = document.createElement("button");
+          exit.className = "pull-btn";
+          exit.textContent = "↩ Quitter le test et revenir à l'entraînement";
+          exit.addEventListener("click", () => { battle = null; renderTraining(); });
+          const exitRow = document.createElement("div");
+          exitRow.className = "battle-actions";
+          exitRow.appendChild(exit);
+          view.appendChild(exitRow);
+          const lab = document.createElement("div");
+          lab.className = "team-hint";
+          lab.textContent = "Mode laboratoire · cible immortelle · aucune riposte · quittez quand vous voulez.";
+          view.appendChild(lab);
+        }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
           : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
