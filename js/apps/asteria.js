@@ -581,6 +581,23 @@ OS.registerApp({
      * Les anciennes données restent intactes dans leurs clés historiques.
      */
     const SAVE_PREFIX = "asteria-v2";
+    // Nettoyage unique des anciennes sauvegardes Astéria/Épopée.
+    // Les préférences globales du téléphone ne sont pas concernées.
+    (function clearLegacyGameSavesOnce() {
+      const cleanupKey = "phoneos:asteria-v2-legacy-cleanup";
+      try {
+        if (localStorage.getItem(cleanupKey) === "done") return;
+        [
+          "phoneos:asteria", "phoneos:asteria-story", "phoneos:asteria-daily",
+          "phoneos:asteria-raid", "phoneos:asteria-infinite-best",
+          "phoneos:epopee", "phoneos:epopee-story", "phoneos:epopee-daily",
+          "phoneos:epopee-raid", "phoneos:infinite-best"
+        ].forEach((key) => localStorage.removeItem(key));
+        localStorage.setItem(cleanupKey, "done");
+      } catch (_) {
+        // Si le stockage est indisponible, la nouvelle sauvegarde reste isolée.
+      }
+    })();
     let infiniteBest = OS.store.get(SAVE_PREFIX + "-infinite-best", 0);
 
     function loadSave() {
@@ -1324,6 +1341,7 @@ OS.registerApp({
         hp: [unit.hp],
         gauge: Math.min(60, unitFx(unit).jaugeInit || 0),
         picks: 0,
+        guard: false,
         curse: 0,
         burn: 0,
         log: ["----- ENTRAÎNEMENT : " + unit.name + " contre " + op.name + " [aucun gain] -----"],
@@ -1478,6 +1496,25 @@ OS.registerApp({
       if (battle) content.appendChild(battleView());
     }
 
+    function enemyIntent(type) {
+      const intents = {
+        "Brute": ["Frappe écrasante", "Cible le héros le plus blessé · dégâts élevés"],
+        "Assassin": ["Marque mortelle", "Vise le héros avec la plus forte ATK · risque de critique"],
+        "Sorcier": ["Déflagration", "Attaque toute l'équipe"],
+        "Capitaine": ["Ordre de charge", "Frappe une cible puis augmente sa propre ATK"],
+        "Golem": ["Poing de pierre", "Frappe lente et puissante · armure renforcée"],
+        "Oracle": ["Prière régénératrice", "Récupère des PV puis attaque"],
+        "Muraille": ["Percée du bastion", "Frappe une cible · défense élevée"],
+        "Invocateur": ["Appel des ombres", "Deux frappes sur des héros"],
+        "Fantassin": ["Rafale martiale", "Deux frappes rapides"],
+        "Nécromant": ["Drain funeste", "Se soigne puis attaque"],
+        "Banshee": ["Hurlement spectral", "Réduit la jauge d'Ultime puis attaque"],
+        "Sanguinaire": ["Traque des blessés", "Vise le héros ayant le moins de PV en proportion"],
+        "Colosse de givre": ["Onde glaciale", "Frappe une cible"],
+      };
+      return intents[type] || ["Attaque", "Frappe un héros au hasard"];
+    }
+
     function startBattle(key) {
       const team = teamUnits();
       const t = TIER[key];
@@ -1500,7 +1537,9 @@ OS.registerApp({
         valenFury: 0,
         log: ["----- " + name + " [" + etype + "] apparaît · " + ENEMY_TYPES[etype].desc + " -----"],
       };
+      battle.intent = enemyIntent(battle.enemy.type);
       battle.gauge = initialGauge(team, 60);
+      battle.intent = enemyIntent(etype);
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
       renderQuests();
@@ -1531,6 +1570,7 @@ OS.registerApp({
       if (ph.elite) battle.elite = ph.elite;
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
+      battle.intent = enemyIntent(ph.type);
       battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
       if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
       battle.gauge = initialGauge(team, 60);
@@ -1704,7 +1744,7 @@ OS.registerApp({
         battle.log.unshift("Séraphine dévie l'attaque avec son bouclier !");
         return 0;
       }
-      let dmg = raw;
+      let dmg = battle.guard ? Math.round(raw * 0.65) : raw;
       const defenders = battle.units.filter((u, i) => u.cls === "Défenseur" && battle.hp[i] > 0);
       if (defenders.length) {
         const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10) + (unitFx(u).rempart || 0) / 100, 0));
@@ -1869,6 +1909,8 @@ OS.registerApp({
         }
       }
       if (!aliveIdx().length) return endBattle(false);
+      battle.guard = false;
+      battle.intent = enemyIntent(battle.enemy.type);
       newHand();
     }
 
@@ -2087,6 +2129,11 @@ OS.registerApp({
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
+        const intent = battle.intent || enemyIntent(battle.enemy.type);
+        const intentBox = document.createElement("div");
+        intentBox.className = "battle-intent";
+        intentBox.innerHTML = '<strong>⚠ Prochaine action : ' + intent[0] + '</strong><span>' + intent[1] + '</span>';
+        view.appendChild(intentBox);
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
@@ -2125,6 +2172,19 @@ OS.registerApp({
         ult.textContent = "✦ Ultime (" + battle.gauge + "%)";
         ult.addEventListener("click", useUltimate);
         actions.appendChild(ult);
+        const guard = document.createElement("button");
+        guard.className = "pull-btn" + (battle.guard ? " disabled" : "");
+        guard.textContent = battle.guard ? "🛡 Garde active" : "🛡 Garde d'équipe (1 action)";
+        guard.disabled = battle.guard || battle.picks >= 3;
+        guard.addEventListener("click", () => {
+          if (!battle || battle.guard || battle.picks >= 3) return;
+          battle.guard = true;
+          battle.picks++;
+          battle.log.unshift("🛡 L'équipe se met en garde : les dégâts reçus sont réduits de 35 % jusqu'à la fin du tour ennemi.");
+          if (battle.picks >= 3) enemyTurn();
+          renderQuests();
+        });
+        actions.appendChild(guard);
         view.appendChild(actions);
         if (battle.mode === "train") {
           const trow = document.createElement("div");
