@@ -1959,6 +1959,10 @@ OS.registerApp({
         battle.enemy = { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk };
         battle.elite = ph.elite;
         battle.hp = battle.units.map((u) => u.hp);
+        battle.breakGauge = 0;
+        battle.staggered = false;
+        battle.guard = false;
+        battle.intent = enemyIntent(ph.type);
         battle.gauge = Math.min(100, battle.gauge + 30);
         battle.curse = 0;
         battle.burn = 0;
