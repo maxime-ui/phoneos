@@ -204,6 +204,14 @@ setTimeout(() => {
   check("infini : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 2);
 
   // ---- Mode Histoire ----
+  // Évolution poussée : l'équipe est réinitialisée avec Bron ★★★ (talents II/III empilables)
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee"));s.team=["bron","tilia","nerys"];s.evo={bron:3};localStorage.setItem("phoneos:epopee",JSON.stringify(s));})()');
+  window.eval("OS").openApp("epopee");
+  const teamTabE = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
+  teamTabE.click();
+  const bronCardE = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
+  check("Éveils II/III + 2ᵉ talent de classe affichés sur Bron ★★★ (Berserker)", !!bronCardE && bronCardE.textContent.includes("Éveil II ✦ Dégâts +8 %") && bronCardE.textContent.includes("Talent ✦ Critique +8 %") && bronCardE.textContent.includes("Éveil III ✦ Rage +15 % sous le seuil") && bronCardE.textContent.includes("Talent ✦ PV max +8 %"));
+
   const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   check("onglet Histoire présent", !!storyTab);
   storyTab.click();
@@ -226,6 +234,8 @@ setTimeout(() => {
 
   document.querySelector(".story-chapter").click();
   check("scène SVG visible", !!document.querySelector(".story-art"));
+  const sceneHtml = document.querySelector(".story-art").innerHTML;
+  check("scène d'histoire : l'équipe réelle apparaît avec ses évolutions", sceneHtml.includes("scale(1.08)") && sceneHtml.includes("#ffd970"));
   check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
   const firstLine = document.querySelector(".story-line.current");
   check("ligne narrée présente", !!firstLine && firstLine.textContent.length > 0);

@@ -47,6 +47,17 @@ OS.registerApp({
       2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
       3: [{ eclat: 20, coeur: 10 }, { larme: 12, couronne: 6 }, { sceau: 5 }],
     };
+    const EVO2 = {
+      Chevalier: { fx: { hp: 8 }, label: "PV max +8 %" },
+      Berserker: { fx: { crit: 8 }, label: "Critique +8 %" },
+      Mage: { fx: { teamAtk: 5 }, label: "ATK d'équipe +5 %" },
+      Archer: { fx: { esquive: 8 }, label: "Esquive +8 %" },
+      Rôdeur: { fx: { gauge: 4 }, label: "Jauge +4 % par carte" },
+      Héros: { fx: { hp: 6 }, label: "PV max +6 %" },
+      Soigneur: { fx: { gauge: 5 }, label: "Jauge +5 % par carte" },
+      Défenseur: { fx: { renvoi: 8 }, label: "Renvoi +8 %" },
+      Tueur: { fx: { execute: 12 }, label: "+12 % (cible < 50 % PV)" },
+    };
     const EVO3 = {
       Chevalier: { fx: { renvoi: 10 }, label: "Renvoi +10 %" },
       Berserker: { fx: { rage: 15 }, label: "Rage +15 % sous le seuil" },
@@ -57,6 +68,17 @@ OS.registerApp({
       Soigneur: { fx: { heal: 30 }, label: "Soins +30 %" },
       Défenseur: { fx: { rempart: 5 }, label: "Encaissement +5 %" },
       Tueur: { fx: { fureur: 10 }, label: "Tueur +10 % (cible blessée)" },
+    };
+    const EVO3B = {
+      Chevalier: { fx: { dmg: 6 }, label: "Dégâts +6 %" },
+      Berserker: { fx: { hp: 8 }, label: "PV max +8 %" },
+      Mage: { fx: { crit: 8 }, label: "Critique +8 %" },
+      Archer: { fx: { gauge: 5 }, label: "Jauge +5 % par carte" },
+      Rôdeur: { fx: { crit: 8 }, label: "Critique +8 %" },
+      Héros: { fx: { teamAtk: 5 }, label: "ATK d'équipe +5 %" },
+      Soigneur: { fx: { hp: 8 }, label: "PV max +8 %" },
+      Défenseur: { fx: { esquive: 8 }, label: "Esquive +8 %" },
+      Tueur: { fx: { gauge: 4 }, label: "Jauge +4 % par carte" },
     };
     const PASSIVE_INFO = {
       gauvin: ["Serment renforcé", "renvoie 10 % de plus", { renvoi: 10 }],
@@ -91,10 +113,16 @@ OS.registerApp({
       if (passive) Object.keys(passive[2]).forEach((k) => add(k, passive[2][k]));
       const evo = (save.evo && save.evo[u.id]) || 0;
       if (evo >= 1) add("jaugeInit", 10);
-      if (evo >= 2) add("dmg", 8);
+      if (evo >= 2) {
+        add("dmg", 8);
+        const e2 = EVO2[u.cls];
+        if (e2) Object.keys(e2.fx).forEach((k) => add(k, e2.fx[k]));
+      }
       if (evo >= 3) {
-        const e3 = EVO3[u.cls];
-        if (e3) Object.keys(e3.fx).forEach((k) => add(k, e3.fx[k]));
+        [EVO3, EVO3B].forEach((tbl) => {
+          const t = tbl[u.cls];
+          if (t) Object.keys(t.fx).forEach((k) => add(k, t.fx[k]));
+        });
       }
       return fx;
     }
@@ -602,8 +630,14 @@ OS.registerApp({
     function evoSkillLabels(u, evo) {
       const lines = [];
       if (evo >= 1) lines.push("Éveil I ✦ Jauge de départ +10 %");
-      if (evo >= 2) lines.push("Éveil II ✦ Dégâts +8 %");
-      if (evo >= 3 && EVO3[u.cls]) lines.push("Éveil III ✦ " + EVO3[u.cls].label);
+      if (evo >= 2) {
+        lines.push("Éveil II ✦ Dégâts +8 %");
+        if (EVO2[u.cls]) lines.push("Talent ✦ " + EVO2[u.cls].label);
+      }
+      if (evo >= 3) {
+        if (EVO3[u.cls]) lines.push("Éveil III ✦ " + EVO3[u.cls].label);
+        if (EVO3B[u.cls]) lines.push("Talent ✦ " + EVO3B[u.cls].label);
+      }
       return lines;
     }
 
@@ -718,7 +752,11 @@ OS.registerApp({
         const evo = save.evo[u.id] || 0;
         const req = EVO_REQ[u.r][evo] || {};
         const can = Object.keys(req).every((k) => (save.loot[k] || 0) >= req[k]);
-        const nextEvoLabel = ({ 1: "Éveil I ✦ Jauge de départ +10 %", 2: "Éveil II ✦ Dégâts +8 %", 3: EVO3[u.cls] ? EVO3[u.cls].label : "" })[evo + 1];
+        const nextEvoLabel = ({
+          1: "Éveil I ✦ Jauge de départ +10 %",
+          2: "Éveil II ✦ Dégâts +8 %" + (EVO2[u.cls] ? " + Talent ✦ " + EVO2[u.cls].label : ""),
+          3: (EVO3[u.cls] ? "Éveil III ✦ " + EVO3[u.cls].label : "") + (EVO3B[u.cls] ? " + Talent ✦ " + EVO3B[u.cls].label : ""),
+        })[evo + 1];
         const line = document.createElement("div");
         line.className = "forge-line" + (can ? " ready" : "");
         line.innerHTML =
@@ -1802,7 +1840,7 @@ OS.registerApp({
 
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(ch.scene);
+      art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
       content.appendChild(art);
 
       const title = document.createElement("div");
@@ -1903,7 +1941,7 @@ OS.registerApp({
 
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(ch.scene);
+      art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
       content.appendChild(art);
 
       const done = document.createElement("div");
@@ -1921,17 +1959,21 @@ OS.registerApp({
       content.appendChild(storyBackBtn());
     }
 
+    function teamSceneActors() {
+      const src = battle && battle.mode ? battle.units : teamUnits();
+      return src.map((u, i) => ({ cls: u.cls, color: RARITY[u.r] ? RARITY[u.r].color : "#e3b23c", x: 30 + i * 46, flip: false, evo: (save.evo && save.evo[u.id]) || 0 }));
+    }
+    function sceneWithTeam(cfg) {
+      return { ...cfg, actors: (cfg.actors || []).concat(teamSceneActors()) };
+    }
+
     function battleSceneArt() {
       const idx = battle.storyChapter !== undefined ? battle.storyChapter : (storyScene ? storyScene.idx : 0);
-      let cfg = STORY[idx] ? STORY[idx].scene : STORY[0].scene;
-      if (battle.mode !== "histoire") {
-        const colors = { 1: "#8f9bb3", 2: "#4f9eff", 3: "#e3b23c", 4: "#ff8c5a" };
-        const actors = battle.units.map((u, i) => ({ cls: u.cls, color: colors[u.r] || "#e3b23c", x: 45 + i * 46, flip: false, evo: (save.evo && save.evo[u.id]) || 0 }));
-        cfg = { ...cfg, actors };
-      }
+      const cfg = STORY[idx] ? STORY[idx].scene : STORY[0].scene;
+      const full = battle.mode === "histoire" ? sceneWithTeam(cfg) : { ...cfg, actors: teamSceneActors() };
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(cfg);
+      art.innerHTML = OS.art.scene(full);
       return art;
     }
 
