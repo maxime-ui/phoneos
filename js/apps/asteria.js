@@ -1518,6 +1518,17 @@ OS.registerApp({
       if (battle) content.appendChild(battleView());
     }
 
+    function enemyPortrait(type) {
+      const paths = {
+        "Brute": "brute", "Assassin": "assassin", "Sorcier": "sorcier",
+        "Capitaine": "capitaine", "Golem": "golem", "Oracle": "oracle",
+        "Muraille": "muraille", "Invocateur": "invocateur", "Fantassin": "fantassin",
+        "Nécromant": "necromant", "Banshee": "banshee", "Sanguinaire": "sanguinaire",
+        "Colosse de givre": "colosse-givre"
+      };
+      return "assets/asteria/enemies/types/" + (paths[type] || "brute") + ".svg";
+    }
+
     function enemyIntent(type) {
       const intents = {
         "Brute": ["Frappe écrasante", "Cible le héros le plus blessé · dégâts élevés"],
@@ -2213,6 +2224,10 @@ OS.registerApp({
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
+        const enemyPortraitBox = document.createElement("div");
+        enemyPortraitBox.className = "battle-enemy-art";
+        enemyPortraitBox.innerHTML = '<img loading="lazy" alt="" src="' + enemyPortrait(battle.enemy.type) + '"><div><strong>' + battle.enemy.name + '</strong><span>' + battle.enemy.type + '</span></div>';
+        view.appendChild(enemyPortraitBox);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
         const breakMax = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
         const breakValue = Math.min(100, Math.round((battle.breakGauge || 0) / breakMax * 100));
