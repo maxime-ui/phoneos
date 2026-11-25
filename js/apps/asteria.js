@@ -230,7 +230,6 @@
       Alchimiste: [1.04, 0.92], Sentinelle: [1.20, 0.90], Prédateur: [0.96, 1.12],
       Chronomancien: [0.92, 1.08],
     };
-    OS.asteriaData.ENEMY_BALANCE = ENEMY_BALANCE;
     function enemyStats(type, hp, atk) {
       const tune = ENEMY_BALANCE[type] || [1, 1];
       return { hp: Math.round(hp * tune[0]), maxHp: Math.round(hp * tune[0]), atk: Math.round(atk * tune[1]) };
@@ -685,7 +684,7 @@ function artSlug(value) { return String(value || "").normalize("NFD").replace(/[
     }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, ENEMY_BALANCE, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
 
 OS.asteriaData.teamSynergyInfo = function () {
   return [
