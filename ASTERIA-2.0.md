@@ -94,3 +94,7 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Les cartes de héros de l'écran Équipe et des listes qui réutilisent `unitCard()` affichent maintenant le portrait correspondant à la classe.
 - Le test de fumée vérifie la présence des douze fichiers SVG.
 - Les illustrations sont des premières silhouettes vectorielles originales et légères, conçues pour être remplacées/enrichies progressivement par des artworks détaillés sans changer les chemins d'assets.
+
+- Sept icônes élémentaires (Feu, Eau, Foudre, Nature, Terre, Arcane, Vent) sont disponibles dans `assets/asteria/elements/`.
+- Un décor de combat crépusculaire est disponible dans `assets/asteria/scenes/` et sert de fond au cadre de scène.
+- Les contrôles de présence des assets couvrent désormais héros, ennemis, boss, éléments et décor.
