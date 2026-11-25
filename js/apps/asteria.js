@@ -2351,6 +2351,7 @@ OS.registerApp({
         flGain.cristal = 1 + Math.floor(battle.floor / 25);
       }
       battle.log.unshift("Butin : " + gainLoot(flGain));
+      persist();
       const quartzPreview = Math.round(3 + battle.floor * 2 + Math.pow(battle.floor, 1.28));
       battle.log.unshift("--- Étage " + battle.floor + " franchi · prochaine victoire : +" + quartzPreview + " ◆ ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
