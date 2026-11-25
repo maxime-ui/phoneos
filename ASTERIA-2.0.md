@@ -76,3 +76,13 @@ Aucun workflow GitHub Actions n'est configuré sur la branche au moment de la v�
 - Le système expose ses données via `OS.asteriaData.elementInfo()` et les tests de fumée vérifient la cohérence du catalogue.
 
 **Note d'équilibrage :** les cartes existantes n'utilisent actuellement que Feu, Arcane et Vent. Les autres éléments sont le socle des futures compétences, personnages et effets de terrain ; ils ne sont pas artificiellement attribués aux unités existantes.
+
+
+## Combat 2.0 — synergies de composition
+
+Trois synergies de classe sont actives tant que les deux classes requises sont vivantes :
+- Mage + Archer : **Convergence arcanique**, +8 % de dégâts d'équipe.
+- Chevalier + Soigneur : **Serment protecteur**, −10 % de dégâts reçus.
+- Berserker + Rôdeur : **Traque coordonnée**, +6 % de dégâts d'équipe.
+
+Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O. Elles sont affichées dans l'interface du combat et s'appliquent en plus des passifs individuels.
