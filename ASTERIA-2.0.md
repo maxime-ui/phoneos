@@ -57,7 +57,7 @@ Au premier démarrage de cette version, une opération unique supprime les ancie
 
 ## État de validation
 
-Aucun workflow GitHub Actions n'est configuré sur la branche au moment de la vérification. Les tests ont été enrichis, mais ils ne sont pas déclarés exécutés ici.
+Le workflow GitHub Actions `.github/workflows/asteria-quality.yml` est configuré pour les pushes sur `asteria-2.0`, les pull requests ciblant `vibe/phoneos-270620` et les déclenchements manuels. Il exécute le contrôle de syntaxe puis `npm test` sous Node.js 20. Un workflow configuré ne signifie pas qu’un passage est réussi : consulter l’onglet Actions et vérifier le commit exact avant de déclarer la branche validée.
 
 
 ## Ajustements de robustesse
@@ -114,3 +114,12 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Le test de fumée vérifie la présence et la structure de chaque SVG, le nombre de portraits affichés dans le roster et la résolution du portrait de boss en combat.
 - Le test est désormais portable : chemins calculés depuis le dossier du projet et dépendance jsdom déclarée dans package.json.
 - Le workflow GitHub Actions `.github/workflows/asteria-quality.yml` contrôle la syntaxe JavaScript puis exécute le test de fumée sur les pushes de la branche et les pull requests.
+
+
+## Vérification et maintenance
+
+- Dépendances d’exécution : aucune ; le jeu reste HTML/CSS/JavaScript natif.
+- Dépendance de développement : `jsdom` (déclarée dans `package.json`) pour exécuter le test de fumée sous Node.js.
+- Commandes de contrôle : `npm install`, `npm run check:syntax`, puis `npm test`.
+- Le test initialise les scripts dans jsdom et remplace `window.scrollTo` via `beforeParse`, avant le démarrage du noyau PhoneOS.
+- La validation CI doit être vérifiée sur le SHA exact du dernier commit ; l’existence du workflow ne vaut pas résultat vert.
