@@ -165,3 +165,13 @@ Le menu Entraînement permet de sélectionner n'importe lequel des héros du ros
 - Les taux affichés suivent les probabilités effectives du tirage et tiennent compte des raretés absentes du pool. La garantie SSR est indiquée seulement pour les portails qui contiennent des SSR.
 - Le conteneur principal est désormais un vrai conteneur flex à hauteur d'écran, avec barre de défilement visible et défilement tactile.
 - Les tests smoke couvrent le lancement direct de l'entraînement, les filtres de Collection et l'aperçu des portails.
+
+
+## Correctifs visuels et ergonomie — portraits, histoire et laboratoire
+
+- Les portraits utilisés par les cartes et le combat reposent désormais sur des fichiers SVG autonomes par classe et par archétype ennemi, plutôt que sur des références de symboles SVG externes.
+- Le Mode Histoire affiche les personnages présents dans chaque scène, un portrait associé au nom du locuteur et le portrait de l'ennemi avant l'engagement d'un boss.
+- Le laboratoire d'entraînement passe sur un écran de combat dédié après le choix du héros : il n'est plus nécessaire de faire défiler le roster complet pour atteindre le combat. Le retour au choix et la sortie du test restent accessibles.
+- Un compteur de dégâts cumulés rend les actions visibles pendant le test, tout en conservant la cible immortelle et l'absence de riposte/récompense.
+- Les portails disposent d'un filtre Tous / Possédés / Non possédés, indépendant des filtres de la Collection.
+- Les tests smoke vérifient les chemins des portraits autonomes, le compteur du laboratoire et le filtre de possession des portails.
