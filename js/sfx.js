@@ -3,6 +3,8 @@
 
 OS.sfx = (() => {
   let ctx = null;
+  let masterGain = null;
+  let volume = Math.max(0, Math.min(100, Number(OS.store.get("volume", 60)) || 0));
   let musicOn = false;
   let musicVoice = null;
   let muted = OS.store.get("sound-muted", false);
@@ -16,6 +18,11 @@ OS.sfx = (() => {
       } catch {
         return null;
       }
+    }
+    if (ctx && !masterGain) {
+      masterGain = ctx.createGain();
+      masterGain.gain.value = volume / 100;
+      masterGain.connect(ctx.destination);
     }
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
@@ -34,7 +41,7 @@ OS.sfx = (() => {
     gain.gain.setValueAtTime(0, t0);
     gain.gain.linearRampToValueAtTime(opts.vol || 0.15, t0 + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (opts.dur || 0.15));
-    osc.connect(gain).connect(c.destination);
+    osc.connect(gain).connect(masterGain || c.destination);
     osc.start(t0);
     osc.stop(t0 + (opts.dur || 0.15) + 0.05);
   }
@@ -54,7 +61,7 @@ OS.sfx = (() => {
     filter.frequency.value = filterFreq || 900;
     const gain = c.createGain();
     gain.gain.value = vol || 0.18;
-    src.connect(filter).connect(gain).connect(c.destination);
+    src.connect(filter).connect(gain).connect(masterGain || c.destination);
     src.start();
   }
 
@@ -120,6 +127,12 @@ OS.sfx = (() => {
 
   return {
     play,
+    setVolume(v) {
+      const value = Number(v);
+      volume = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+      if (masterGain) masterGain.gain.setTargetAtTime(volume / 100, ctx.currentTime, 0.015);
+    },
+    get volume() { return volume; },
     setMuted(v) {
       muted = v;
       OS.store.set("sound-muted", v);
