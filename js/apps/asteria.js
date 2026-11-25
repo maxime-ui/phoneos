@@ -1713,8 +1713,19 @@ OS.registerApp({
       return list.map((u) => u.name).join(" et ");
     }
 
+    function teamSynergies() {
+      const alive = battle.units.filter((u, i) => battle.hp[i] > 0);
+      const classes = new Set(alive.map((u) => u.cls));
+      const pairs = [];
+      if (classes.has("Mage") && classes.has("Archer")) pairs.push({ id: "precision", name: "Convergence arcanique", desc: "+8 % dégâts d'équipe", atk: 0.08 });
+      if (classes.has("Chevalier") && classes.has("Soigneur")) pairs.push({ id: "serment", name: "Serment protecteur", desc: "−10 % dégâts reçus", guard: 0.10 });
+      if (classes.has("Berserker") && classes.has("Rôdeur")) pairs.push({ id: "traque", name: "Traque coordonnée", desc: "+6 % dégâts d'équipe", atk: 0.06 });
+      return pairs;
+    }
+
     function teamAtkMult() {
       let mult = 1;
+      teamSynergies().forEach((synergy) => { mult += synergy.atk || 0; });
       battle.units.forEach((u, i) => {
         if (battle.hp[i] > 0) {
           if (u.id === "aldric") mult += 0.10;
@@ -1793,6 +1804,11 @@ OS.registerApp({
         return 0;
       }
       let dmg = battle.guard ? Math.round(raw * 0.65) : raw;
+      const protection = teamSynergies().find((synergy) => synergy.guard);
+      if (protection) {
+        dmg = Math.round(dmg * (1 - protection.guard));
+        battle.log.unshift(protection.name + " : dégâts réduits de " + Math.round(protection.guard * 100) + " %");
+      }
       const defenders = battle.units.filter((u, i) => u.cls === "Défenseur" && battle.hp[i] > 0);
       if (defenders.length) {
         const cut = Math.min(0.30, defenders.reduce((s, u) => s + (u.id === "bastien" ? 0.15 : 0.10) + (unitFx(u).rempart || 0) / 100, 0));
@@ -2218,6 +2234,13 @@ OS.registerApp({
         affinityBox.className = "battle-affinity";
         affinityBox.textContent = ELEMENTS[affinity].icon + " Affinité ennemie : " + ELEMENTS[affinity].label + " · Faiblesse : " + (ELEMENTS[affinity].weak ? ELEMENTS[ELEMENTS[affinity].weak].label : "aucune");
         view.appendChild(affinityBox);
+        const synergies = teamSynergies();
+        if (synergies.length) {
+          const synergyBox = document.createElement("div");
+          synergyBox.className = "battle-synergy";
+          synergyBox.innerHTML = "<strong>Synergie active</strong><span>" + synergies.map((x) => x.name + " · " + x.desc).join(" / ") + "</span>";
+          view.appendChild(synergyBox);
+        }
 
         const gwrap = document.createElement("div");
         gwrap.className = "hp-row gauge";
@@ -2957,6 +2980,14 @@ OS.registerApp({
     }
 
     /* ---------- API diffé pour la barre supérieure ---------- */
+    OS.asteriaData.teamSynergyInfo = function () {
+      return [
+        { classes: ["Mage", "Archer"], name: "Convergence arcanique", effect: "+8 % dégâts d'équipe" },
+        { classes: ["Chevalier", "Soigneur"], name: "Serment protecteur", effect: "−10 % dégâts reçus" },
+        { classes: ["Berserker", "Rôdeur"], name: "Traque coordonnée", effect: "+6 % dégâts d'équipe" },
+      ];
+    };
+
     OS.asteriaData.elementInfo = function () {
       return {
         cards: Object.fromEntries(Object.entries(CARD).map(([key, card]) => [key, { label: card.label, element: card.element }])),
