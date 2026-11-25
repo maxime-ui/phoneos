@@ -40,7 +40,7 @@ les paliers de Collection. On le dépense en invocations.
 | Mode | Prix | Remarque |
 |---|---|---|
 | Bannière des héros ×1 / ×10 | 3 ◆ / 30 ◆ | Toutes classes : 5 % SSR · 20 % SR · 75 % R. **Pity : SSR garanti à la 50ᵉ invocation** (compteur affiché en direct, remis à zéro dès qu'un SSR tombe, garanti ou non) |
-| Portail de classe (9 classes) | 5 ◆ | Pool limité à la classe, **pity : SSR garanti au 30ᵉ tirage** (compteur visible, réinitialisé au SSR) |
+| Portail de classe (12 classes) | 5 ◆ | Pool limité à la classe, **pity : SSR garanti au 30ᵉ tirage** (compteur visible, réinitialisé au SSR) |
 
 Les **portails de classe** sont le moyen sûr de viser un rôle précis
 (Soigneur, Défenseur, Tueur de boss…). Le pity compte séparément par classe.
@@ -56,12 +56,12 @@ Les **doublons** montent le niveau d'un héros : +8 % ATK/PV par copie
 
 | Rang | Couleur | Nombre |
 |---|---|---|
-| R (gris) | 75 % des tirages | 64 |
-| SR (bleu) | 20 % | 38 |
-| SSR (doré) | 5 % | 30 — chaque SSR a un **passif unique** |
+| R (gris) | 75 % des tirages | 69 |
+| SR (bleu) | 20 % | 42 |
+| SSR (doré) | 5 % | 33 — chaque héros possède un passif |
 | SS (orange) | — | 1 : **Astrée, Héritière des braises** (le Graal, voir §7) |
 
-### 3.2 Les 9 classes et bonus d'équipe
+### 3.2 Les 12 classes et bonus d'équipe
 
 | Classe | Rôle | Bonus |
 |---|---|---|
@@ -73,7 +73,10 @@ Les **doublons** montent le niveau d'un héros : +8 % ATK/PV par copie
 | Héros | Croissance | +5 % dégâts/tour (Héros accumulent : rin, graal) |
 | **Soigneur** | Survie | Se soigne au lieu d'attaquer — soigne l'allié le plus blessé |
 | **Défenseur** | Survie | Réduit les dégâts subis par toute l'équipe |
-| **Tueur de boss** | Burst | +30 % dégâts, attire les ripostes en priorité |
+| **Tueur** | Burst | Exécution renforcée, attire les ripostes en priorité |
+| **Artificier** | Soutien offensif | Renforce l’ATK d’équipe et accélère la jauge |
+| **Druide** | Soutien / soin | Soigne l’équipe et augmente l’endurance |
+| **Occultiste** | Malédiction | Marque l’ennemi et amplifie les dégâts d’exécution |
 
 ### 3.3 Les cartes de combat
 
@@ -81,8 +84,9 @@ Chaque héros possède 3 cartes (Brut ◤Rouge ×1,5 · Arcane ◆Bleu ×1,0 · 
 ▲Vert ×0,8). Chaque tour, 3 cartes tirées de l'équipe sont jouables. Les cartes
 rechargent la jauge d'Ultime (Bleu > Vert) et déclenchent passifs et talents.
 
-**Ultime (jauge 100 %)** : frappe massive + effet propre à l'héros.
-Les jauge de départ viennent des éveils et de l'Étendard (+ max 60 % en quête).
+**Ultime partagé (jauge 100 %)** : frappe massive + effet propre au héros.
+**Ultimes de classe automatiques** : chaque héros charge aussi son ultime personnel après 3 à 5 cycles complets selon sa classe. Chevalier = bouclier, Berserker = burst, Mage = dégâts arcaniques/jauge, Archer = rafale, Rôdeur = esquive, Soigneur/Druide = soins, Défenseur = protection, Tueur = exécution, Artificier = bonus d’ATK, Occultiste = malédiction. Les ultimes ennemis arrivent tous les 4 tours ennemis et changent selon l’archétype.
+La jauge de départ vient des éveils et de l'Étendard.
 
 ### 3.4 Évolutions et éveils (Forge, onglet Équipe)
 
@@ -130,11 +134,12 @@ recyclez seulement les copies au-delà du plafond utile.
 
 ---
 
-## 4. Le Reliquaire (système de reliques v2)
+## 4. Le Reliquaire (système de reliques v4)
 
-Dans l'onglet **Équipe**, après la Forge. **Cinq reliques** — Lame du Raid,
-Écaille du Dragon, Étendard des trois phases, **Anneau des serments (critique)**
-et **Orbe des braises (dégâts)** — **forgées puis équipées sur UN héros de votre
+Dans l'onglet **Équipe**, après la Forge. **Huit reliques** — Lame du Raid,
+Écaille du Dragon, Étendard des trois phases, Anneau des serments (critique),
+Orbe des braises (dégâts), **Talisman des saisons (soins)**, **Grimoire des failles (jauge)**
+et **Bottes du vent long (esquive)** — **forgées puis équipées sur UN héros de votre
 choix** : une relique n'a d'effet que sur son porteur (stats personnelles). Une
 relique forgée mais non équipée ne fait rien ; chaque relique peut être
 déplacée, retirée, réattribuée à volonté via le sélecteur « Équiper sur : » —
@@ -151,12 +156,12 @@ ou bonus %), y compris pour un déplacement entre héros.
    **fixées à l'avance** (zéro aléatoire) : vous savez exactement ce que vous
    achetez.
 
-| Rang | Lame | Écaille | Étendard | Anneau | Orbe |
+| Rang | Lame | Écaille | Étendard | Anneau | Orbe | Talisman | Grimoire | Bottes |
 |---|---|---|---|---|---|
-| N | ATK +12 % | PV +12 % | Jauge +15 % | Critique +8 % | Dégâts +8 % |
-| R | +18 % **· Crit +3 %** | +18 % **· Soins +4 %** | +18 % **· ATK équipe +3 %** | +12 % **· Exécution +6 %** | +12 % **· ATK équipe +4 %** |
-| SR | +26 % · Crit +3 % **· Renvoi +5 %** | +26 % · Soins +4 % **· Esquive +4 %** | +21 % · ATK équipe +3 % **· Ultime/carte +2 %** | +16 % · Exéc +6 % **· Ultime/carte +3 %** | +16 % · ATK équipe +4 % **· Soins +5 %** |
-| SSR | +36 % · Crit +3 % · Renvoi +5 % **· Exécution +8 %** | +36 % · Soins +4 % · Esquive +4 % **· PV héros +6 %** | +24 % · ATK équipe +3 % · Ultime/carte +2 % **· Croissance +2 %/tour** | +22 % · Exéc +6 % · Ultime/carte +3 % **· Renvoi +5 %** | +22 % · ATK équipe +4 % · Soins +5 % **· Croissance +3 %/tour** |
+| N | ATK +12 % | PV +12 % | Jauge +15 % | Critique +8 % | Dégâts +8 % | Soins +8 % | Jauge +4 %/carte | Esquive +5 % |
+| R | +18 % · Crit +3 % | +18 % · Soins +4 % | Jauge +18 % · ATK équipe +3 % | Crit +12 % · Exécution +6 % | Dégâts +12 % · ATK équipe +4 % | Soins +12 % · PV +4 % | Jauge +6 %/carte · Dégâts +3 % | Esquive +8 % · Renvoi +3 % |
+| SR | +26 % · Crit +3 % · Renvoi +5 % | +26 % · Soins +4 % · Esquive +4 % | Jauge +21 % · ATK équipe +3 % · Ultime/carte +2 % | Crit +16 % · Exécution +6 % · Ultime/carte +3 % | Dégâts +16 % · ATK équipe +4 % · Soins +5 % | Soins +16 % · PV +4 % · Jauge +2 % | Jauge +8 %/carte · Dégâts +6 % · Crit +3 % | Esquive +11 % · Renvoi +3 % · PV +4 % |
+| SSR | +36 % · Crit +3 % · Renvoi +5 % · Exécution +8 % | +36 % · Soins +4 % · Esquive +4 % · PV héros +6 % | Jauge +24 % · ATK équipe +3 % · Ultime/carte +2 % · Croissance +2 %/tour | Crit +22 % · Exécution +6 % · Ultime/carte +3 % · Renvoi +5 % | Dégâts +22 % · ATK équipe +4 % · Soins +5 % · Croissance +3 %/tour | Soins +22 % · PV +4 % · Jauge +2 % · ATK équipe +2 % | Jauge +10 %/carte · Dégâts +6 % · Crit +3 % · Exécution +5 % | Esquive +14 % · Renvoi +3 % · PV +4 % · Jauge +2 % |
 
 Coûts d'amélioration : N→R **10 Poussières** · R→SR **20 Poussières + 5 Cristaux** ·
 SR→SSR **40 Poussières + 12 Cristaux**.
@@ -170,6 +175,7 @@ désormais personnelles au héros équipé — pensez à choisir un porteur).
 | **Pacte du trio** | 2 reliques forgées **et équipées** | Dégâts +4 % |
 | **Trinité du dragon** | 4 reliques forgées **et équipées** | Dégâts +4 % et jauge de départ +10 % |
 | **Harmonie parfaite** | 4 reliques équipées en rang Épique (SR) ou + | Dégâts +8 % |
+| **Cycle des saisons** | 3 reliques équipées | Soins +6 % et jauge +3 % par carte |
 
 Le boost maximal : 8 %→16 % ATK, 4 %→14 % PV/via sous-stats, jauges,
 critique, renvoi, exécution, soins… soit environ **+30 % de puissance
@@ -215,23 +221,22 @@ Week-end réel : **fortune** (récompenses ×2) ou **invocateurs** (SSR ×2).
 
 ## 6. Le Mode Histoire
 
-- **18 chapitres en 4 actes + un épilogue**, dialogues frappés (vitesse réglable,
+- **25 chapitres en 7 actes + 2 épilogues**, dialogues frappés (vitesse réglable,
   option Instantané). L'Acte IV (« Les braises d'avant ») approfondit les
   ennemis de la route (Nomade sans visage, Prêtre des braises, Golem du
   serment, Triade de fer, Sanguinaire des cratères) et **l'épilogue « Les trois
   qui restaient debout » révèle les origines** : le premier dragon, le premier
   serment, la forge des premières reliques.
 - **Choix narratifs** → **bénédictions** permanentes (+8 % dégâts, démarrage de jauge, etc.).
-- **6 boss de récit** aux chapitres 2, 4, 7, 10, 12 et 18 (l'Écho du premier
-  dragon) ; **6 difficultés chaînées** : Facile, Moyen, Difficile, Impossible,
+- **8 boss de récit** aux chapitres 2, 4, 7, 10, 12, 19, 21 et 23 ; **6 difficultés chaînées** : Facile, Moyen, Difficile, Impossible,
   Enfer, **Enfer+** — il faut boucler **toute** l'histoire en Facile pour
   débloquer Moyen, en Moyen pour Difficile, etc. ; Enfer+ exige en plus les
-  5 bannières.
+  8 bannières.
 - **Butin variable selon la difficulté** : Larmes (+1 → +3), Couronnes dès
   Impossible, Cristaux dès Difficile, Élixirs et Sceaux en Enfer/Enfer+,
   matériaux de classe en continu
-- **Bannières de gloire** : 5 bannières à +25 ◆ chacune (notification système) ;
-  chaque bannière demande les 5 boss battus à un palier de difficulté.
+- **Bannières de gloire** : 8 bannières à +25 ◆ chacune (notification système) ;
+  chaque bannière demande les 8 boss battus à un palier de difficulté.
 - **Enfer+** : ennemis ×4,2 PV / ×3 ATQ, **5 compétences élites** (Massue écrasante,
   Siphon d'âmes, Souffle de cendres, Oriflamme maudite…), +2 Élixirs, +2 Cristaux
   et le fameux **Graal** (voir §7).
@@ -241,10 +246,10 @@ Week-end réel : **fortune** (récompenses ×2) ou **invocateurs** (SSR ×2).
 ## 7. Le Graal — Astrée, Héritière des braises
 
 Vainquez le **Dragon des cendres** (chapitre 12) **en Enfer+** : +50 ◆ et **SS
-exclusive** (Aura orange, rang SS), **rééquilibrée** : 2 650 ATK · 14 500 PV,
-**passif Héritière des braises (dégâts +18 % et jauge de départ +20 %)** et
-Ultime héritage des braises (+8 % dégâts/tour, renvoie 35 % des ripostes, soigne
-15 % des dégâts infligés). La pierre angulaire des
+exclusive** (Aura orange, rang SS), **rééquilibrée** : 2 380 ATK · 13 200 PV,
+**passif Héritière des braises (dégâts +10 % et jauge de départ +10 %)** et
+Ultime héritage des braises (+5 % dégâts/tour, renvoie 20 % des ripostes, soigne
+8 % des dégâts infligés). La pierre angulaire des
 compétiteurs — affichée dans la Salle des trophées.
 
 ---
@@ -274,7 +279,7 @@ compétiteurs — affichée dans la Salle des trophées.
    est la manière régulière de faire monter vos reliques au rang SR.
 5. **Bonus d'ensemble** : 4 reliques forgées ET équipées = Trinité (+4 % dégâts,
    +10 jauge) même en rang N : équipez-les toutes d'abord, améliorez ensuite.
-   Astuce : équipez les 5 reliques dès le rang N (Pacte + Trinité actifs :
+   Astuce : équipez les 8 reliques dès le rang N (Pacte + Trinité actifs :
    +8 % dégâts et +10 jauge), déplacez-les avec la prévisualisation — Lame +
    Exécution SSR sur votre meilleur DPS, Écaille sur le Défenseur, Étendard sur
    l'ouvreur (éveil ★ lui aussi), Anneau/Orbe sur vos dégâts.
@@ -292,3 +297,39 @@ compétiteurs — affichée dans la Salle des trophées.
   missions, meilleur étage, Réglages.
 - Tests : `npm run check:syntax` puis `npm test` (test de fumée jsdom) — voir le README.
 - Données partagées pour les apps : `OS.asteriaData`.
+
+
+### 3.3bis — Bannières vedettes et nouveaux héros
+
+Trois bannières temporaires sont disponibles dans **Invoquer** :
+- **Maîtres de la forge** : Elyndra (SSR Artificier).
+- **Pacte de la sève-lune** : Maélis (SSR Druide).
+- **Secrets du crépuscule** : Nyxar (SSR Occultiste).
+
+Chaque bannière conserve ses propres compteurs : SSR garanti au 50ᵉ tirage, puis héros vedette garanti au 100ᵉ. Les trois héros vedettes sont également présents dans le pool SSR général. Le roster total est de **145 héros** : 69 R, 42 SR, 33 SSR et 1 SS. Aucun nouveau SS n’a été ajouté.
+
+### 3.3ter — Passifs, synergies et ultimes
+
+Tous les héros possèdent maintenant un passif, spécifique ou attribué selon leur classe. Les trois nouvelles classes apportent des synergies dédiées : Atelier vivant (Artificier + Druide), Cycle du voile (Druide + Occultiste) et Mécanique interdite (Artificier + Occultiste).
+
+Les ultimes de classe sont distincts de la jauge partagée : ils se chargent automatiquement à chaque cycle complet et se déclenchent au bout de **3 à 5 tours** selon la classe. L’interface de combat indique le compteur de chaque héros. Les ennemis disposent eux aussi d’un ultime au **4ᵉ tour ennemi**, avec des effets différents selon leur archétype.
+
+### 5.5 Nouveaux archétypes ennemis
+
+Six archétypes s’ajoutent aux treize existants :
+- **Duelliste** : vise le héros le plus offensif.
+- **Artilleur** : frappe toute l’équipe.
+- **Alchimiste** : applique un poison périodique et se régénère.
+- **Sentinelle** : réduit les dégâts reçus avec sa formation.
+- **Prédateur** : cible les héros blessés et augmente sa puissance.
+- **Chronomancien** : draine la jauge d’Ultime et déforme le rythme du combat.
+
+Les 19 archétypes ont chacun une calibration PV/ATQ. Les nouveaux ennemis sont intégrés aux combats de quête, aux rencontres de l’histoire et aux vagues adaptées du Mode Infini. Le journal de combat annonce les ultimes ennemis.
+
+### 6.1 Les sept nouveaux chapitres
+
+La suite ajoute **La forge des étoiles**, **La forêt qui se souvient**, **Les cloches sans écho**, **La marche des armées**, **Les secondes volées**, **Le dernier engrenage** et **Une bannière pour demain**. Chaque chapitre possède des dialogues, une escarmouche et un boss narratif. Les nouvelles bannières de gloire sont liées aux boss des chapitres 19, 21 et 23.
+
+### 8.1 Musiques des menus
+
+Le moteur Web Audio dispose de thèmes différents pour les invocations, l’équipe/forge, l’entraînement, la collection, les combats et l’histoire. Le thème change avec le menu actif ; les commandes globales de son et de volume restent respectées.
