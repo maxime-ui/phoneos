@@ -289,8 +289,18 @@ setTimeout(() => {
   const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
   ownershipFilter.value = "missing"; ownershipFilter.dispatchEvent(new window.Event("change"));
   check("filtre non possédés appliqué", document.querySelectorAll(".col-grid .unit-card").length === 1 && document.querySelector(".col-grid .unit-card.locked"));
+  const collectionFilters = document.querySelectorAll(".collection-filters select");
+  collectionFilters[0].value = "Mage"; collectionFilters[0].dispatchEvent(new window.Event("change"));
+  collectionFilters[1].value = "1"; collectionFilters[1].dispatchEvent(new window.Event("change"));
+  collectionFilters[2].value = "owned"; collectionFilters[2].dispatchEvent(new window.Event("change"));
+  const combinedCards = [...document.querySelectorAll(".col-grid .unit-card")];
+  check("filtres Collection combinés : classe Mage + rareté R + possédés", combinedCards.length > 0 && combinedCards.every((card) => card.querySelector(".unit-cls").textContent.includes("Mage") && card.querySelector(".unit-rarity").textContent.startsWith("R")));
   const resetOwnershipFilter = document.querySelectorAll(".collection-filters select")[2];
   resetOwnershipFilter.value = "all"; resetOwnershipFilter.dispatchEvent(new window.Event("change"));
+  const resetClassFilter = document.querySelectorAll(".collection-filters select")[0];
+  resetClassFilter.value = "all"; resetClassFilter.dispatchEvent(new window.Event("change"));
+  const resetRarityFilter = document.querySelectorAll(".collection-filters select")[1];
+  resetRarityFilter.value = "all"; resetRarityFilter.dispatchEvent(new window.Event("change"));
   check("progression 132 / " + (unitIds.length) + " affichée", document.body.textContent.includes("132 / " + unitIds.length));
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
@@ -341,7 +351,7 @@ setTimeout(() => {
   check("ouvrir un portail ne consomme pas de quartz", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350);
   const portalOwnership = document.querySelector(".portal-owned-filter select");
   if (portalOwnership) { portalOwnership.value = "missing"; portalOwnership.dispatchEvent(new window.Event("change")); }
-  check("portail : filtre Non possédés appliqué", !!document.querySelector(".portal-detail .portal-count") && document.querySelector(".portal-detail .portal-count").textContent.includes("personnages affichés"));
+  check("portail : filtre Non possédés appliqué", !!document.querySelector(".portal-detail .portal-count") && document.querySelector(".portal-detail .portal-count").textContent.startsWith("0 / ") && document.querySelectorAll(".portal-detail .portal-roster .unit-card").length === 0);
   if (portalOwnership) { portalOwnership.value = "all"; portalOwnership.dispatchEvent(new window.Event("change")); }
   const portalSummon = [...document.querySelectorAll(".portal-detail .pull-btn")].find((b) => b.textContent.includes("×1"));
   if (portalSummon) portalSummon.click();
@@ -490,6 +500,7 @@ setTimeout(() => {
   document.querySelector(".story-chapter").click();
   check("onglet Histoire reste actif dans une scène", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
   check("scène SVG visible", !!document.querySelector(".story-art"));
+  check("Mode Histoire : portraits des personnages de la scène visibles", document.querySelectorAll(".story-actor-strip img").length > 0 && [...document.querySelectorAll(".story-actor-strip img")].every((img) => fs.existsSync(path.join(root, img.getAttribute("src").replace("./", "")))));
   const sceneHtml = document.querySelector(".story-art").innerHTML;
   check("scène d'histoire : l'équipe réelle apparaît avec ses évolutions", sceneHtml.includes("scale(1.08)") && sceneHtml.includes("#ffd970"));
   check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
