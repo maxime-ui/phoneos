@@ -190,6 +190,7 @@ const OS = (() => {
     document.addEventListener("fullscreenchange", updateFsButton);
     document.addEventListener("keydown", (e) => {
       if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === "Escape") goBack();
       if (e.key === "f" || e.key === "F") toggleFullscreen();
     });

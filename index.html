@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Astéria — RPG gacha complet en page web : invoquez parmi 133 héros, combattez au tour par tour, terminez le Mode Histoire, affrontez le raid hebdomadaire et forgez vos reliques. 100 % HTML/CSS/JS, sans installation.">
+  <meta name="theme-color" content="#0d1119">
   <title>Astéria — Gacha RPG</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1119'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23ffd970'%3E%E2%9A%94%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
   <header class="top-bar" id="top-bar">
     <div class="top-brand">⚔ Astéria</div>
-    <nav class="top-tabs" id="top-tabs"></nav>
-    <button class="top-tab" id="btn-fullscreen" title="Plein écran">⛶ Plein écran</button>
+    <nav class="top-tabs" id="top-tabs" aria-label="Sections du jeu"></nav>
+    <button class="top-tab" id="btn-fullscreen" title="Plein écran" aria-label="Plein écran">⛶ Plein écran</button>
     <span class="top-clock" id="top-clock">--:--</span>
   </header>
 
