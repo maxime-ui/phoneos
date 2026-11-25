@@ -1714,6 +1714,18 @@ OS.registerApp({
       dmg = Math.round(dmg * (1 + 0.10 * battle.curse));
       battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
       battle.log.unshift(actorName + " (" + label + ") → " + dmg + " dégâts");
+
+      // Jauge de rupture : les assauts coordonnés peuvent interrompre la riposte.
+      if (battle.enemy.hp > 0 && !battle.staggered) {
+        battle.breakGauge = (battle.breakGauge || 0) + dmg;
+        const threshold = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
+        if (battle.breakGauge >= threshold) {
+          battle.breakGauge = 0;
+          battle.staggered = true;
+          battle.log.unshift("✦ RUPTURE ! " + battle.enemy.name + " est déséquilibré : sa prochaine action est interrompue.");
+          OS.sfx.play("crit");
+        }
+      }
       return dmg;
     }
 
@@ -1785,6 +1797,21 @@ OS.registerApp({
     function enemyTurn() {
       const targets = aliveIdx();
       if (!targets.length) return endBattle(false);
+      // Une rupture annule la riposte annoncée, mais n'efface pas les dégâts périodiques.
+      if (battle.staggered) {
+        battle.staggered = false;
+        battle.log.unshift("⛓ " + battle.enemy.name + " perd son tour : rupture de posture !");
+        if (battle.burn > 0 && battle.enemy.hp > 0) {
+          const burnDmg = Math.round(battle.enemy.maxHp * 0.04 * battle.burn);
+          battle.enemy.hp = Math.max(0, battle.enemy.hp - burnDmg);
+          battle.log.unshift("Brûlure → " + burnDmg + " dégâts");
+          if (battle.enemy.hp <= 0) return endBattle(true);
+        }
+        battle.guard = false;
+        battle.intent = enemyIntent(battle.enemy.type);
+        newHand();
+        return;
+      }
       const type = battle.enemy.type;
       let ti;
       switch (type) {
@@ -2130,6 +2157,18 @@ OS.registerApp({
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
+        const breakMax = Math.max(1, Math.round(battle.enemy.maxHp * 0.28));
+        const breakValue = Math.min(100, Math.round((battle.breakGauge || 0) / breakMax * 100));
+        const breakWrap = document.createElement("div");
+        breakWrap.className = "hp-row break-gauge";
+        breakWrap.innerHTML = '<div class="hp-label">Rupture</div><div class="hp-track"><div class="hp-fill" style="width:' + breakValue + '%"></div></div><div class="hp-num">' + breakValue + '%</div>';
+        view.appendChild(breakWrap);
+        if (battle.staggered) {
+          const broken = document.createElement("div");
+          broken.className = "battle-break-alert";
+          broken.textContent = "⛓ Ennemi déséquilibré — prochaine action interrompue";
+          view.appendChild(broken);
+        }
         const intent = battle.intent || enemyIntent(battle.enemy.type);
         const intentBox = document.createElement("div");
         intentBox.className = "battle-intent";
