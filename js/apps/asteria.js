@@ -1811,11 +1811,12 @@ OS.registerApp({
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" || strongest.id === "graal" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
       const dmg = Math.round(strongest.atk * 2.4 * heroMult * (1 + (unitFx(strongest).dmg || 0) / 100) * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
-      battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
+      // Les ultimes passent par le même pipeline que les cartes : résistances,
+      // malédiction et jauge de rupture restent cohérentes quel que soit le type d’attaque.
+      hitEnemy(dmg, strongest.name, "Ultime", null);
       battle.gauge = 0;
       battle.picks = 3;
       OS.sfx.play("ult");
-      battle.log.unshift("✦ ULTIME de " + strongest.name + " → " + dmg + " dégâts !");
       if (battle.enemy.hp <= 0) return endBattle(true);
       enemyTurn();
       renderQuests();
