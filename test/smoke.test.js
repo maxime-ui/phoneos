@@ -670,6 +670,14 @@ setTimeout(() => {
   check("volume : valeur plafonnée à 100 %", window.eval("OS").sfx.volume === 100);
   window.eval("OS").setVolume(60);
 
+  // Le contrôle du volume doit réellement piloter le gain maître audio.
+  window.eval("OS").setVolume(37);
+  check("volume : valeur appliquée au moteur audio", window.eval("OS").sfx.volume === 37);
+  check("volume : valeur persistée", window.localStorage.getItem("phoneos:volume") === "37");
+  window.eval("OS").setVolume(140);
+  check("volume : valeur plafonnée à 100 %", window.eval("OS").sfx.volume === 100);
+  window.eval("OS").setVolume(60);
+
   // Barre supérieure avancée : sélecteur de difficulté direct + raccourci F
   window.eval('document.dispatchEvent(new Event("asteria-diff"))');
   const topDiff = document.getElementById("top-diff");
