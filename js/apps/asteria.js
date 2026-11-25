@@ -1513,7 +1513,7 @@ OS.registerApp({
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const op = {
         name, type,
-        hp: Math.max(9000, Math.round(unit.atk * 14)),
+        hp: Math.max(9000, Math.round(unit.atk * 20)),
         atk: Math.max(120, Math.round(unit.hp * 0.05)),
       };
       battle = {
