@@ -46,6 +46,11 @@ const artFiles = [
   "assets/asteria/elements/terre.svg",
   "assets/asteria/elements/arcane.svg",
   "assets/asteria/elements/vent.svg",
+  "assets/asteria/equipment/arme.svg",
+  "assets/asteria/equipment/armure.svg",
+  "assets/asteria/equipment/etendard.svg",
+  "assets/asteria/equipment/anneau.svg",
+  "assets/asteria/equipment/orbe.svg",
 ];
 artFiles.forEach((file) => {
   if (!fs.existsSync(path.join(root, file))) throw new Error("Illustration manquante : " + file);
