@@ -176,3 +176,21 @@ Le menu Entraînement permet de sélectionner n'importe lequel des héros du ros
 - Le duel n'accorde ni quartz, ni butin, ni progression de mission et ne modifie pas la sauvegarde. Le bouton de sortie reste accessible.
 - Les portails disposent d'un filtre Tous / Possédés / Non possédés, indépendant des filtres de la Collection.
 - Les tests smoke vérifient l'unicité des portraits, les visuels de l'histoire, les dégâts réellement appliqués et la riposte de l'adversaire.
+
+
+## Refonte des modes Infini et Histoire
+
+### Mode Infini
+- Les PV ennemis augmentent de 18 % par étage (cumulatif).
+- L'ATQ ennemie progresse de 10,5 % par étage, avec un renforcement supplémentaire de 6 % tous les cinq étages.
+- Les quartz gagnés à chaque étage suivent une courbe progressive : base de 3 quartz + 2 par étage + une composante de profondeur (puissance 1,28). L'événement de fortune s'applique également.
+- Le butin augmente avec la profondeur : davantage de Cœurs, de Poussières et de matériaux de classe ; les paliers de cinq étages augmentent les Élixirs et Cristaux.
+- L'écran des quêtes annonce la courbe de difficulté et de récompenses ; le journal affiche le gain du palier franchi.
+
+### Mode Histoire
+- Chaque chapitre reçoit une escarmouche jouable intégrée à son déroulement, en plus des boss narratifs existants.
+- Les escarmouches ont leur propre ennemi, archétype, statistiques et récompense ; elles utilisent le moteur de combat normal (cartes, jauge, garde, rupture, intentions et ripostes).
+- La difficulté sélectionnée applique ses multiplicateurs aux escarmouches comme aux boss.
+- Une victoire d'escarmouche attribue un butin lié à l'avancement du récit sans valider prématurément le chapitre ni les objectifs de boss.
+- Les boss conservent leurs déblocages, bannières et récompenses de progression. La fin de chapitre reste liée à la fin de la séquence narrative.
+- Les tests smoke couvrent la présence des rencontres jouables et la progression des combats d'histoire.

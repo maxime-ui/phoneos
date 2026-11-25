@@ -40,8 +40,8 @@ Trophées, Réglages), au **sélecteur de difficulté du Mode Histoire** (chaîn
 
 **Modes**
 
-- **Quêtes** à 3 difficultés, **Mode Infini** (+18 % PV/étage, +9 % ATQ, record sauvegardé)
-- **Mode Histoire** : **18 chapitres en 4 actes + un épilogue** (« Les trois qui restaient debout » — l'origine des reliques et du serment), dialogues machine à écrire (vitesse réglable, option Instantané), scènes SVG procédurales avec votre équipe réelle, 6 boss de récit, choix narratifs + 6 bénédictions persistantes, **6 difficultés de boss (Facile → Enfer+) chaînées** (bouclez toute l'histoire en Facile pour débloquer Moyen, etc.), **gains de butin variables selon la difficulté**, Enfer+ avec compétences de boss élites, +8 ◆ par chapitre
+- **Quêtes** à 3 difficultés, **Mode Infini** (PV ennemis +18 % par étage, ATQ +10,5 % par étage avec paliers renforcés tous les 5 étages, quartz et butin croissants selon la profondeur, record sauvegardé)
+- **Mode Histoire** : **18 niveaux en 4 actes + un épilogue** (« Les trois qui restaient debout » — l'origine des reliques et du serment), dialogues machine à écrire (vitesse réglable, option Instantané), scènes SVG procédurales avec votre équipe réelle, **escarmouches jouables dans chaque chapitre + boss narratifs**, choix narratifs + 6 bénédictions persistantes, **6 difficultés (Facile → Enfer+) chaînées**, butin variable selon la difficulté et le niveau, Enfer+ avec compétences de boss élites, +8 ◆ par chapitre
 - **Entraînement** : testez tous les héros — **même non possédés** — contre 3 mannequins d'intensité croissante (Bois, Fer, Boss simulé) ; aucun gain, aucune perte
 - **Bannières de gloire** : +25 ◆ chacune, **notification système au déblocage**
 - **Raid hebdomadaire** : 3 phases enchaînées (Gardien de la trempe, Commandant du feu, Cœur du dragon), 1 Élixir pour entrer, équipe restaurée entre les phases, 40 ◆ sur victoire finale, **coffre hebdomadaire** réinitialisé chaque semaine, **classement hebdo** contre 7 rivaux simulés avec **bonus de rang** au coffre (+60/+40/+20 ◆)
@@ -97,7 +97,7 @@ récompense de complétion réclamée, clic → fiche détaillée dans l'app Per
 vitesse des dialogues réglée sur Instantané), portail de classe avec pity, **pity de la bannière des héros à 50 invocations (SSR garanti, remise à zéro)**, missions quotidiennes (affichage, réclamation, progression en combat), quête jouée avec équipe 100 % Soigneurs (soin vérifié),
 Forge d'évolution (butin semé, évolution de Bron +10 %, étoiles ★, **éveil IV payé en Croc de Berserker**), **recyclage des doublons en matériau de classe** et chasse au butin (victoire facile → Éclat d'acier), Reliquaire v3 (**5 reliques forgées puis équipées, prévisualisation exacte ATK/PV/bonus par héros**, bonus d'ensemble Pacte/Trinité actifs + Harmonie parfaite vérifiée en 4 rangs Épique+, Écaille améliorée en rang R avec sous-stat, 17 matières),
 Raid hebdomadaire (3 phases, coffre réclamé, −1 Élixir à l'entrée, silhouettes évoluées),
-Mode Infini, **Entraînement (héros grisés testables, mannequins, aucun gain)**, Mode Histoire (**18 chapitres, 4 actes + épilogue**, chapitre joué, progression, boss dragon, **chaîne de difficultés Facile → Enfer+**, épilogue « Écho du premier dragon »), records de Trophées avec Enfer+ distingué, notifications, plein écran (bouton + raccourci F), sélecteur de difficulté et classement hebdo du raid, via jsdom :
+Mode Infini (**difficulté et récompenses croissantes à chaque étage**), **Entraînement (héros grisés testables, mannequins, aucun gain)**, Mode Histoire (**18 niveaux avec escarmouches jouables et boss, 4 actes + épilogue**, chapitre joué, progression, boss dragon, **chaîne de difficultés Facile → Enfer+**, épilogue « Écho du premier dragon »), records de Trophées avec Enfer+ distingué, notifications, plein écran (bouton + raccourci F), sélecteur de difficulté et classement hebdo du raid, via jsdom :
 
 ```bash
 npm install jsdom   # uniquement pour le test

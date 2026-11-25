@@ -1692,6 +1692,10 @@ OS.registerApp({
 
       const row = document.createElement("div");
       row.className = "pull-row";
+      const infiniteHint = document.createElement("div");
+      infiniteHint.className = "team-hint infinite-scaling-hint";
+      infiniteHint.textContent = "Infini : +18 % PV par étage, ATQ croissante avec des paliers tous les 5 étages. Quartz et butin augmentent avec la profondeur.";
+      content.appendChild(infiniteHint);
       Object.keys(TIER).forEach((key) => {
         const t = TIER[key];
         const b = document.createElement("button");
@@ -2228,7 +2232,8 @@ OS.registerApp({
       }
       let reward;
       if (battle.mode === "infini") {
-        reward = Math.max(2, battle.floor * 3);
+        // Récompense progressive : le gain suit la courbe de danger sans exploser.
+        reward = Math.round(3 + battle.floor * 2 + Math.pow(battle.floor, 1.28));
         if (battle.floor > infiniteBest) {
           infiniteBest = battle.floor;
           OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
@@ -2236,7 +2241,7 @@ OS.registerApp({
         }
       } else if (battle.mode === "histoire") {
         reward = win ? battle.enemy.reward : 2;
-        if (win) {
+        if (win && battle.storyBoss) {
           battle.freshWin = storyState.done <= battle.storyChapter;
           storyState.done = Math.max(storyState.done, battle.storyChapter + 1);
           storyState.bossBeaten = storyState.bossBeaten || {};
@@ -2278,6 +2283,14 @@ OS.registerApp({
           battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");
+        } else if (win) {
+          const chapterTier = Math.floor((battle.storyChapter || 0) / 3);
+          const gains = { larme: 1 + Math.floor(chapterTier / 2), poussiere: 1 + chapterTier };
+          if (chapterTier >= 1) gains.eclat = 1;
+          if (chapterTier >= 2) gains.cristal = 1;
+          Object.assign(gains, classMatGains(1 + Math.floor(chapterTier / 2)));
+          battle.log.unshift("Butin d'escarmouche : " + gainLoot(gains));
+          battle.log.unshift("Escarmouche remportée ! Le chemin est dégagé.");
         }
       } else if (battle.mode === "raid") {
         reward = win ? 40 : 10;
@@ -2320,21 +2333,44 @@ OS.registerApp({
     }
 
     function advanceFloor() {
+      const clearedFloor = battle.floor;
+      const baseQuartz = Math.round(3 + clearedFloor * 2 + Math.pow(clearedFloor, 1.28));
+      const quartzReward = Math.round(baseQuartz * eventMult());
+      save.quartz += quartzReward;
+      persist();
+      if (clearedFloor > infiniteBest) {
+        infiniteBest = clearedFloor;
+        OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
+        battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
+      }
+      battle.log.unshift("Récompense de l'étage " + clearedFloor + " : +" + quartzReward + " ◆");
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
-      const flGain = { coeur: 1, poussiere: 1, ...classMatGains(1) };
-      if (battle.floor % 5 === 0) { flGain.elixir = 1; flGain.cristal = 1; }
+      const flGain = {
+        coeur: 1 + Math.floor((battle.floor - 1) / 6),
+        poussiere: 1 + Math.floor((battle.floor - 1) / 4),
+        ...classMatGains(1 + Math.floor((battle.floor - 1) / 5)),
+      };
+      if (battle.floor % 5 === 0) {
+        flGain.elixir = 1 + Math.floor(battle.floor / 20);
+        flGain.cristal = 1 + Math.floor(battle.floor / 25);
+      }
       battle.log.unshift("Butin : " + gainLoot(flGain));
-      battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
+      persist();
+      const quartzPreview = Math.round(3 + battle.floor * 2 + Math.pow(battle.floor, 1.28));
+      battle.log.unshift("--- Étage " + battle.floor + " franchi · prochaine victoire : +" + quartzPreview + " ◆ ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
       battle.gauge = Math.min(100, battle.gauge + 15);
       battle.curse = 0;
       battle.burn = 0;
+      // Courbe infinie : PV et ATQ montent à chaque étage ; les paliers
+      // renforcent davantage l'ATQ pour obliger à adapter la composition.
       const scale = Math.pow(1.18, battle.floor - 1);
+      const attackScale = Math.pow(1.105, battle.floor - 1) * (1 + Math.floor((battle.floor - 1) / 5) * 0.06);
       const etype = Object.keys(ENEMY_TYPES)[Math.floor(Math.random() * Object.keys(ENEMY_TYPES).length)];
       const name = ENEMY_NAMES[Math.floor(Math.random() * ENEMY_NAMES.length)];
       const golemMult = etype === "Golem" ? 1.15 : 1;
-      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * Math.pow(1.09, battle.floor)) };
+      battle.enemy = { name, type: etype, hp: Math.round(TIER.infini.hp * golemMult * scale), maxHp: Math.round(TIER.infini.hp * golemMult * scale), atk: Math.round(TIER.infini.atk * attackScale) };
       battle.log.unshift(battle.enemy.name + " [" + etype + "] arrive · " + ENEMY_TYPES[etype].desc);
       newHand();
       renderBattle();
@@ -2378,7 +2414,7 @@ OS.registerApp({
           if (won) {
             const cont = document.createElement("button");
             cont.className = "pull-btn story-next";
-            cont.textContent = "Continuer l'histoire ▸";
+            cont.textContent = battle.storyBoss ? "Continuer l'histoire ▸" : "Poursuivre le niveau ▸";
             cont.addEventListener("click", onStoryContinue);
             row.appendChild(cont);
           } else {
@@ -2427,7 +2463,7 @@ OS.registerApp({
           view.appendChild(exitRow);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
-          : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
+          : battle.mode === "histoire" ? " · " + (battle.storyBoss ? "Boss d'histoire" : "Escarmouche d'histoire") + " · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
@@ -2865,6 +2901,26 @@ OS.registerApp({
       },
     ];
 
+    // Chaque chapitre devient un véritable niveau : une escarmouche jouable
+    // est insérée dans le parcours, avant le boss lorsqu'il y en a un.
+    const STORY_SKIRMISH_TYPES = ["Brute", "Assassin", "Sorcier", "Capitaine", "Fantassin", "Nécromant", "Banshee", "Golem", "Oracle"];
+    STORY.forEach((chapter, index) => {
+      if (chapter.events.some((event) => event.fight)) return;
+      const bossIndex = chapter.events.findIndex((event) => event.boss);
+      const insertAt = bossIndex >= 0 ? Math.max(1, bossIndex - 1) : Math.max(1, Math.min(2, chapter.events.length - 1));
+      const type = STORY_SKIRMISH_TYPES[index % STORY_SKIRMISH_TYPES.length];
+      chapter.events.splice(insertAt, 0, {
+        fight: {
+          name: ["Éclaireur des ombres", "Garde renégat", "Traqueur des runes", "Sentinelle corrompue"][index % 4] + " · " + (index + 1),
+          type,
+          hp: 3000 + index * 650,
+          atk: 420 + index * 35,
+          reward: 5 + index * 2,
+          intro: "La route est barrée. Une escarmouche vous attend avant de poursuivre."
+        }
+      });
+    });
+
     let storyScene = null;
     let typeTimer = null;
 
@@ -2934,7 +2990,7 @@ OS.registerApp({
 
       const hint = document.createElement("div");
       hint.className = "team-hint";
-      hint.textContent = "Mode Histoire — trois volontaires sur la route du nord.";
+      hint.textContent = "Mode Histoire — 18 niveaux jouables : dialogues, escarmouches, boss et progression de chapitre.";
       content.appendChild(hint);
 
       const shelf = document.createElement("div");
@@ -3033,12 +3089,13 @@ OS.registerApp({
       ch.events.forEach((event) => {
         if (event.s && !cast.some((entry) => entry.name === event.s)) cast.push({ name: event.s, boss: false });
         if (event.boss && !cast.some((entry) => entry.name === event.boss.name)) cast.push({ name: event.boss.name, boss: true, type: event.boss.type });
+        if (event.fight && !cast.some((entry) => entry.name === event.fight.name)) cast.push({ name: event.fight.name, boss: true, type: event.fight.type });
       });
       cast.forEach((actor) => {
         const actorCard = document.createElement("div");
         actorCard.className = "story-actor";
         const known = UNITS.find((u) => u.name === actor.name);
-        const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === actor.name || actor.name.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(actor.name.toLowerCase())));
+        const bossEvent = ch.events.find((event) => (event.boss || event.fight) && ((event.boss || event.fight).name === actor.name || actor.name.toLowerCase().includes((event.boss || event.fight).name.toLowerCase()) || (event.boss || event.fight).name.toLowerCase().startsWith(actor.name.toLowerCase())));
         const isEnemy = actor.boss || !!bossEvent || actor.name === "Gortak";
         const portrait = isEnemy
           ? enemyPortraitMarkup(actor.type || (bossEvent && bossEvent.boss.type) || "Brute", actor.name)
@@ -3077,7 +3134,9 @@ OS.registerApp({
           box.appendChild(opt);
         });
         content.appendChild(box);
-      } else if (ev.boss) {
+      } else if (ev.boss || ev.fight) {
+        const encounter = ev.boss || ev.fight;
+        const isBoss = !!ev.boss;
         const text = document.createElement("div");
         text.className = "story-text";
         const line = document.createElement("div");
@@ -3086,14 +3145,14 @@ OS.registerApp({
         content.appendChild(text);
         const bossPortrait = document.createElement("div");
         bossPortrait.className = "story-boss-portrait";
-        bossPortrait.innerHTML = enemyPortraitMarkup(ev.boss.type, ev.boss.name) + '<span>' + ev.boss.name + " · " + ev.boss.type + '</span>';
+        bossPortrait.innerHTML = enemyPortraitMarkup(encounter.type, encounter.name) + '<span>' + encounter.name + " · " + encounter.type + '</span>';
         content.appendChild(bossPortrait);
-        typeCurrentLine(line, ev.boss.intro);
+        typeCurrentLine(line, encounter.intro);
 
         const boss = document.createElement("button");
         boss.className = "pull-btn tier-infini story-boss";
-        boss.textContent = "⚔ Engager : " + ev.boss.name;
-        boss.addEventListener("click", () => startStoryBattle(ev.boss));
+        boss.textContent = isBoss ? "⚔ Affronter le boss : " + encounter.name : "⚔ Combattre : " + encounter.name;
+        boss.addEventListener("click", () => startStoryBattle(encounter, isBoss));
         content.appendChild(boss);
       } else {
         const text = document.createElement("div");
@@ -3193,7 +3252,7 @@ OS.registerApp({
       return art;
     }
 
-    function startStoryBattle(cfg) {
+    function startStoryBattle(cfg, isBoss) {
       const team = teamUnits();
       if (!team.length) { renderStory(); return; }
       const fx = BLESSING_FX[storyState.blessing] || {};
@@ -3207,6 +3266,7 @@ OS.registerApp({
         storyChapter: storyScene.idx,
         storyStep: storyScene.step,
         bossCfg: cfg,
+        storyBoss: !!isBoss,
         storyMult: fx.mult || 1,
         floor: storyScene.idx + 1,
         enemy: { name: cfg.name, type: cfg.type, hp, maxHp: hp, atk: Math.round(cfg.atk * d.atk), reward: Math.max(2, Math.round(cfg.reward * d.rw)) },
@@ -3223,7 +3283,7 @@ OS.registerApp({
       if (d.elite && cfg.elite) battle.elite = cfg.elite;
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
-      battle.log.unshift("----- " + cfg.name + " [Boss d'histoire · " + d.label + "] · récompense : " + battle.enemy.reward + " ◆ -----");
+      battle.log.unshift("----- " + cfg.name + " [" + (isBoss ? "Boss" : "Escarmouche") + " d'histoire · " + d.label + "] · récompense : " + battle.enemy.reward + " ◆ -----");
       if (battle.elite) battle.log.unshift("[Enfer+] " + battle.elite.name + " : " + battle.elite.desc);
       if (battle.elite) OS.sfx.play("arcane");
       OS.sfx.play("ult");
@@ -3236,7 +3296,7 @@ OS.registerApp({
       const step = battle.storyStep + 1;
       const fresh = !!battle.freshWin;
       storyScene = { idx, step };
-      if (step >= STORY[idx].events.length) renderDoneChapter(idx, fresh ? "boss vaincu !" : "déjà lu");
+      if (step >= STORY[idx].events.length) renderDoneChapter(idx, fresh ? "boss vaincu !" : "niveau terminé");
       else renderScene();
     }
 
