@@ -123,3 +123,10 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 - Commandes de contrôle : `npm install`, `npm run check:syntax`, puis `npm test`.
 - Le test initialise les scripts dans jsdom et remplace `window.scrollTo` via `beforeParse`, avant le démarrage du noyau PhoneOS.
 - La validation CI doit être vérifiée sur le SHA exact du dernier commit ; l’existence du workflow ne vaut pas résultat vert.
+
+
+## Cohérence audio et combat
+
+- Le curseur de volume règle maintenant un gain maître partagé par les effets sonores et la musique, avec persistance et bornage de 0 à 100 %.
+- Les attaques ultimes utilisent le même pipeline de dégâts que les cartes : résistances d'archétype, malédiction et jauge de rupture sont appliquées de façon cohérente.
+- Le test de fumée couvre le bornage, la persistance et le raccord du volume au moteur audio.
