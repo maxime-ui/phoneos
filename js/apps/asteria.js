@@ -574,16 +574,24 @@ OS.registerApp({
       return Math.min(cap, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0) + (relicFxOf(save).jaugeInit || 0) + (extra || 0));
     }
 
-    let infiniteBest = OS.store.get("infinite-best", 0);
+    /*
+     * Astéria 2.0 : espace de sauvegarde isolé.
+     * Aucun import automatique depuis "asteria" ou "epopee" :
+     * la nouvelle progression démarre volontairement de zéro.
+     * Les anciennes données restent intactes dans leurs clés historiques.
+     */
+    const SAVE_PREFIX = "asteria-v2";
+    let infiniteBest = OS.store.get(SAVE_PREFIX + "-infinite-best", 0);
 
     function loadSave() {
-      ["", "-story", "-daily", "-raid"].forEach(function (suffix) {
-        const legacy = OS.store.get("epopee" + suffix, null);
-        if (legacy !== null && OS.store.get("asteria" + suffix, null) === null) OS.store.set("asteria" + suffix, legacy);
-      });
-      const saved = OS.store.get("asteria", null);
-      if (saved) return saved;
-      return { quartz: 30, owned: { bron: 1, tilia: 1, nerys: 1 }, team: ["bron", "tilia", "nerys"] };
+      const saved = OS.store.get(SAVE_PREFIX, null);
+      if (saved && saved.schemaVersion === 2) return saved;
+      return {
+        schemaVersion: 2,
+        quartz: 30,
+        owned: { bron: 1, tilia: 1, nerys: 1 },
+        team: ["bron", "tilia", "nerys"],
+      };
     }
     let save = loadSave();
     if (!save.pity) save.pity = {};
@@ -596,13 +604,13 @@ OS.registerApp({
       const wornId = save.relicsEquip[k];
       if (wornId && (!save.owned || !save.owned[wornId])) save.relicsEquip[k] = null;
     });
-    function persist() { OS.store.set("asteria", save); }
+    function persist() { OS.store.set(SAVE_PREFIX, save); }
 
-    let storyState = OS.store.get("asteria-story", { done: 0, music: false, diff: "facile" });
+    let storyState = OS.store.get(SAVE_PREFIX + "-story", { done: 0, music: false, diff: "facile" });
     if (!storyState.diff) storyState.diff = "facile";
     if (!Array.isArray(storyState.cleared)) storyState.cleared = [];
     if (!diffUnlockedSt(storyState, storyState.diff)) storyState.diff = "facile";
-    function persistStory() { OS.store.set("asteria-story", storyState); }
+    function persistStory() { OS.store.set(SAVE_PREFIX + "-story", storyState); }
 
     /* ---------- Missions quotidiennes ---------- */
 
@@ -618,8 +626,8 @@ OS.registerApp({
       const d = new Date();
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
-    let daily = OS.store.get("asteria-daily", null);
-    function persistDaily() { OS.store.set("asteria-daily", daily); }
+    let daily = OS.store.get(SAVE_PREFIX + "-daily", null);
+    function persistDaily() { OS.store.set(SAVE_PREFIX + "-daily", daily); }
     function ensureDaily() {
       const tk = todayKey();
       if (!daily || daily.date !== tk) {
@@ -644,8 +652,8 @@ OS.registerApp({
       const wk = Math.ceil(((d - t) / 86400000 + t.getDay() + 1) / 7);
       return d.getFullYear() + "-S" + wk;
     }
-    let raid = OS.store.get("asteria-raid", null);
-    function persistRaid() { OS.store.set("asteria-raid", raid); }
+    let raid = OS.store.get(SAVE_PREFIX + "-raid", null);
+    function persistRaid() { OS.store.set(SAVE_PREFIX + "-raid", raid); }
     function ensureRaid() {
       const wk = weekKey();
       if (!raid || raid.week !== wk) {
@@ -1898,7 +1906,7 @@ OS.registerApp({
         reward = Math.max(2, battle.floor * 3);
         if (battle.floor > infiniteBest) {
           infiniteBest = battle.floor;
-          OS.store.set("infinite-best", infiniteBest);
+          OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
           battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
         }
       } else if (battle.mode === "histoire") {
@@ -2806,7 +2814,7 @@ OS.registerApp({
 
     /* ---------- API diffé pour la barre supérieure ---------- */
     OS.asteriaData.storyDiffs = function () {
-      const st = OS.store.get("asteria-story", {});
+      const st = OS.store.get(SAVE_PREFIX + "-story", {});
       const beaten = st.bossBeaten || {};
       let bn = 0;
       for (let t = 0; t < 5; t++) {
@@ -2820,13 +2828,13 @@ OS.registerApp({
       }));
     };
     OS.asteriaData.setStoryDiff = function (key) {
-      const st = OS.store.get("asteria-story", {});
+      const st = OS.store.get(SAVE_PREFIX + "-story", {});
       const infos = OS.asteriaData.storyDiffs();
       const info = infos.find((d) => d.key === key);
       if (!info || info.locked) return false;
       st.diff = key;
       if (st.done === undefined) st.done = 0;
-      OS.store.set("asteria-story", st);
+      OS.store.set(SAVE_PREFIX + "-story", st);
       document.dispatchEvent(new Event("asteria-diff"));
       return true;
     };
