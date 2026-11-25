@@ -541,9 +541,11 @@ setTimeout(() => {
   function finishStorySkirmish() {
     let guard = 0;
     while (document.querySelector(".battle") && !document.querySelector(".battle-result") && guard++ < 90) {
-      const cards = [...document.querySelectorAll(".hand-card:not([disabled])")];
-      if (!cards.length) break;
-      cards.slice(0, 3).forEach((card) => card.click());
+      for (let action = 0; action < 3; action++) {
+        const card = document.querySelector(".hand-card:not([disabled])");
+        if (card) card.click();
+        if (document.querySelector(".battle-result")) break;
+      }
     }
     if (document.querySelector(".battle-result.win")) {
       const cont = [...document.querySelectorAll(".story-next")].pop();
