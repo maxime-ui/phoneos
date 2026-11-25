@@ -653,3 +653,16 @@ body.cb .rb-score { color: #0fb3a3; }
   font-size: 12px;
   font-weight: 700;
 }
+
+
+/* Astéria 2.0 — affinités élémentaires */
+.battle-affinity {
+  margin: 7px 0 10px;
+  padding: 8px 11px;
+  border: 1px solid rgba(125, 180, 255, .24);
+  border-radius: 10px;
+  background: linear-gradient(110deg, rgba(48, 77, 120, .22), rgba(92, 56, 120, .14));
+  color: var(--text-secondary, #b9c5dc);
+  font-size: .78rem;
+  line-height: 1.35;
+}
