@@ -13,7 +13,7 @@ Cette branche prépare une nouvelle progression sans toucher aux sauvegardes his
 
 ## Protection des anciennes données
 
-Le chargement v2 ne lit plus les clés historiques `asteria*` ni `epopee*` et ne lance plus leur migration automatique. Les anciennes sauvegardes restent dans le stockage local du navigateur ; elles ne sont ni importées ni effacées par cette branche.
+Le chargement v2 ne lit plus les clés historiques `asteria*` ni `epopee*` et ne lance plus leur migration automatique. Au premier lancement de cette version sur un navigateur, les anciennes clés de progression connues sont supprimées une seule fois ; les préférences générales du téléphone ne sont pas concernées.
 
 Les paramètres généraux du système (son, affichage, daltonisme, vitesse) restent partagés avec le système existant.
 
@@ -58,3 +58,9 @@ Au premier démarrage de cette version, une opération unique supprime les ancie
 ## État de validation
 
 Aucun workflow GitHub Actions n'est configuré sur la branche au moment de la vérification. Les tests ont été enrichis, mais ils ne sont pas déclarés exécutés ici.
+
+
+## Ajustements de robustesse
+
+- Réinitialisation de la jauge de rupture, de l'état déséquilibré et de la garde entre les phases du raid.
+- Test de fumée : une ancienne sauvegarde est injectée avant le démarrage et son absence est vérifiée après le lancement v2.
