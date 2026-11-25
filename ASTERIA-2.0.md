@@ -145,3 +145,12 @@ Les synergies se désactivent automatiquement si l'un des deux membres tombe K.O
 ## Laboratoire d'entraînement libre
 
 Le menu Entraînement permet de sélectionner n'importe lequel des héros du roster, possédé ou non, puis de lancer un combat contre un ennemi choisi aléatoirement parmi les noms et archétypes du bestiaire. La cible possède une réserve de PV de simulation et ne perd jamais de PV : elle est immortelle. Elle ne riposte pas, afin de permettre de tester les compétences sans interruption. Un bouton de sortie reste disponible pendant le combat et ramène immédiatement au menu Entraînement. Aucun gain ni coût de progression n'est appliqué.
+
+
+## Fiabilisation du Mode Histoire
+
+- Les scènes et les écrans de fin réactivent explicitement l'onglet Histoire, y compris après un combat de boss.
+- Le retour à la carte nettoie un combat d'histoire déjà terminé afin de ne pas réutiliser une ancienne équipe de combat dans les scènes suivantes.
+- Les transitions de victoire et de défaite vérifient que le combat d'histoire est bien dans l'état attendu avant de continuer ou de réessayer.
+- Les scènes invalides et les configurations de boss incomplètes reviennent proprement à la carte au lieu de bloquer le récit.
+- Le test de fumée vérifie que l'onglet Histoire reste actif pendant une scène et à la fin d'un chapitre.
