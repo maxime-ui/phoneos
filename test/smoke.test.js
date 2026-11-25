@@ -50,6 +50,12 @@ const artFiles = [
   "assets/asteria/enemies/types/banshee.svg",
   "assets/asteria/enemies/types/sanguinaire.svg",
   "assets/asteria/enemies/types/colosse-givre.svg",
+  "assets/asteria/enemies/types/duelliste.svg",
+  "assets/asteria/enemies/types/artilleur.svg",
+  "assets/asteria/enemies/types/alchimiste.svg",
+  "assets/asteria/enemies/types/sentinelle.svg",
+  "assets/asteria/enemies/types/predateur.svg",
+  "assets/asteria/enemies/types/chronomancien.svg",
   "assets/asteria/elements/feu.svg",
   "assets/asteria/elements/eau.svg",
   "assets/asteria/elements/foudre.svg",
@@ -126,7 +132,7 @@ check("DOMOSS existe", typeof window.eval("OS") === "object");
 const elementInfo = window.eval("OS").asteriaData.elementInfo();
 check("système élémentaire : 7 affinités déclarées", Object.keys(elementInfo.elements).length === 7);
 const synergyInfo = window.eval("OS").asteriaData.teamSynergyInfo();
-check("synergies tactiques : 3 combinaisons documentées", synergyInfo.length === 3 && synergyInfo.some((x) => x.name === "Serment protecteur"));
+check("synergies tactiques : 6 combinaisons documentées", synergyInfo.length === 6 && synergyInfo.some((x) => x.name === "Serment protecteur"));
 check("cartes : Brut/Arcane/Rapide ont une affinité", elementInfo.cards.R.element === "feu" && elementInfo.cards.B.element === "arcane" && elementInfo.cards.V.element === "vent");
 check("ennemis : affinités fixes connues", Object.keys(elementInfo.enemyAffinity).length >= 13 && elementInfo.enemyAffinity.Golem === "terre");
 
@@ -271,7 +277,7 @@ setTimeout(() => {
   check("sélecteur d'équipement sur l'Étendard", !!flagSel);
   if (flagSel) { flagSel.value = "edele"; flagSel.dispatchEvent(new window.Event("change")); }
   const saveFlag = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
-  check("Étendard forgé et équipé, 5 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
+  check("Étendard forgé et équipé, 8 reliques actives", saveFlag.relics.etendard === 1 && saveFlag.relicsEquip.etendard === "edele" && [...document.querySelectorAll(".relic-line:not(.set-line)")].every((l) => l.textContent.includes("Forgée")));
 
   // Reliques v2 : amélioration (Poussières + Cristaux) et bonus d'ensemble
   check("bonus d'ensemble : Pacte du trio + Trinité actifs", [...document.querySelectorAll(".set-line.ready")].length === 2 && document.body.textContent.includes("Pacte du trio") && document.body.textContent.includes("Trinité du dragon"));
@@ -676,7 +682,7 @@ setTimeout(() => {
   window.eval("OS").openApp("asteria");
   const storyTabEp = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
   storyTabEp.click();
-  check("25 chapitres listés en bout de récit", document.querySelectorAll(".story-chapter").length === 18);
+  check("25 chapitres listés en bout de récit", document.querySelectorAll(".story-chapter").length === 25);
   const chapter18 = [...document.querySelectorAll(".story-chapter")][17];
   check("épilogue (chapitre 18) déverrouillé", chapter18 && !chapter18.classList.contains("locked"));
   if (chapter18) chapter18.click();
@@ -757,7 +763,7 @@ setTimeout(() => {
   check("coffre marqué réclamé", rr1.claimed === true);
   const teamTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabR2.click();
-  check("17 matières de butin dont Élixir et items de reliques", document.querySelectorAll(".loot-chip").length === 20 && document.body.textContent.includes("Élixir de raid") && document.body.textContent.includes("Poussière de relique") && document.body.textContent.includes("Cristal de relique"));
+  check("20 matières de butin dont Élixir, classes et reliques", document.querySelectorAll(".loot-chip").length === 20 && document.body.textContent.includes("Élixir de raid") && document.body.textContent.includes("Poussière de relique") && document.body.textContent.includes("Cristal de relique"));
   const questTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
   questTabR2.click();
   const enterBtn = [...document.querySelectorAll(".raid-panel .pull-btn")].find((b) => b.textContent.includes("Entrer dans le Raid"));
