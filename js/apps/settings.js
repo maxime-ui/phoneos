@@ -167,7 +167,7 @@ OS.registerApp({
           /* stockage indisponible */
         }
         OS.notify("⚙️", "#5a6275", "Système", "Données réinitialisées", 2000);
-        renderAll();
+        setTimeout(() => location.reload(), 800);
       });
       actions.append(reboot, wipe);
 

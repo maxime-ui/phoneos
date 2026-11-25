@@ -94,7 +94,7 @@ OS.registerApp({
         ev.className = "sheet-line";
         ev.innerHTML = "<b>Éveils &amp; talents</b><br>" + (labels.length ? labels.join("<br>") : "Aucun éveil — évoluez ★ dans la Forge (onglet Équipe de l'Épopée)");
         panel.appendChild(ev);
-        if (evo < 3) {
+        if (evo < 3 && D.EVO_REQ[u.r]) {
           const req = D.EVO_REQ[u.r][evo] || {};
           const reqTxt = Object.keys(req).map((k) => req[k] + "× " + D.LOOT[k].name).join(" + ");
           const nxt = document.createElement("div");

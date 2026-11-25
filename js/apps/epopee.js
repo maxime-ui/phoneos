@@ -1380,7 +1380,7 @@ OS.registerApp({
           battle.freshWin = storyState.done <= battle.storyChapter;
           storyState.done = Math.max(storyState.done, battle.storyChapter + 1);
           storyState.bossBeaten = storyState.bossBeaten || {};
-          const diffIdx = Math.min(Object.keys(STORY_DIFFS).indexOf(storyState.diff), 4);
+          const diffIdx = Math.max(0, Object.keys(STORY_DIFFS).indexOf(storyState.diff));
           const before = bannersUnlockedCount();
           storyState.bossBeaten[battle.storyChapter] = Math.max(storyState.bossBeaten[battle.storyChapter] || 0, diffIdx + 1);
           persistStory();
@@ -1401,9 +1401,9 @@ OS.registerApp({
           }
           const gains = { larme: diffIdx >= 4 ? 3 : diffIdx >= 2 ? 2 : 1 };
           if (diffIdx === 3) gains.couronne = 1;
-          if (diffIdx === 4) gains.couronne = 2;
-          if (diffIdx === 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
-          if (diffIdx === 4 && storyState.diff === "enferPlus") gains.sceau = 2;
+          if (diffIdx >= 4) gains.couronne = 2;
+          if (diffIdx >= 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
+          if (diffIdx >= 4 && storyState.diff === "enferPlus") gains.sceau = 2;
           battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");

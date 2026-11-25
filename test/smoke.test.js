@@ -397,6 +397,9 @@ setTimeout(() => {
   check("trophées : records des 5 boss + Mode Infini", document.querySelectorAll(".trophies-record").length === 6);
   check("trophées : Graal verrouillé affiché", !!document.querySelector(".trophy-graal.locked") && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("trophées : record Mode Infini affiché", document.body.textContent.includes("Mode Infini"));
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:epopee-story"));s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6};localStorage.setItem("phoneos:epopee-story",JSON.stringify(s));})()');
+  window.eval("OS").openApp("trophies");
+  check("trophées : records Enfer+ distincts d'Enfer", [...document.querySelectorAll(".trophies-record.top")].filter((l) => l.textContent.includes("Enfer+")).length === 5);
 
   // ---- Raid hebdomadaire : 3 phases, coffre, Élixirs ----
   window.eval('(function(){var d=new Date(),t=new Date(d.getFullYear(),0,1),w=Math.ceil(((d-t)/86400000+t.getDay()+1)/7);localStorage.setItem("phoneos:epopee-raid",JSON.stringify({week:d.getFullYear()+"-S"+w,elixirs:5,cleared:3,claimed:false}));})()');
