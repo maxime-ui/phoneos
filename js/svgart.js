@@ -10,10 +10,24 @@ OS.art = (() => {
       "</linearGradient></defs>";
   }
 
-  /* Silhouette simplifiée d'un personnage de classe donnée */
-  function silhouette(cls, color, x, groundY, flip) {
+  /* Silhouette simplifiée d'un personnage de classe donnée.
+     evo (0-3) : aura croissante + couronne d'étoiles au rang III. */
+  function silhouette(cls, color, x, groundY, flip, evo) {
     const dir = flip ? -1 : 1;
     const y = groundY;
+    const ev = evo || 0;
+    let aura = "";
+    if (ev >= 1) aura += `<ellipse cx="${x}" cy="${y - 32}" rx="13" ry="27" fill="${color}" opacity="0.16"/>`;
+    if (ev >= 2) aura += `<ellipse cx="${x}" cy="${y - 32}" rx="18" ry="33" fill="#ffffff" opacity="0.10"/>`;
+    if (ev >= 3) {
+      aura += `<ellipse cx="${x}" cy="${y - 58}" rx="12" ry="3.5" fill="none" stroke="#e3b23c" stroke-width="1.4" opacity="0.9"/>`
+        + `<circle cx="${x - 10}" cy="${y - 74}" r="1.6" fill="#e3b23c"/>`
+        + `<circle cx="${x}" cy="${y - 79}" r="2" fill="#ffd970"/>`
+        + `<circle cx="${x + 10}" cy="${y - 73}" r="1.4" fill="#e3b23c"/>`;
+    }
+    const open = ev >= 1
+      ? `<g transform="translate(${x} ${y}) scale(1.08) translate(${-x} ${-y})">`
+      : "<g>";
     let weapon = "";
     switch (cls) {
       case "Chevalier":
@@ -60,7 +74,8 @@ OS.art = (() => {
       default:
         weapon = "";
     }
-    return `<g>
+    return `${open}
+      ${aura}
       <circle cx="${x}" cy="${y - 58}" r="7" fill="${color}"/>
       <path d="M ${x - 7} ${y - 24} Q ${x - 8} ${y - 50} ${x} ${y - 51} Q ${x + 8} ${y - 50} ${x + 7} ${y - 24} Z" fill="${color}"/>
       <line x1="${x}" y1="${y - 24}" x2="${x - 5}" y2="${y}" stroke="${color}" stroke-width="4"/>
@@ -166,7 +181,7 @@ OS.art = (() => {
     }
     out += scenery(opts.ground || "");
     (opts.actors || []).forEach((a) => {
-      out += silhouette(a.cls, a.color, a.x, H - 20, a.flip);
+      out += silhouette(a.cls, a.color, a.x, H - 20, a.flip, a.evo);
     });
     if (opts.dragon) out += dragon(opts.dragon[0], opts.dragon[1], opts.dragonColor);
     out += "</svg>";

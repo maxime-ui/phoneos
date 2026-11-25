@@ -1056,3 +1056,13 @@ button { font-family: inherit; }
 .unit-passive { font-size: 10.5px; color: #e3b23c; margin-top: 3px; }
 .unit-evo { font-size: 10.5px; color: #3ba75c; margin-top: 3px; }
 .forge-evo small { color: #aab2c6; }
+
+/* ---------- Raid hebdomadaire ---------- */
+.raid-panel { margin-bottom: 12px; }
+.raid-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.raid-chip {
+  background: #1a2030; border: 1px solid #2a3145; color: #aab2c6;
+  border-radius: 999px; padding: 4px 10px; font-size: 11px;
+}
+.raid-chip.done { border-color: #3ba75c; color: #3ba75c; }
+.raid-chest { display: block; width: 100%; text-align: center; margin-top: 6px; }

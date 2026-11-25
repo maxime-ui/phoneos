@@ -35,7 +35,13 @@ OS.registerApp({
       larme: { name: "Larme de la nuit", color: "#4f9eff" },
       couronne: { name: "Couronne d'aube", color: "#e3b23c" },
       sceau: { name: "Sceau du dragon", color: "#d33b2f" },
+      elixir: { name: "Élixir de raid", color: "#3bd4c4" },
     };
+    const RAID_PHASES = [
+      { name: "Gardien de la trempe", type: "Golem", hp: 60000, atk: 2600, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" } },
+      { name: "Commandant du feu", type: "Capitaine", hp: 90000, atk: 3200, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" } },
+      { name: "Cœur du dragon", type: "Sorcier", hp: 140000, atk: 3800, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" } },
+    ];
     const EVO_REQ = {
       1: [{ eclat: 8 }, { eclat: 12, larme: 5 }, { larme: 5, sceau: 2 }],
       2: [{ eclat: 12, coeur: 6 }, { larme: 8, couronne: 3 }, { larme: 4, sceau: 3 }],
@@ -332,6 +338,77 @@ OS.registerApp({
       });
       persistDaily();
     }
+    /* ---------- Raid hebdomadaire ---------- */
+
+    function weekKey() {
+      const d = new Date();
+      const t = new Date(d.getFullYear(), 0, 1);
+      const wk = Math.ceil(((d - t) / 86400000 + t.getDay() + 1) / 7);
+      return d.getFullYear() + "-S" + wk;
+    }
+    let raid = OS.store.get("epopee-raid", null);
+    function persistRaid() { OS.store.set("epopee-raid", raid); }
+    function ensureRaid() {
+      const wk = weekKey();
+      if (!raid || raid.week !== wk) {
+        raid = { week: wk, elixirs: (raid && raid.elixirs) || 0, cleared: 0, claimed: false, lastChest: raid ? raid.lastChest : "" };
+      }
+    }
+
+    function raidPanel() {
+      ensureRaid();
+      const wrap = document.createElement("div");
+      wrap.className = "raid-panel";
+      const h = document.createElement("div");
+      h.className = "team-hint";
+      h.textContent = "Raid hebdomadaire — 3 phases qui enchaînent, impossible de soigner entre deux ;";
+      wrap.appendChild(h);
+      const chips = document.createElement("div");
+      chips.className = "raid-chips";
+      RAID_PHASES.forEach((ph, i) => {
+        const c = document.createElement("span");
+        c.className = "raid-chip" + (raid.cleared >= i + 1 ? " done" : "");
+        c.textContent = (raid.cleared >= i + 1 ? "✓ " : "⚔ ") + "P" + (i + 1) + " " + ph.name;
+        chips.appendChild(c);
+      });
+      wrap.appendChild(chips);
+      const info = document.createElement("div");
+      info.className = "team-hint";
+      info.textContent = "Élixirs de raid : " + (raid.elixirs || 0) + " — farmés en Difficile, Infini (tous les 5 étages) et Histoire (Enfer/Enfer+). Équipe restaurée entre les phases.";
+      wrap.appendChild(info);
+      const enter = document.createElement("button");
+      enter.className = "pull-btn";
+      enter.textContent = "⚔ Entrer dans le Raid (1 Élixir)";
+      if ((raid.elixirs || 0) < 1) enter.disabled = true;
+      enter.addEventListener("click", () => startRaid());
+      wrap.appendChild(enter);
+      if (raid.cleared >= 1 && !raid.claimed) {
+        const chest = document.createElement("button");
+        chest.className = "pull-btn claim-btn raid-chest";
+        chest.textContent = "🎁 Coffre hebdomadaire : +" + 30 * raid.cleared + " ◆ et matières (" + raid.cleared + "/3 phases)";
+        chest.addEventListener("click", () => {
+          const gains = [{ couronne: 5 }, { couronne: 10, larme: 3 }, { couronne: 10, larme: 3, sceau: 3 }][Math.min(raid.cleared, 3) - 1];
+          const qz = 30 * raid.cleared;
+          save.quartz += qz;
+          const line = gainLoot(gains);
+          raid.claimed = true;
+          raid.lastChest = "Coffre réclamé : +" + qz + " ◆ · " + line;
+          persist();
+          persistRaid();
+          OS.sfx.play("unlock");
+          OS.notify("🎁", "#3bd4c4", "Coffre hebdomadaire", "+" + qz + " ◆ · " + line, 5000);
+          renderQuests();
+        });
+        wrap.appendChild(chest);
+      } else if (raid.claimed) {
+        const done = document.createElement("div");
+        done.className = "team-hint";
+        done.textContent = (raid.lastChest || "Coffre déjà réclamé cette semaine. Revenez la semaine prochaine !") + " Nouveau coffre la semaine prochaine.";
+        wrap.appendChild(done);
+      }
+      return wrap;
+    }
+
     function dailyPanel() {
       ensureDaily();
       const wrap = document.createElement("div");
@@ -750,6 +827,7 @@ OS.registerApp({
       content.innerHTML = "";
       content.appendChild(quartzBar());
       content.appendChild(dailyPanel());
+      content.appendChild(raidPanel());
 
       const team = teamUnits();
       if (team.length < 1) {
@@ -804,6 +882,38 @@ OS.registerApp({
       battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0));
       newHand();
       battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
+      renderQuests();
+    }
+
+    function startRaid() {
+      ensureRaid();
+      if ((raid.elixirs || 0) < 1) return;
+      const team = teamUnits();
+      if (!team.length) return;
+      raid.elixirs--;
+      persistRaid();
+      const ph = RAID_PHASES[0];
+      battle = {
+        mode: "raid",
+        raidPhase: 1,
+        enemy: { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk },
+        tier: "raid",
+        units: team,
+        hp: team.map((u) => u.hp),
+        gauge: 0,
+        picks: 0,
+        curse: 0,
+        burn: 0,
+        valenFury: 0,
+        log: [],
+      };
+      if (ph.elite) battle.elite = ph.elite;
+      newHand();
+      battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
+      battle.gauge = Math.min(60, team.reduce((s, u) => s + (unitFx(u).jaugeInit || 0), 0));
+      battle.log.unshift("----- RAID · Phase 1/3 : " + ph.name + " -----" );
+      if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
+      OS.sfx.play("ult");
       renderQuests();
     }
 
@@ -1083,6 +1193,25 @@ OS.registerApp({
 
     function endBattle(win) {
       if (win && battle.mode === "infini") return advanceFloor();
+      if (win && battle.mode === "raid" && battle.raidPhase < 3) {
+        raid.cleared = Math.max(raid.cleared || 0, battle.raidPhase);
+        persistRaid();
+        const ph = RAID_PHASES[battle.raidPhase];
+        battle.raidPhase++;
+        battle.enemy = { name: ph.name, type: ph.type, hp: ph.hp, maxHp: ph.hp, atk: ph.atk };
+        battle.elite = ph.elite;
+        battle.hp = battle.units.map((u) => u.hp);
+        battle.gauge = Math.min(100, battle.gauge + 30);
+        battle.curse = 0;
+        battle.burn = 0;
+        const wonPhases = battle.raidPhase - 1;
+        battle.log.unshift("Phase " + wonPhases + " franchie ! L'équipe est restaurée.");
+        battle.log.unshift("----- RAID · Phase " + battle.raidPhase + "/3 : " + ph.name + " -----");
+        if (battle.elite) battle.log.unshift("[Élite] " + battle.elite.name + " : " + battle.elite.desc);
+        newHand();
+        renderQuests();
+        return;
+      }
       let reward;
       if (battle.mode === "infini") {
         reward = Math.max(2, battle.floor * 3);
@@ -1119,10 +1248,27 @@ OS.registerApp({
           const gains = { larme: diffIdx >= 4 ? 3 : diffIdx >= 2 ? 2 : 1 };
           if (diffIdx === 3) gains.couronne = 1;
           if (diffIdx === 4) gains.couronne = 2;
+          if (diffIdx === 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
           if (diffIdx === 4 && storyState.diff === "enferPlus") gains.sceau = 2;
           battle.log.unshift("Butin : " + gainLoot(gains));
           battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
           trackDaily("story");
+        }
+      } else if (battle.mode === "raid") {
+        reward = win ? 40 : 10;
+        if (win) {
+          raid.cleared = 3;
+          persistRaid();
+          battle.log.unshift("Raid terminé ! Le coffre hebdomadaire est réclamable dans les Quêtes.");
+          if (!raid.clearedNotified) {
+            raid.clearedNotified = true;
+            persistRaid();
+            OS.notify("⚔", "#3bd4c4", "Raid hebdomadaire", "3/3 phases ! Coffre réclamable dans Quêtes.", 5000);
+          }
+        } else {
+          raid.cleared = Math.max(raid.cleared || 0, battle.raidPhase - 1);
+          persistRaid();
+          battle.log.unshift("Le Raid s'arrête ici… (" + Math.max(0, battle.raidPhase - 1) + "/3 phases) — reprenez avec un autre Élixir.");
         }
       } else {
         reward = win ? TIER[battle.tier].reward : 2;
@@ -1130,6 +1276,7 @@ OS.registerApp({
           const gains = { eclat: battle.tier === "facile" ? 1 : battle.tier === "normal" ? 2 : 3 };
           if (battle.tier === "normal" && Math.random() < 0.3) gains.eclat++;
           if (battle.tier === "dur") gains.couronne = 1;
+          if (battle.tier === "dur") gains.elixir = 1;
           battle.log.unshift("Butin : " + gainLoot(gains));
           trackDaily("wins");
         }
@@ -1145,7 +1292,9 @@ OS.registerApp({
     function advanceFloor() {
       battle.floor++;
       trackDaily("floor", battle.floor, "abs");
-      battle.log.unshift("Butin : " + gainLoot({ coeur: 1 + (battle.floor % 5 === 0 ? 1 : 0) }));
+      const flGain = { coeur: 1 };
+      if (battle.floor % 5 === 0) flGain.elixir = 1;
+      battle.log.unshift("Butin : " + gainLoot(flGain));
       battle.log.unshift("--- Étage " + battle.floor + " franchi ---");
       battle.hp = battle.units.map((u, i) => Math.min(u.hp, battle.hp[i] + Math.round(u.hp * 0.25)));
       battle.gauge = Math.min(100, battle.gauge + 15);
@@ -1206,8 +1355,21 @@ OS.registerApp({
           }
           view.appendChild(row);
         }
+        if (battle.mode === "raid") {
+          const row = document.createElement("div");
+          row.className = "battle-actions";
+          const quit = document.createElement("button");
+          quit.className = "pull-btn";
+          quit.textContent = "↩ Quitter le raid";
+          quit.addEventListener("click", () => { battle = null; renderQuests(); });
+          row.appendChild(quit);
+          view.appendChild(row);
+        }
       } else {
-        const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel : "";
+        const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
+          : battle.mode === "histoire" ? " · Boss d'histoire · " + battle.diffLabel
+          : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
+          : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
         view.appendChild(bar(battle.enemy.name + " · " + battle.enemy.type + floorTag, battle.enemy.hp, battle.enemy.maxHp, "enemy"));
 
@@ -1761,9 +1923,15 @@ OS.registerApp({
 
     function battleSceneArt() {
       const idx = battle.storyChapter !== undefined ? battle.storyChapter : (storyScene ? storyScene.idx : 0);
+      let cfg = STORY[idx] ? STORY[idx].scene : STORY[0].scene;
+      if (battle.mode !== "histoire") {
+        const colors = { 1: "#8f9bb3", 2: "#4f9eff", 3: "#e3b23c", 4: "#ff8c5a" };
+        const actors = battle.units.map((u, i) => ({ cls: u.cls, color: colors[u.r] || "#e3b23c", x: 45 + i * 46, flip: false, evo: (save.evo && save.evo[u.id]) || 0 }));
+        cfg = { ...cfg, actors };
+      }
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(STORY[idx] ? STORY[idx].scene : STORY[0].scene);
+      art.innerHTML = OS.art.scene(cfg);
       return art;
     }
 
@@ -1820,6 +1988,7 @@ OS.registerApp({
     /* ---------- Démarrage ---------- */
     persist();
     ensureDaily();
+    ensureRaid();
     renderSummon();
   },
 });

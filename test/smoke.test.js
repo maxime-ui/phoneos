@@ -94,7 +94,7 @@ setTimeout(() => {
   window.eval("OS").openApp("epopee");
   const teamTabF = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
   teamTabF.click();
-  check("inventaire de butin affiché (5 matières)", document.querySelectorAll(".loot-chip").length === 5);
+  check("inventaire de butin affiché (6 matières)", document.querySelectorAll(".loot-chip").length === 6);
   check("forge d'évolution : lignes présentes", document.querySelectorAll(".forge-line").length >= 100);
   const bronLine = [...document.querySelectorAll(".forge-line")].find((l) => l.querySelector(".unit-name").textContent.startsWith("Bron"));
   check("forge : ligne Bron évolutive et finançable", !!bronLine && !bronLine.querySelector("button").disabled);
@@ -336,6 +336,47 @@ setTimeout(() => {
   check("trophées : records des 5 boss + Mode Infini", document.querySelectorAll(".trophies-record").length === 6);
   check("trophées : Graal verrouillé affiché", !!document.querySelector(".trophy-graal.locked") && document.body.textContent.includes("Astrée, Héritière des braises"));
   check("trophées : record Mode Infini affiché", document.body.textContent.includes("Mode Infini"));
+
+  // ---- Raid hebdomadaire : 3 phases, coffre, Élixirs ----
+  window.eval('(function(){var d=new Date(),t=new Date(d.getFullYear(),0,1),w=Math.ceil(((d-t)/86400000+t.getDay()+1)/7);localStorage.setItem("phoneos:epopee-raid",JSON.stringify({week:d.getFullYear()+"-S"+w,elixirs:5,cleared:3,claimed:false}));})()');
+  window.eval("OS").openApp("epopee");
+  const questTabR = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  questTabR.click();
+  check("panneau raid affiché", !!document.querySelector(".raid-panel"));
+  check("3 phases de raid affichées", document.querySelectorAll(".raid-chip").length === 3);
+  check("3 phases déjà vaincues (✓)", document.querySelectorAll(".raid-chip.done").length === 3);
+  check("Élixirs affichés (5)", document.querySelector(".raid-panel").textContent.includes("Élixirs de raid : 5"));
+  const chest = document.querySelector(".raid-chest");
+  check("coffre hebdomadaire réclamable", !!chest);
+  const q0 = JSON.parse(window.localStorage.getItem("phoneos:epopee")).quartz;
+  if (chest) chest.click();
+  const rs1 = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  const rr1 = JSON.parse(window.localStorage.getItem("phoneos:epopee-raid"));
+  check("coffre : +90 ◆ (3 phases × 30)", rs1.quartz === q0 + 90);
+  check("coffre : +3 Sceaux du dragon (50 → 53)", rs1.loot.sceau === 53);
+  check("coffre marqué réclamé", rr1.claimed === true);
+  const teamTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Équipe");
+  teamTabR2.click();
+  check("6 matières de butin dont l'Élixir de raid", document.querySelectorAll(".loot-chip").length === 6 && document.body.textContent.includes("Élixir de raid"));
+  const questTabR2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
+  questTabR2.click();
+  const enterBtn = [...document.querySelectorAll(".raid-panel .pull-btn")].find((b) => b.textContent.includes("Entrer dans le Raid"));
+  check("bouton entrer dans le raid actif", !!enterBtn && !enterBtn.disabled);
+  if (enterBtn) enterBtn.click();
+  check("raid : −1 Élixir persisté", JSON.parse(window.localStorage.getItem("phoneos:epopee-raid")).elixirs === 4);
+  check("combat de raid lancé (phase 1/3)", !!document.querySelector(".battle") && document.body.textContent.includes("Gardien de la trempe") && document.body.textContent.includes("Phase 1/3"));
+  check("élite du gardien annoncée", document.querySelector(".battle-log").textContent.includes("Massue écrasante"));
+
+  // Silhouettes évoluées : aura, échelle et couronne d'étoiles au rang III
+  const sil0 = window.eval("OS").art.silhouette("Chevalier", "#fff", 100, 110, false, 0);
+  const sil3 = window.eval("OS").art.silhouette("Chevalier", "#fff", 100, 110, false, 3);
+  check("silhouette de base sans aura", !sil0.includes("scale(1.08)"));
+  check("silhouette évoluée : échelle 1,08 + halo", sil3.includes("scale(1.08)") && sil3.includes("opacity=\"0.16\""));
+  check("silhouette rang III : couronne d'étoiles dorées", sil3.includes("#ffd970") && sil3.includes("#e3b23c"));
+  const raidSave = JSON.parse(window.localStorage.getItem("phoneos:epopee"));
+  const anyTeamEvo = raidSave.team.some((id) => ((raidSave.evo || {})[id] || 0) >= 1);
+  const raidArt = document.querySelector(".battle .story-art").innerHTML;
+  check("scène de combat raid : aura présente seulement si un membre est évolué", raidArt.includes("scale(1.08)") === anyTeamEvo);
 
   window.eval("OS").closeApp();
 
