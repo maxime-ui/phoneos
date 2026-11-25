@@ -692,3 +692,8 @@ body.cb .rb-score { color: #0fb3a3; }
 .unit-card.r3 .unit-portrait { height: 148px; }
 .unit-card .unit-name, .unit-card .unit-cls { position:relative; }
 @media (max-width: 380px) { .unit-portrait { height: 96px; } .unit-card.r3 .unit-portrait { height: 118px; } }
+
+
+/* Décor illustré du champ de bataille */
+.story-art-box { background-image: linear-gradient(180deg, rgba(10,14,28,.12), rgba(10,14,28,.55)), url("../assets/asteria/scenes/crepuscule-ruines.svg"); background-size: cover; background-position: center; border-radius: 14px; overflow: hidden; }
+.story-art-box > svg { position: relative; z-index: 1; }
