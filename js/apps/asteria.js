@@ -2954,7 +2954,7 @@ OS.registerApp({
       const beaten = storyState.bossBeaten || {};
       let n = 0;
       for (let t = 0; t < BANNERS.length; t++) {
-        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) n = Math.min(t + 1, Object.keys(STORY_DIFFS).length);
+        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) n = t + 1;
       }
       return n;
     }
@@ -3712,7 +3712,7 @@ OS.registerApp({
       const beaten = st.bossBeaten || {};
       let bn = 0;
       for (let t = 0; t < 5; t++) {
-        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) bn = Math.min(t + 1, Object.keys(STORY_DIFFS).length);
+        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) bn = t + 1;
       }
       return Object.keys(STORY_DIFFS).map((key) => ({
         key,
