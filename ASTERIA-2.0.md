@@ -32,3 +32,16 @@ node test/stress.test.js
 ```
 
 La connexion GitHub permet de pousser le code, mais ne fournit pas à elle seule un environnement d'exécution local. Les tests ne sont donc pas déclarés réussis tant qu'ils n'ont pas été exécutés.
+
+
+## Combat 2.0 — première couche tactique
+
+- Télégraphie : chaque ennemi affiche une prochaine action annoncée avec son effet général.
+- Garde d'équipe : une action parmi les trois actions du tour réduit de 35 % les dégâts directs reçus pendant la riposte ennemie.
+- La garde est réinitialisée après la riposte ; elle ne se cumule pas.
+- Les intentions sont recalculées au début du nouveau tour.
+- Styles CSS dédiés pour rendre l'avertissement lisible sur petit écran.
+
+## Nettoyage des anciennes sauvegardes
+
+Au premier démarrage de cette version, une opération unique supprime les anciennes clés de progression Astéria/Épopée connues. Les préférences globales (son, affichage, accessibilité) ne sont pas touchées. Le nettoyage est marqué dans le stockage local pour ne pas se répéter.
