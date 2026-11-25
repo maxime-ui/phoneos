@@ -289,7 +289,8 @@ setTimeout(() => {
   const ownershipFilter = document.querySelectorAll(".collection-filters select")[2];
   ownershipFilter.value = "missing"; ownershipFilter.dispatchEvent(new Event("change"));
   check("filtre non possédés appliqué", document.querySelectorAll(".col-grid .unit-card").length === 1 && document.querySelector(".col-grid .unit-card.locked"));
-  ownershipFilter.value = "all"; ownershipFilter.dispatchEvent(new Event("change"));
+  const resetOwnershipFilter = document.querySelectorAll(".collection-filters select")[2];
+  resetOwnershipFilter.value = "all"; resetOwnershipFilter.dispatchEvent(new Event("change"));
   check("progression 132 / " + (unitIds.length) + " affichée", document.body.textContent.includes("132 / " + unitIds.length));
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
