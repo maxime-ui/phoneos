@@ -657,29 +657,27 @@ setTimeout(() => {
   const raidArt = document.querySelector(".battle .story-art").innerHTML;
   check("scène de combat raid : aura présente seulement si un membre est évolué", raidArt.includes("scale(1.08)") === anyTeamEvo);
 
-  // Mode Entraînement : tester tous les héros, même non possédés (aucun gain)
+  // Laboratoire Entraînement : roster complet, cible immortelle et sortie immédiate.
   const trainTabBtn = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Entraînement");
   check("onglet Entraînement présent", !!trainTabBtn);
   trainTabBtn.click();
-  check("entraînement : tous les héros affichés (grisés inclus)", document.querySelectorAll(".roster .unit-card").length === unitIds.length);
-  check("entraînement : héros non possédé grisé (le Graal seul)", document.querySelectorAll(".roster .unit-card.locked").length === 1);
+  check("entraînement : tous les héros affichés", document.querySelectorAll(".roster .unit-card").length === unitIds.length);
   const graalCardT = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.textContent.includes("Astrée, Héritière des braises"));
-  check("Graal sélectionnable pour l'entraînement", !!graalCardT);
   if (graalCardT) graalCardT.click();
-  const graalCardT2 = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.textContent.includes("Astrée, Héritière des braises"));
-  check("Graal marqué sélectionné (essai sans le posséder)", !!graalCardT2 && graalCardT2.classList.contains("in-team"));
-  const dummyBtn = [...document.querySelectorAll(".pull-row .pull-btn")].find((b) => b.textContent.includes("Mannequin de bois"));
-  check("adversaire d'entraînement : mannequins proposés", !!dummyBtn && document.body.textContent.includes("Mannequin de fer") && document.body.textContent.includes("Boss simulé"));
-  if (dummyBtn) dummyBtn.click();
-  check("combat d'entraînement lancé [aucun gain]", !!document.querySelector(".battle") && document.body.textContent.includes("Mannequin de bois") && document.querySelector(".battle-log").textContent.includes("ENTRAÎNEMENT"));
-  const tcard0 = document.querySelector(".hand-card");
-  const tlog0 = document.querySelectorAll(".battle-log > div").length;
-  if (tcard0) tcard0.click();
-  check("entraînement : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length >= tlog0);
-  const tQuitB = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Abandonner"));
-  check("bouton « Abandonner l'entraînement » présent", !!tQuitB);
-  if (tQuitB) tQuitB.click();
-  check("retour à la liste d'entraînement", document.body.textContent.includes("Adversaire d'entraînement") && !document.querySelector(".battle"));
+  check("héros non possédé sélectionnable", !!document.querySelector(".roster .unit-card.in-team"));
+  const startTrain = [...document.querySelectorAll(".pull-row button")].find((b) => b.textContent.includes("mob aléatoire"));
+  check("démarrage contre mob aléatoire proposé", !!startTrain && !startTrain.disabled);
+  if (startTrain) startTrain.click();
+  check("combat laboratoire démarré", !!document.querySelector(".battle") && document.querySelector(".battle").textContent.includes("cible immortelle"));
+  const enemyHpBefore = document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent;
+  const trainingCard = document.querySelector(".hand-card");
+  if (trainingCard) trainingCard.click();
+  const enemyHpAfter = document.querySelector(".battle .hp-row.enemy .hp-num")?.textContent;
+  check("cible d'entraînement immortelle", !!enemyHpBefore && enemyHpBefore === enemyHpAfter);
+  const quitTraining = [...document.querySelectorAll(".battle button")].find((b) => b.textContent.includes("Quitter le test"));
+  check("sortie disponible pendant le combat", !!quitTraining);
+  if (quitTraining) quitTraining.click();
+  check("sortie immédiate vers Entraînement", !document.querySelector(".battle") && document.body.textContent.includes("mob aléatoire"));
 
   // Volume : réglage borné, persisté et transmis au moteur audio.
   window.eval("OS").setVolume(37);
