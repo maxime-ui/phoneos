@@ -1058,16 +1058,20 @@ OS.registerApp({
       const ssrPool = UNITS.filter(u => u.r === 3 && u.id !== "graal");
       for (let i = 0; i < n; i++) {
         const pityKey = "featured-" + banner.id;
+        const ssrPityKey = pityKey + "-ssr";
         const guaranteeKey = pityKey + "-guarantee";
         save.pity[pityKey] = (save.pity[pityKey] || 0) + 1;
+        save.pity[ssrPityKey] = (save.pity[ssrPityKey] || 0) + 1;
         let unit;
         if (save.pity[pityKey] >= 100) {
           unit = byId(banner.hero);
           save.pity[pityKey] = 0;
+          save.pity[ssrPityKey] = 0;
           save.pity[guaranteeKey] = 0;
         } else {
-          unit = rollUnit();
+          unit = save.pity[ssrPityKey] >= 50 ? ssrPool[Math.floor(Math.random() * ssrPool.length)] : rollUnit();
           if (unit.r === 3) {
+            save.pity[ssrPityKey] = 0;
             if ((save.pity[guaranteeKey] || 0) > 0 || Math.random() < 0.5) {
               unit = byId(banner.hero);
               save.pity[guaranteeKey] = 0;
@@ -1252,7 +1256,7 @@ OS.registerApp({
         const title = document.createElement("strong");
         title.textContent = fb.name;
         const desc = document.createElement("small");
-        desc.textContent = fb.desc + " · " + (save.pity["featured-" + fb.id] || 0) + "/100";
+        desc.textContent = fb.desc + " · SSR " + (save.pity["featured-" + fb.id + "-ssr"] || 0) + "/50 · vedette " + (save.pity["featured-" + fb.id] || 0) + "/100";
         card.append(title, desc);
         if (hero) card.appendChild(unitCard(hero));
         [1, 10].forEach((n) => {
@@ -1267,7 +1271,7 @@ OS.registerApp({
             if (!resultBox) { resultBox = document.createElement("div"); resultBox.className = "featured-results"; card.appendChild(resultBox); }
             resultBox.innerHTML = "";
             got.forEach(unit => resultBox.appendChild(unitCard(unit)));
-            desc.textContent = fb.desc + " · " + (save.pity["featured-" + fb.id] || 0) + "/100";
+            desc.textContent = fb.desc + " · SSR " + (save.pity["featured-" + fb.id + "-ssr"] || 0) + "/50 · vedette " + (save.pity["featured-" + fb.id] || 0) + "/100";
             OS.sfx.play(got.some(u => u.r === 3) ? "ssr" : "gacha");
           });
           card.appendChild(btn);
