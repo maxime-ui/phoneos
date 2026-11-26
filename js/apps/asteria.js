@@ -31,22 +31,13 @@
     };
     const ENEMY_NAMES = ["Gobelin ancien", "Chevalier déchu", "Dragon des cendres", "Spectre des marais", "Colosse de pierre", "Sorcière du brouillard", "Basilic", "Seigneur liche", "Fantassin d'élite", "Nécromant errant", "Banshee des marais", "Sanguinaire du brasier", "Colosse de givre", "Ombre du serment", "Dueliste des failles", "Canonnière cendrée", "Alchimiste du néant", "Sentinelle prismatique", "Prédateur nocturne", "Chronomancien brisé", "Hydre des brumes", "Reine des épines", "Garde astral", "Dévoreur de runes"];
 
-    const DIFF_ORDER = ["facile", "moyen", "difficile", "impossible", "enfer", "enferPlus"];
-
-    function diffUnlockedSt(st, key) {
-      const cleared = (st && Array.isArray(st.cleared)) ? st.cleared : [];
-      const i = DIFF_ORDER.indexOf(key);
-      if (i <= 0) return true;
-      return DIFF_ORDER.slice(0, i).every((dk) => cleared.includes(dk));
-    }
-
     function matKeyOf(cls) { return "mat_" + cls; }
 
     const COLLECTION_REWARDS = [
       { pct: 25, quartz: 50 },
       { pct: 50, quartz: 100 },
       { pct: 75, quartz: 200 },
-      { pct: 100, quartz: 500 },
+      { pct: 100, quartz: 500, graal: true },
     ];
     const LOOT = {
       eclat: { name: "Éclat d'acier", color: "#8f9bb3" },
@@ -684,7 +675,7 @@ function artSlug(value) { return String(value || "").normalize("NFD").replace(/[
     }
 
 /* ---------- Données partagées (consommées par l'app Personnages) ---------- */
-OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, ENEMY_BALANCE, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, diffUnlockedSt, matKeyOf };
+OS.asteriaData = { RARITY, CARD, TIER, ENEMY_NAMES, ENEMY_TYPES, ENEMY_BALANCE, UNITS, CLASS_BONUS, SKILL_INFO, COLLECTION_REWARDS, LOOT, RAID_PHASES, RAID_BOTS, EVO_REQ, EVO4_REQ, EVO2, EVO3, EVO3B, RELICS, PASSIVE_INFO, RELIC_TIERS, RELIC_MAIN, RELIC_SUBS, RELIC_SETS, RELIC_UP, RELIC_STAT_LABELS, RECYCLE_GAIN, TRAIN_OPPONENTS, heroPortraitMarkup, enemyPortraitMarkup, relicFxOf, heroRelicFx, byId, equipOf, coreFx, corePower, evoSkillLabelsOf, hashStr, raidRwOf, raidLeaderboard, matKeyOf };
 
 OS.asteriaData.teamSynergyInfo = function () {
   return [
@@ -800,6 +791,8 @@ OS.registerApp({
     }
     let save = loadSave();
     if (!save.pity) save.pity = {};
+    if (save.pity.general === undefined) save.pity.general = 0;
+    delete save.pity.banniere;
     if (!save.collected) save.collected = [];
     if (!save.loot) save.loot = {};
     if (!save.evo) save.evo = {};
@@ -811,12 +804,6 @@ OS.registerApp({
     });
     function persist() { OS.store.set(SAVE_PREFIX, save); }
 
-    let storyState = OS.store.get(SAVE_PREFIX + "-story", { done: 0, music: false, diff: "facile" });
-    if (!storyState.diff) storyState.diff = "facile";
-    if (!Array.isArray(storyState.cleared)) storyState.cleared = [];
-    if (!diffUnlockedSt(storyState, storyState.diff)) storyState.diff = "facile";
-    function persistStory() { OS.store.set(SAVE_PREFIX + "-story", storyState); }
-
     /* ---------- Missions quotidiennes ---------- */
 
     const DAILY_TYPES = [
@@ -825,7 +812,7 @@ OS.registerApp({
       { t: "wins", label: "Gagner 3 quêtes", goal: 3, reward: 30 },
       { t: "heals", label: "Soigner 8 fois", goal: 8, reward: 20 },
       { t: "floor", label: "Atteindre l'étage 3 en Mode Infini", goal: 3, reward: 25 },
-      { t: "story", label: "Vaincre 1 boss d'histoire", goal: 1, reward: 40 },
+      { t: "raid", label: "Franchir 1 phase de raid", goal: 1, reward: 35 },
     ];
     function todayKey() {
       const d = new Date();
@@ -1004,8 +991,7 @@ OS.registerApp({
     const tabTraining = tab("Entraînement");
     const tabCollection = tab("Collection");
     const tabBattle = tab("Quêtes");
-    const tabStory = tab("Histoire");
-    tabsRow.append(tabSummon, tabTeam, tabTraining, tabCollection, tabBattle, tabStory);
+    tabsRow.append(tabSummon, tabTeam, tabTraining, tabCollection, tabBattle);
 
     function tab(label) {
       const b = document.createElement("button");
@@ -1016,13 +1002,12 @@ OS.registerApp({
         else if (label === "Équipe") renderTeam();
         else if (label === "Entraînement") renderTraining();
         else if (label === "Collection") renderCollection();
-        else if (label === "Histoire") renderStory();
         else renderQuests();
       });
       return b;
     }
     function setActiveTab(btn) {
-      [tabSummon, tabTeam, tabTraining, tabCollection, tabBattle, tabStory].forEach((b) => b.classList.toggle("active", b === btn));
+      [tabSummon, tabTeam, tabTraining, tabCollection, tabBattle].forEach((b) => b.classList.toggle("active", b === btn));
     }
 
     body.append(tabsRow);
@@ -1041,52 +1026,6 @@ OS.registerApp({
         ? base.filter((u) => u.r === wanted)
         : [2, 1, 3].map((r) => base.filter((u) => u.r === r)).find((a) => a.length) || base;
       return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    const FEATURED_BANNERS = [
-      { id: "forge", name: "Les maîtres de la forge", hero: "elyndra", color: "#b47b42", desc: "Elyndra en vedette · Artificier" },
-      { id: "saison", name: "Le pacte de la sève-lune", hero: "maelis", color: "#398f6b", desc: "Maélis en vedette · Druide" },
-      { id: "voile", name: "Les secrets du crépuscule", hero: "nyxar", color: "#7551b8", desc: "Nyxar en vedette · Occultiste" },
-    ];
-    OS.asteriaData.FEATURED_BANNERS = FEATURED_BANNERS;
-    function featuredPull(banner, n) {
-      const cost = n === 1 ? 3 : 30;
-      if (save.quartz < cost) { notifyGacha("Pas assez de quartz pour cette bannière."); return []; }
-      save.quartz -= cost;
-      trackDaily("pulls", n);
-      const results = [];
-      const ssrPool = UNITS.filter(u => u.r === 3 && u.id !== "graal");
-      for (let i = 0; i < n; i++) {
-        const pityKey = "featured-" + banner.id;
-        const ssrPityKey = pityKey + "-ssr";
-        const guaranteeKey = pityKey + "-guarantee";
-        save.pity[pityKey] = (save.pity[pityKey] || 0) + 1;
-        save.pity[ssrPityKey] = (save.pity[ssrPityKey] || 0) + 1;
-        let unit;
-        if (save.pity[pityKey] >= 100) {
-          unit = byId(banner.hero);
-          save.pity[pityKey] = 0;
-          save.pity[ssrPityKey] = 0;
-          save.pity[guaranteeKey] = 0;
-        } else {
-          unit = save.pity[ssrPityKey] >= 50 ? ssrPool[Math.floor(Math.random() * ssrPool.length)] : rollUnit();
-          if (unit.r === 3) {
-            save.pity[ssrPityKey] = 0;
-            if ((save.pity[guaranteeKey] || 0) > 0 || Math.random() < 0.5) {
-              unit = byId(banner.hero);
-              save.pity[guaranteeKey] = 0;
-            } else {
-              save.pity[guaranteeKey] = 1;
-            }
-          }
-        }
-        if (!unit) unit = ssrPool[Math.floor(Math.random() * ssrPool.length)];
-        save.owned[unit.id] = (save.owned[unit.id] || 0) + 1;
-        results.push(unit);
-      }
-      if (save.team.filter(id => save.owned[id]).length < 3) save.team = Object.keys(save.owned).slice(0, 3);
-      persist();
-      return results;
     }
 
     function classPull(cls, n) {
@@ -1126,15 +1065,15 @@ OS.registerApp({
       trackDaily("pulls", n);
       const results = [];
       for (let i = 0; i < n; i++) {
-        save.pity.banniere = (save.pity.banniere || 0) + 1;
+        save.pity.general = (save.pity.general || 0) + 1;
         let unit;
-        if (save.pity.banniere >= 50) {
+        if (save.pity.general >= 50) {
           const ssrAge = UNITS.filter((u) => u.r === 3 && u.id !== "graal");
           unit = ssrAge[Math.floor(Math.random() * ssrAge.length)];
-          save.pity.banniere = 0;
+          save.pity.general = 0;
         } else {
           unit = rollUnit();
-          if (unit.r === 3) save.pity.banniere = 0;
+          if (unit.r === 3) save.pity.general = 0;
         }
         save.owned[unit.id] = (save.owned[unit.id] || 0) + 1;
         results.push(unit);
@@ -1229,11 +1168,11 @@ OS.registerApp({
       content.innerHTML = "";
       content.appendChild(quartzBar());
 
-      const banner = document.createElement("div");
-      banner.className = "banner";
-      banner.innerHTML = '<div class="banner-title">Bannière des héros</div><div class="banner-sub"></div>';
-      content.appendChild(banner);
-      updateBannerPity();
+      const summonHint = document.createElement("div");
+      summonHint.className = "team-hint banner-sub";
+      summonHint.textContent = "Invocation générale — 5 % SSR · 20 % SR · 75 % R · SSR garanti à 50 invocations.";
+      content.appendChild(summonHint);
+      updateSummonPity();
 
       const buttons = document.createElement("div");
       buttons.className = "pull-row";
@@ -1241,44 +1180,6 @@ OS.registerApp({
       const multi = pullBtn("Invoquer ×10 — 30 ◆", 10);
       buttons.append(single, multi);
       content.appendChild(buttons);
-
-      const featuredTitle = document.createElement("div");
-      featuredTitle.className = "team-hint";
-      featuredTitle.textContent = "Bannières thématiques — héros SSR en vedette · pity SSR 50 · héros vedette garanti à 100";
-      content.appendChild(featuredTitle);
-      const featuredGrid = document.createElement("div");
-      featuredGrid.className = "featured-banner-grid";
-      FEATURED_BANNERS.forEach((fb) => {
-        const card = document.createElement("section");
-        card.className = "featured-banner";
-        card.style.borderColor = fb.color;
-        const hero = byId(fb.hero);
-        const title = document.createElement("strong");
-        title.textContent = fb.name;
-        const desc = document.createElement("small");
-        desc.textContent = fb.desc + " · SSR " + (save.pity["featured-" + fb.id + "-ssr"] || 0) + "/50 · vedette " + (save.pity["featured-" + fb.id] || 0) + "/100";
-        card.append(title, desc);
-        if (hero) card.appendChild(unitCard(hero));
-        [1, 10].forEach((n) => {
-          const btn = document.createElement("button");
-          btn.className = "pull-btn";
-          btn.textContent = "Invoquer ×" + n + " · " + (n === 1 ? "3" : "30") + " ◆";
-          btn.addEventListener("click", () => {
-            const got = featuredPull(fb, n);
-            if (!got.length) return;
-            content.querySelector(".quartz-bar").replaceWith(quartzBar());
-            let resultBox = card.querySelector(".featured-results");
-            if (!resultBox) { resultBox = document.createElement("div"); resultBox.className = "featured-results"; card.appendChild(resultBox); }
-            resultBox.innerHTML = "";
-            got.forEach(unit => resultBox.appendChild(unitCard(unit)));
-            desc.textContent = fb.desc + " · SSR " + (save.pity["featured-" + fb.id + "-ssr"] || 0) + "/50 · vedette " + (save.pity["featured-" + fb.id] || 0) + "/100";
-            OS.sfx.play(got.some(u => u.r === 3) ? "ssr" : "gacha");
-          });
-          card.appendChild(btn);
-        });
-        featuredGrid.appendChild(card);
-      });
-      content.appendChild(featuredGrid);
 
       const portalTitle = document.createElement("div");
       portalTitle.className = "team-hint";
@@ -1304,9 +1205,9 @@ OS.registerApp({
       content.appendChild(result);
     }
 
-    function updateBannerPity() {
+    function updateSummonPity() {
       const sub = content.querySelector(".banner-sub");
-      if (sub) sub.innerHTML = "5 % SSR · 20 % SR · 75 % R · SSR garanti à 50 invocations (<b>pity " + (save.pity.banniere || 0) + "/50</b>)";
+      if (sub) sub.innerHTML = "Invocation générale · 5 % SSR · 20 % SR · 75 % R · SSR garanti à 50 invocations (<b>compteur " + (save.pity.general || 0) + "/50</b>)";
     }
 
     function pullBtn(label, n) {
@@ -1320,7 +1221,7 @@ OS.registerApp({
         const box = e.target.closest(".gacha-content").querySelector(".pull-results");
         box.innerHTML = "";
         got.forEach((u) => box.appendChild(unitCard(u)));
-        updateBannerPity();
+        updateSummonPity();
         OS.sfx.play(got.some((u) => u.r === 3) ? "ssr" : "gacha");
       });
       return b;
@@ -1774,13 +1675,15 @@ OS.registerApp({
       content.innerHTML = "";
       content.appendChild(quartzBar());
 
-      const total = UNITS.length;
-      const have = UNITS.filter((u) => save.owned[u.id]).length;
+      const collectibleUnits = UNITS.filter((u) => u.id !== "graal");
+      const total = collectibleUnits.length;
+      const have = collectibleUnits.filter((u) => save.owned[u.id]).length;
       const pct = Math.round((have / total) * 100);
       const prog = document.createElement("div");
       prog.className = "col-progress";
+      const fullRoster = UNITS.filter((u) => save.owned[u.id]).length;
       prog.innerHTML = '<div class="col-bar"><div class="col-fill" style="width:' + pct + '%"></div></div>' +
-        '<div class="team-hint">Collection : ' + have + " / " + total + " (" + pct + " %)</div>";
+        '<div class="team-hint">Collection des héros à obtenir : ' + have + " / " + total + " (" + pct + " %) · roster avec Astrée : " + fullRoster + " / " + UNITS.length + "</div>";
       content.appendChild(prog);
 
       const rew = document.createElement("div");
@@ -1791,15 +1694,20 @@ OS.registerApp({
         const done = pct >= rw.pct;
         const claimed = save.collected.includes(rw.pct);
         const lab = document.createElement("div");
-        lab.innerHTML = "<b>" + rw.pct + " %</b> — " + rw.quartz + " ◆ " + (claimed ? "✓ réclamé" : "");
+        lab.innerHTML = "<b>" + rw.pct + " %</b> — " + rw.quartz + " ◆" + (rw.graal ? " + Astrée (SS)" : "") + (claimed ? " ✓ réclamé" : "");
         line.appendChild(lab);
         if (done && !claimed) {
           const b = document.createElement("button");
           b.className = "pull-btn claim-btn";
-          b.textContent = "Réclamer " + rw.quartz + " ◆";
+          b.textContent = rw.graal ? "Réclamer Astrée (SS) + " + rw.quartz + " ◆" : "Réclamer " + rw.quartz + " ◆";
           b.addEventListener("click", () => {
             save.collected.push(rw.pct);
             save.quartz += rw.quartz;
+            if (rw.graal && !save.owned.graal) {
+              save.owned.graal = 1;
+              OS.sfx.play("ssr");
+              OS.notify("✦", "#8c2f2f", "Collection complète", "Astrée, Héritière des braises (SS) vous rejoint !", 6000);
+            }
             persist();
             OS.sfx.play("unlock");
             renderCollection();
@@ -2055,7 +1963,7 @@ OS.registerApp({
       trackDaily("cards");
       const fx = unitFx(u);
       let dmg = Math.round(unit.atk * c.mult * (0.9 + Math.random() * 0.3));
-      dmg = Math.round(dmg * teamAtkMult() * (battle.storyMult || 1));
+      dmg = Math.round(dmg * teamAtkMult());
       if (fx.dmg) dmg = Math.round(dmg * (1 + fx.dmg / 100));
       let crit = false;
       const critBase = (u.cls === "Archer" ? 0.35 : 0.25) + (fx.crit || 0) / 100;
@@ -2536,6 +2444,7 @@ OS.registerApp({
       if (win && battle.mode === "infini") return advanceFloor();
       if (win && battle.mode === "raid" && battle.raidPhase < 3) {
         raid.cleared = Math.max(raid.cleared || 0, battle.raidPhase);
+        trackDaily("raid");
         persistRaid();
         const ph = RAID_PHASES[battle.raidPhase];
         battle.raidPhase++;
@@ -2567,63 +2476,11 @@ OS.registerApp({
           OS.store.set(SAVE_PREFIX + "-infinite-best", infiniteBest);
           battle.log.unshift("Nouveau record d'étages : " + infiniteBest + " !");
         }
-      } else if (battle.mode === "histoire") {
-        reward = win ? battle.enemy.reward : 2;
-        if (win && battle.storyBoss) {
-          battle.freshWin = storyState.done <= battle.storyChapter;
-          storyState.done = Math.max(storyState.done, battle.storyChapter + 1);
-          storyState.bossBeaten = storyState.bossBeaten || {};
-          const diffIdx = Math.max(0, Object.keys(STORY_DIFFS).indexOf(storyState.diff));
-          const before = bannersUnlockedCount();
-          storyState.bossBeaten[battle.storyChapter] = Math.max(storyState.bossBeaten[battle.storyChapter] || 0, diffIdx + 1);
-          persistStory();
-          const after = bannersUnlockedCount();
-          if (after > before) {
-            save.quartz += 25;
-            persist();
-            battle.log.unshift("✦ Bannière débloquée : " + BANNERS[after - 1].name + " (+25 ◆)");
-            OS.notify("🏆", "#6b4f2a", "Salle des trophées", "Bannière débloquée : " + BANNERS[after - 1].name, 5000);
-          }
-          if (battle.storyChapter === STORY.length - 1 && !storyState.cleared.includes(storyState.diff)) {
-            storyState.cleared.push(storyState.diff);
-            persistStory();
-            const nxt = DIFF_ORDER[DIFF_ORDER.indexOf(storyState.diff) + 1];
-            if (nxt) battle.log.unshift("✨ Difficulté " + STORY_DIFFS[storyState.diff].label + " terminée — " + STORY_DIFFS[nxt].label + " déverrouillée !");
-            else battle.log.unshift("✨ Histoire entièrement bouclée en Enfer+ : il n'y a rien au-dessus.");
-          }
-          if (battle.storyChapter === 11 && storyState.diff === "enferPlus" && !save.owned.graal) {
-            save.owned.graal = 1;
-            save.quartz += 50;
-            persist();
-            OS.sfx.play("ssr");
-            OS.notify("✦", "#8c2f2f", "Le Graal", "Astrée, Héritière des braises (SS) vous rejoint !", 6000);
-            battle.log.unshift("✦ Dragon des cendres vaincu en Enfer+ : Astrée, Héritière des braises (SS) rejoint votre collection ! (+50 ◆)");
-          }
-          const gains = { larme: diffIdx >= 4 ? 3 : diffIdx >= 2 ? 2 : 1 };
-          if (diffIdx === 3) gains.couronne = 1;
-          if (diffIdx >= 4) gains.couronne = 2;
-          if (diffIdx >= 4) gains.elixir = storyState.diff === "enferPlus" ? 2 : 1;
-          if (diffIdx >= 4 && storyState.diff === "enferPlus") gains.sceau = 2;
-          gains.poussiere = 2 + Math.floor(diffIdx / 2);
-          if (diffIdx >= 4) gains.cristal = storyState.diff === "enferPlus" ? 2 : 1;
-          else if (diffIdx >= 2) gains.cristal = 1;
-          Object.assign(gains, classMatGains(1 + Math.floor(diffIdx / 2)));
-          battle.log.unshift("Butin : " + gainLoot(gains));
-          battle.log.unshift("Boss vaincu ! Le récit continue (+" + reward + " ◆)");
-          trackDaily("story");
-        } else if (win) {
-          const chapterTier = Math.floor((battle.storyChapter || 0) / 3);
-          const gains = { larme: 1 + Math.floor(chapterTier / 2), poussiere: 1 + chapterTier };
-          if (chapterTier >= 1) gains.eclat = 1;
-          if (chapterTier >= 2) gains.cristal = 1;
-          Object.assign(gains, classMatGains(1 + Math.floor(chapterTier / 2)));
-          battle.log.unshift("Butin d'escarmouche : " + gainLoot(gains));
-          battle.log.unshift("Escarmouche remportée ! Le chemin est dégagé.");
-        }
       } else if (battle.mode === "raid") {
         reward = win ? 40 : 10;
         if (win) {
           raid.cleared = 3;
+          trackDaily("raid");
           persistRaid();
           battle.log.unshift("Raid terminé ! Le coffre hebdomadaire est réclamable dans les Quêtes.");
           if (!raid.clearedNotified) {
@@ -2736,29 +2593,6 @@ OS.registerApp({
         done.className = "battle-result " + (won ? "win" : "lose");
         done.textContent = won ? "VICTOIRE" : "DÉFAITE";
         view.appendChild(done);
-        if (battle.mode === "histoire") {
-          const row = document.createElement("div");
-          row.className = "battle-actions";
-          if (won) {
-            const cont = document.createElement("button");
-            cont.className = "pull-btn story-next";
-            cont.textContent = battle.storyBoss ? "Continuer l'histoire ▸" : "Poursuivre le niveau ▸";
-            cont.addEventListener("click", onStoryContinue);
-            row.appendChild(cont);
-          } else {
-            const retry = document.createElement("button");
-            retry.className = "pull-btn tier-infini story-boss";
-            retry.textContent = "⚔ Réessayer";
-            retry.addEventListener("click", onStoryRetry);
-            row.appendChild(retry);
-            const quit = document.createElement("button");
-            quit.className = "pull-btn";
-            quit.textContent = "↩ Renoncer";
-            quit.addEventListener("click", renderStory);
-            row.appendChild(quit);
-          }
-          view.appendChild(row);
-        }
         if (battle.mode === "raid") {
           const row = document.createElement("div");
           row.className = "battle-actions";
@@ -2791,7 +2625,6 @@ OS.registerApp({
           view.appendChild(exitRow);
         }
         const floorTag = battle.mode === "infini" ? " · Étage " + battle.floor
-          : battle.mode === "histoire" ? " · " + (battle.storyBoss ? "Boss d'histoire" : "Escarmouche d'histoire") + " · " + battle.diffLabel
           : battle.mode === "raid" ? " · RAID · Phase " + battle.raidPhase + "/3"
           : "";
         view.insertBefore(battleSceneArt(), view.firstChild);
@@ -2910,828 +2743,17 @@ OS.registerApp({
       return view;
     }
 
-    /* ---------- Mode Histoire ---------- */
-
-    const BLESSINGS = {
-      fleches: "Lames affûtées (+10 % de dégâts en boss)",
-      runes: "Runes allumées (+25 % d'Ultime au début des boss)",
-      courage: "Vœu de courage (Ultime à 50 % au début des boss)",
-      os: "Médaillon d'os (boss à −10 % de PV)",
-      charge: "Charge frontale (+15 % de dégâts en boss)",
-      nuit: "Tactique nocturne (Ultime à 50 % au début des boss)",
-    };
-    const BLESSING_FX = {
-      fleches: { mult: 1.10 },
-      charge: { mult: 1.15 },
-      runes: { gauge: 25 },
-      courage: { gauge: 50 },
-      nuit: { gauge: 50 },
-      os: { hpMult: 0.90 },
-    };
-
-    const STORY_DIFFS = {
-      facile: { label: "Facile", hp: 0.55, atk: 0.60, rw: 0.5 },
-      moyen: { label: "Moyen", hp: 1, atk: 1, rw: 1 },
-      difficile: { label: "Difficile", hp: 1.6, atk: 1.45, rw: 1.5 },
-      impossible: { label: "Impossible", hp: 2.3, atk: 1.9, rw: 2.5 },
-      enfer: { label: "Enfer", hp: 3.2, atk: 2.4, rw: 4 },
-      enferPlus: { label: "Enfer+", hp: 4.2, atk: 3, rw: 6, elite: true },
-    };
-
-    const BANNERS = [
-      { name: "Bannière du Chemin", color: "#2f7a4f" },
-      { name: "Bannière des Trois Volontaires", color: "#2f5f8f" },
-      { name: "Bannière du Serment", color: "#a06a2c" },
-      { name: "Bannière de la Caldeira", color: "#8c2f39" },
-      { name: "Bannière du Dragon Rouge", color: "#d33b2f" },
-      { name: "Bannière des Failles", color: "#7551b8" },
-      { name: "Bannière de la Sève-Lune", color: "#398f6b" },
-      { name: "Bannière du Dernier Sablier", color: "#3d627f" },
-    ];
-    const BOSS_IDX = [1, 3, 6, 9, 11, 18, 20, 22];
-
-    function bannersUnlockedCount() {
-      const beaten = storyState.bossBeaten || {};
-      let n = 0;
-      for (let t = 0; t < BANNERS.length; t++) {
-        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) n = t + 1;
-      }
-      return n;
-    }
-
-    function bannerSvg(color, dim) {
-      return '<svg class="mini-banner" viewBox="0 0 40 56" preserveAspectRatio="xMidYMid meet">' +
-        '<path d="M6 2 H34 V44 L20 34 L6 44 Z" fill="' + color + '" opacity="' + (dim ? "0.28" : "1") + '"/>' +
-        '<path d="M6 2 H34 V44 L20 34 L6 44 Z" fill="none" stroke="#0e1322"/>' +
-        '<rect x="6" y="8" width="28" height="3" fill="#e3b23c" opacity="' + (dim ? "0.15" : "0.85") + '"/>' +
-        '<circle cx="20" cy="20" r="5.5" fill="#e3b23c" opacity="' + (dim ? "0.15" : "0.9") + '"/>' +
-        '</svg>';
-    }
-
-    const STORY = [
-      /* --- Acte I --- */
-      {
-        act: "Acte I — La route du nord",
-        title: "L'appel du village",
-        scene: { sky: "dawn", ground: "village", sunX: 60, actors: [
-          { cls: "Chevalier", color: "#e3b23c", x: 205 },
-          { cls: "Berserker", color: "#c34a2f", x: 248, flip: true },
-        ] },
-        events: [
-          { t: "Le village de Hautefeuille s'éveille sous une aube de lave. L'an dernier, le roi a rappelé ses chevaliers : plus personne ne protège la frontière du nord." },
-          { s: "Orwen", t: "Les bêtes descendent des collines chaque nuit. Et quelque chose de plus grand brûle là-haut — le ciel sent le soufre jusqu'ici." },
-          { s: "Dame Elise", t: "Alors nous irons nous-mêmes. Trois volontaires, une route, et pas un denier du roi." },
-          { t: "Vous regardez vos compagnons : la force, l'arcane, la vitesse. La route du nord commence." },
-        ],
-      },
-      {
-        act: "Acte I — La route du nord",
-        title: "La patrouille des ombres",
-        scene: { sky: "night", ground: "foret", stars: true, sunX: 250, actors: [
-          { cls: "Berserker", color: "#c34a2f", x: 120 },
-          { cls: "Archer", color: "#3ba75c", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "À la lisière du bois, les corbeaux se taisent d'un seul coup. Des ombres encerclent le chemin, lourdes de chaînes." },
-          { s: "Orwen", t: "Ce ne sont pas des loups. Ces ombres portaient des chaînes — quelqu'un les envoie sur nous." },
-          { boss: { name: "Meute d'ombre", type: "Brute", hp: 9000, atk: 1050, reward: 12, elite: { id: "meute", name: "Chasse en meute", desc: "un second prédateur frappe chaque tour" }, intro: "La meute se jette sur vous. Premier vrai combat." } },
-        ],
-      },
-      {
-        act: "Acte I — La route du nord",
-        title: "La croix des rôdeurs",
-        scene: { sky: "forest", ground: "canopee2", sunX: 250, actors: [
-          { cls: "Rôdeur", color: "#4f9eff", x: 160 },
-          { cls: "Mage", color: "#3b6bd4", x: 205, flip: true },
-        ] },
-        events: [
-          { t: "Au carrefour des chasseurs, une croix de flèches plantées dans un tronc marque la route sûre. Les rôdeurs d'autrefois y laissaient toujours un don." },
-          { s: "Kaeren", t: "La forêt donne sa protection à qui laisse un don. Choisissons le nôtre." },
-          { q: "Quel don laissez-vous au carrefour ?", opts: [
-            { label: "Affûter les lames", blessing: "fleches" },
-            { label: "Allumer les runes", blessing: "runes" },
-          ] },
-        ],
-      },
-      {
-        act: "Acte I — La route du nord",
-        title: "Le chef de guerre Gortak",
-        scene: { sky: "dawn", ground: "foret", sunX: 60, actors: [
-          { cls: "Chevalier", color: "#e3b23c", x: 120 },
-          { cls: "Berserker", color: "#c34a2f", x: 160, flip: true },
-        ] },
-        events: [
-          { s: "Dame Elise", t: "Voilà qui menait la meute. Un chef de guerre ceinturé de chaînes brisées, congédié des guerres du sud." },
-          { s: "Gortak", t: "PETITS SEIGNEURS. VOTRE ROI VOUS A VENDUS. MOI, JE VOUS OFFRE LA GUERRE." },
-          { s: "Orwen", t: "Il annonce ça comme un cadeau. Répondons-lui." },
-          { boss: { name: "Gortak, chef de guerre", type: "Brute", hp: 14000, atk: 1350, reward: 18, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" }, intro: "Gortak lève sa masse de fer. Le sol en tremble." } },
-        ],
-      },
-      /* --- Acte II --- */
-      {
-        act: "Acte II — La forêt des mille flèches",
-        title: "La forêt qui parle",
-        scene: { sky: "forest", ground: "canopee2", sunX: 250, actors: [
-          { cls: "Mage", color: "#3b6bd4", x: 160 },
-          { cls: "Archer", color: "#3ba75c", x: 205, flip: true },
-        ] },
-        events: [
-          { t: "La forêt avale le bruit. Des milliers de flèches anciennes hérissent les troncs, plantées là par des rôdeurs oubliés." },
-          { s: "Lia", t: "Chaque flèche pointe une direction sûre. Suivez les pointes, jamais les yeux." },
-          { s: "Kaeren", t: "Les archers d'autrefois veillaient encore, il y a un mois. Maintenant, il n'y a plus que nous." },
-        ],
-      },
-      {
-        act: "Acte II — La forêt des mille flèches",
-        title: "Le sanctuaire des murmures",
-        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 160, actors: [
-          { cls: "Mage", color: "#6b4f9e", x: 170 },
-          { cls: "Soigneur", color: "#e3b23c", x: 215, flip: true },
-        ] },
-        events: [
-          { t: "Au sommet des marches, un sanctuaire qu'aucun cartographe n'a nommé. Dans la pierre, des runes murmurent dans une langue morte." },
-          { s: "Morgane", t: "Les murmures disent : le dragon des cendres dort sous la montagne. Nos ancêtres l'ont scellé, et le sceau faiblit." },
-          { s: "Morgane", t: "Le sanctuaire aide qui lui laisse une offrande. Dépêchez-vous : le sceau agonise." },
-          { q: "Quelle offrande déposez-vous ?", opts: [
-            { label: "Le médaillon d'os", blessing: "os" },
-            { label: "Le vœu de courage", blessing: "courage" },
-          ] },
-        ],
-      },
-      {
-        act: "Acte II — La forêt des mille flèches",
-        title: "Le spectre des urnes",
-        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 250, actors: [
-          { cls: "Mage", color: "#6b4f9e", x: 170 },
-        ] },
-        events: [
-          { t: "Les urnes du sanctuaire se fissurent. Une voix froide monte de la poussière — une voix qui a oublié d'être humaine." },
-          { s: "Séraphine", t: "Un gardien corrompu. Il a veillé ici pendant des siècles, et il ne supporte plus d'être réveillé." },
-          { boss: { name: "Spectre des urnes", type: "Sorcier", hp: 24000, atk: 1800, reward: 25, elite: { id: "siphon", name: "Siphon d'âmes", desc: "se soigne de la moitié des dégâts infligés" }, intro: "Le spectre embrase le parvis de runes bleues." } },
-        ],
-      },
-      {
-        act: "Acte II — La forêt des mille flèches",
-        title: "Le serment",
-        scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 60, actors: [
-          { cls: "Chevalier", color: "#e3b23c", x: 130 },
-          { cls: "Archer", color: "#3ba75c", x: 175 },
-          { cls: "Mage", color: "#6b4f9e", x: 220, flip: true },
-        ] },
-        events: [
-          { s: "Séraphine", t: "Nous avons survécu au pire. Ce qui nous attend dort sous la montagne." },
-          { s: "Sir Gauvin", t: "Alors gravez-le. Sur la pierre, sur les mains, partout où la peur pourra le lire." },
-          { t: "Chacun grave trois mots sur le porche du sanctuaire : avancer, ou mourir en chemin." },
-        ],
-      },
-      /* --- Acte III --- */
-      {
-        act: "Acte III — Le dragon des cendres",
-        title: "L'escalier de lave",
-        scene: { sky: "ash", ground: "vulkan", sunX: 250, actors: [
-          { cls: "Berserker", color: "#c34a2f", x: 140 },
-          { cls: "Chevalier", color: "#e3b23c", x: 185, flip: true },
-        ] },
-        events: [
-          { t: "Mille marches taillées dans la roche chaude. À chaque palier, l'air brûle un peu plus, et le murmure des runes s'éteint." },
-          { s: "Draven", t: "Enfin quelque chose d'honnête. Ici, au moins, on verra l'ennemi venir." },
-        ],
-      },
-      {
-        act: "Acte III — Le dragon des cendres",
-        title: "Le chevalier de cendres",
-        scene: { sky: "ash", ground: "vulkan", sunX: 250, actors: [
-          { cls: "Chevalier", color: "#c34a2f", x: 170 },
-          { cls: "Chevalier", color: "#e3b23c", x: 215, flip: true },
-        ] },
-        events: [
-          { s: "Sir Gauvin", t: "Un chevalier de nos couleurs, figé face à la montagne. Il contemple le dragon depuis cent ans." },
-          { s: "Le chevalier de cendres", t: "NI L'ORAGE, NI LA LAVE, NI LE DRAGON. VOUS SEULS RESSEMBLEZ À UNE MENACE." },
-          { boss: { name: "Chevalier de cendres", type: "Capitaine", hp: 30000, atk: 2050, reward: 30, elite: { id: "oriflamme", name: "Oriflamme maudite", desc: "votre Ultime se charge 20 % moins vite" }, intro: "Le chevalier lève son oriflamme brûlée : il gagnera en force à chaque tour." } },
-        ],
-      },
-      {
-        act: "Acte III — Le dragon des cendres",
-        title: "Le dragon des cendres",
-        scene: { sky: "ash", ground: "vulkan", sunX: 250, dragon: [176, 96], actors: [
-          { cls: "Berserker", color: "#c34a2f", x: 110 },
-          { cls: "Chevalier", color: "#e3b23c", x: 150 },
-          { cls: "Mage", color: "#6b4f9e", x: 188, flip: true },
-        ] },
-        events: [
-          { t: "Un ciel de braises. Aucun soleil n'éclaire ce versant : seule la caldeira rouge arrose la montagne d'une lumière fauve." },
-          { s: "Le dragon des cendres", t: "PETITS RÔDEURS. VOUS AVEZ RALLUMÉ LES RUNES. VENEZ DONC JOUER." },
-          { s: "Draven", t: "Enfin quelque chose à ma taille." },
-          { q: "Comment entrez-vous dans la caldeira ?", opts: [
-            { label: "Charger d'un coup", blessing: "charge" },
-            { label: "Attendre la nuit", blessing: "nuit" },
-          ] },
-        ],
-      },
-      {
-        act: "Acte III — Le dragon des cendres",
-        title: "Le vent du sud",
-        scene: { sky: "ash", ground: "vulkan", sunX: 250, dragon: [176, 96], actors: [
-          { cls: "Berserker", color: "#c34a2f", x: 110 },
-          { cls: "Chevalier", color: "#e3b23c", x: 150 },
-          { cls: "Mage", color: "#6b4f9e", x: 188, flip: true },
-        ] },
-        events: [
-          { t: "Les ailes se déploient au-dessus du nuage de cendres. Chaque battement fait trembler le sol comme un tambour de guerre." },
-          { boss: { name: "Dragon des cendres", type: "Brute", hp: 42000, atk: 2250, reward: 40, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" }, intro: "Le boss final. Toute la légende tient dans ce combat." } },
-          { t: "Le dragon s'effondre en une pluie de braises. Sur l'horizon, pour la première fois depuis un an, le ciel se lève clair." },
-          { s: "Dame Elise", t: "La route du nord est ouverte. Qu'on raconte que trois volontaires l'ont faite." },
-          { t: "FIN — La légende du dragon des cendres, qu'un village nomme encore celle des Trois Volontaires." },
-        ],
-      },
-      /* --- Acte IV --- */
-      {
-        act: "Acte IV — Les braises d'avant",
-        title: "Le passant sans visage",
-        scene: { sky: "night", ground: "foret", stars: true, sunX: 60, actors: [
-          { cls: "Archer", color: "#3ba75c", x: 120 },
-          { cls: "Chevalier", color: "#e3b23c", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Le village chante ce soir. Mais sur la route du sud, un passant sans visage demande à chacun les mêmes mots : « Souviens-tu du premier serment ? »" },
-          { s: "Orwen", t: "Il ne marche pas, il glisse. Et là où il est passé, même les braises du feu de camp restent grises." },
-          { s: "Dame Elise", t: "Il efface ce qu'il touche. Alors parlons-lui de la forge et des bannières : on ne peut pas tout effacer d'un coup." },
-          { boss: { name: "Nomade sans visage", type: "Banshee", hp: 46000, atk: 2350, reward: 42, elite: { id: "veil", name: "Voile d'ombre", desc: "draine 12 % de votre jauge d'Ultime à chaque tour" }, intro: "Le visage vide fixe votre serment. Il veut le rendre gris." } },
-        ],
-      },
-      {
-        act: "Acte IV — Les braises d'avant",
-        title: "Les cendres qui prient",
-        scene: { sky: "ash", ground: "sanctuaire", sunX: 250, actors: [
-          { cls: "Mage", color: "#6b4f9e", x: 120 },
-          { cls: "Soigneur", color: "#3bd4a0", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Au sanctuaire du cratère, de vieilles robes veillent dans l'encens. Elles réclament le retour de leur « crépuscule doré » — le brasier d'avant la guerre." },
-          { s: "Kaeren", t: "Leur juste est noirci : elles prient les cendres elles-mêmes. Elles ne veulent pas de la paix, elles veulent un dieu mort." },
-          { boss: { name: "Prêtre des braises", type: "Nécromant", hp: 50000, atk: 2500, reward: 45, intro: "Le juste funeste buvra vos forces. Frappez sans relâche." } },
-        ],
-      },
-      {
-        act: "Acte IV — Les braises d'avant",
-        title: "Le golem du serment",
-        scene: { sky: "forest", ground: "canopee3", sunX: 250, actors: [
-          { cls: "Défenseur", color: "#9fb0c8", x: 120 },
-          { cls: "Berserker", color: "#c34a2f", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Les pierres du vieux pont se soulèvent une à une et s'assemblent en une silhouette colossale. Un golem dressé par un serment que personne n'a jamais levé." },
-          { s: "Gortak", t: "CE GARDIEN A SERMENTÉ AVANT VOUS, ET SES MAÎTRES SONT MORTS. FRAPPEZ : LIBÉREZ-LE DE SA TÂCHE !" },
-          { q: "Comment aider ce vieux gardien à se libérer ?", opts: [
-            { label: "Rallumer les runes des originels", blessing: "runes" },
-            { label: "Le relever à mains nues, face à lui", blessing: "courage" },
-          ] },
-          { boss: { name: "Golem du serment", type: "Golem", hp: 54000, atk: 2600, reward: 48, elite: { id: "massue", name: "Massue écrasante", desc: "+6 % d'ATK à chacun de ses tours" }, intro: "Le golem baisse sa garde pour vous écouter : il en profite pour frapper." } },
-        ],
-      },
-      {
-        act: "Acte IV — Les braises d'avant",
-        title: "La triade de fer",
-        scene: { sky: "dawn", ground: "village", sunX: 250, actors: [
-          { cls: "Chevalier", color: "#e3b23c", x: 120 },
-          { cls: "Rôdeur", color: "#4f9eff", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Trois fantassins d'élite, alignés d'un seul pas, se présentent comme la garde morte des serments anciens. Les villages les racontent comme des fables." },
-          { s: "Dame Elise", t: "Trois d'un coup, qui portent des armes que je reconnais — celles de notre armurerie du serment." },
-          { s: "Orwen", t: "Ils frappent ensemble. Une seule seconde d'écart, et leur formation de fer ne suffit plus." },
-          { boss: { name: "La triade de fer", type: "Fantassin", hp: 58000, atk: 2700, reward: 50, elite: { id: "meute", name: "Chasse en meute", desc: "un second prédateur frappe chaque tour" }, intro: "Trois fantassins qui frappent en même temps. Attention au second coup." } },
-        ],
-      },
-      {
-        act: "Acte IV — Les braises d'avant",
-        title: "Le sanguinaire des cratères",
-        scene: { sky: "ash", ground: "vulkan", sunX: 60, actors: [
-          { cls: "Berserker", color: "#c34a2f", x: 120 },
-          { cls: "Archer", color: "#3ba75c", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Au fond du dernier cratère, dans la poussière sèche, attend ce que les villages nomment le Sanguinaire : une hache de braise qui traque les blessés." },
-          { s: "Kaeren", t: "Il suit les blessures, il sait les trouver. Alors soignez-vous entre deux coups, ou tenez debout jusqu'au bout." },
-          { boss: { name: "Sanguinaire des cratères", type: "Sanguinaire", hp: 62000, atk: 2850, reward: 52, elite: { id: "souffle", name: "Souffle de cendres", desc: "brûle toute l'équipe (3 % PV max) à chaque tour" }, intro: "L'ordre de braise chasse les blessés. Restez debout." } },
-        ],
-      },
-      /* --- Epilogue --- */
-      {
-        act: "Epilogue — Les origines",
-        title: "Les trois qui restaient debout",
-        scene: { sky: "dawn", ground: "sanctuaire", sunX: 160, actors: [
-          { cls: "Chevalier", color: "#e3b23c", x: 120 },
-          { cls: "Mage", color: "#6b4f9e", x: 160, flip: true },
-        ] },
-        events: [
-          { t: "Sous le cratère refroidi, vos lanternes trouvent un sanctuaire que personne n'avait vu depuis un siècle. Trois statues veillent sur une muraille de serments." },
-          { t: "Sur le socle, une inscription : « Trois restèrent debout : la lame, la rune et l'ordre. Ils forgèrent les premières reliques et portèrent les premières bannières. »" },
-          { s: "Dame Elise", t: "La lame, la rune et l'ordre. C'est nous. C'était eux avant nous — et avant eux, d'autres. Il y a toujours eu des volontaires." },
-          { t: "La plus vieille statue se penche vers vous, et le sanctuaire raconte : bien avant les rois défaillants, un premier dragon descendit du nord, et trois volontaires restèrent debout pour lui tenir tête." },
-          { t: "Leur serment fut le premier. La Lame du Raid, l'Étendard des trois phases, les runes et l'orbe : tout ce que la Forge répare aujourd'hui a été forgé par leur main, transmis de génération en génération." },
-          { t: "Le souffle du sanctuaire se soulève d'un coup : du fond de la dalle, l'écho du premier dragon se lève comme un défi jeté au temps." },
-          { boss: { name: "Écho du premier dragon", type: "Sorcier", hp: 66000, atk: 3000, reward: 55, intro: "Le souvenir brûle plus fort que la cendre. Regardez-le endurer, puis tomber." } },
-          { t: "L'écho retombe en poussière tiède. Sur la muraille, une dernière ligne s'allume : « Trois restèrent debout, et le monde se souvint. »" },
-          { t: "FIN DE L'EPILOGUE — Astéria commence toujours par trois volontaires : ceux qui restent debout. La suite, c'est vous qui la perpétuez." },
-        ],
-      },
-    ];
-
-    STORY.push(
-      { act: "Acte V — Les royaumes fracturés", title: "La forge des étoiles", scene: { sky: "dawn", ground: "ruines", sunX: 210, actors: [{ cls: "Artificier", color: "#d7a85a", x: 120 }, { cls: "Mage", color: "#6b4f9e", x: 165, flip: true }] }, events: [
-        { t: "Au-delà du sanctuaire, les anciennes routes se brisent en fragments suspendus. Une forge céleste pulse au rythme d’un cœur mécanique." },
-        { s: "Elyndra", t: "Cette forge ne fabrique pas des armes. Elle répare les serments que le temps a déchirés." },
-        { fight: { name: "Sentinelle prismatique", type: "Sentinelle", hp: 69000, atk: 2550, reward: 62, intro: "La forge teste votre maîtrise des nouveaux rôles." } },
-        { s: "Toren", t: "Les runes répondent ! Mais quelqu’un a détourné le noyau pour ouvrir une faille." },
-        { boss: { name: "L’Architecte des failles", type: "Chronomancien", hp: 82000, atk: 2900, reward: 72, intro: "Il plie les secondes pour empêcher votre prochain mouvement." } },
-        { t: "La forge se rallume. Une nouvelle bannière apparaît dans le ciel, marquant le début d’une guerre plus ancienne que les royaumes." }
-      ]},
-      { act: "Acte V — Les royaumes fracturés", title: "La forêt qui se souvient", scene: { sky: "forest", ground: "canopee3", sunX: 80, actors: [{ cls: "Druide", color: "#3bd4a0", x: 120 }, { cls: "Archer", color: "#3ba75c", x: 165, flip: true }] }, events: [
-        { t: "La forêt de Lune-Racine s’étend sous une voûte de feuilles argentées. Chaque arbre porte un souvenir qui n’appartient à personne." },
-        { s: "Maélis", t: "La forêt ne vous attaque pas. Elle vous montre ce que vous avez oublié. Écoutez avant de frapper." },
-        { fight: { name: "Prédateur nocturne", type: "Prédateur", hp: 73500, atk: 2700, reward: 66 } },
-        { s: "Sylwen", t: "La sève est empoisonnée. Quelqu’un a planté une graine de néant au cœur des racines." },
-        { boss: { name: "Reine des épines", type: "Alchimiste", hp: 90000, atk: 3050, reward: 78, elite: { id: "siphon", name: "Sève vorace", desc: "absorbe une partie des dégâts infligés" } } },
-        { t: "La graine se dissout. La forêt rend les souvenirs volés et ouvre un passage vers les royaumes fracturés." }
-      ]},
-      { act: "Acte VI — Le voile des ombres", title: "Les cloches sans écho", scene: { sky: "night", ground: "sanctuaire", stars: true, sunX: 240, actors: [{ cls: "Occultiste", color: "#7d5bb5", x: 120 }, { cls: "Chevalier", color: "#e3b23c", x: 165, flip: true }] }, events: [
-        { t: "Dans la cité engloutie, les cloches sonnent sans produire de son. Les habitants marchent comme s’ils attendaient une seconde qui ne vient jamais." },
-        { s: "Vhal", t: "Le voile n’est pas une porte. C’est une dette. Chaque pouvoir emprunté réclame quelque chose en retour." },
-        { fight: { name: "Alchimiste du néant", type: "Alchimiste", hp: 79000, atk: 2850, reward: 70 } },
-        { s: "Nyxar", t: "Le maître du voile se nourrit des noms effacés. Ne lui donnez pas le vôtre." },
-        { boss: { name: "Le Collecteur de noms", type: "Nécromant", hp: 98000, atk: 3250, reward: 86, elite: { id: "veil", name: "Dette des ombres", desc: "draine une partie de la jauge à chaque tour" } } },
-        { t: "Les cloches retrouvent leur voix. Au loin, le sablier du monde se fissure une nouvelle fois." }
-      ]},
-      { act: "Acte VI — Le voile des ombres", title: "La marche des armées", scene: { sky: "ash", ground: "vulkan", sunX: 60, actors: [{ cls: "Défenseur", color: "#9fb0c8", x: 120 }, { cls: "Berserker", color: "#c34a2f", x: 165, flip: true }] }, events: [
-        { t: "Trois armées avancent vers la faille. Les bannières se mélangent dans la fumée, mais les ordres viennent d’une seule voix." },
-        { s: "Aldric", t: "Nous ne gagnerons pas en frappant plus fort. Il faut tenir la ligne et laisser les soigneurs respirer." },
-        { fight: { name: "Canonnière cendrée", type: "Artilleur", hp: 85000, atk: 3000, reward: 75 } },
-        { s: "Bastien", t: "La ligne tient. Pour combien de temps ? Le commandant approche." },
-        { boss: { name: "Maréchal des trois armées", type: "Capitaine", hp: 108000, atk: 3450, reward: 94 } },
-        { t: "Les armées déposent leurs armes. Une carte ancienne révèle le chemin vers l’horloge du monde." }
-      ]},
-      { act: "Acte VII — L’horloge du monde", title: "Les secondes volées", scene: { sky: "night", ground: "ruines", stars: true, sunX: 220, actors: [{ cls: "Mage", color: "#6b4f9e", x: 120 }, { cls: "Artificier", color: "#d7a85a", x: 165, flip: true }] }, events: [
-        { t: "Au sommet de l’horloge, les aiguilles tournent dans des directions opposées. Chaque seconde arrachée au monde devient une créature." },
-        { s: "Elyndra", t: "Le mécanisme peut nous rendre le temps perdu, mais il faut briser ses six verrous." },
-        { fight: { name: "Duelliste des failles", type: "Duelliste", hp: 93000, atk: 3250, reward: 82 } },
-        { s: "Nyxar", t: "Je reconnais cette magie. Le Chronarque ne veut pas régner : il veut empêcher toute fin." },
-        { boss: { name: "Chronarque", type: "Chronomancien", hp: 118000, atk: 3650, reward: 105, elite: { id: "oriflamme", name: "Seconde captive", desc: "ralentit la recharge de l’Ultime" } } },
-        { t: "L’horloge s’arrête. Le silence qui suit ressemble enfin à la paix." }
-      ]},
-      { act: "Acte VII — L’horloge du monde", title: "Le dernier engrenage", scene: { sky: "dawn", ground: "sanctuaire", sunX: 190, actors: [{ cls: "Druide", color: "#3bd4a0", x: 120 }, { cls: "Occultiste", color: "#7d5bb5", x: 165, flip: true }] }, events: [
-        { t: "Une dernière roue tourne sous le sanctuaire. Elle porte les noms de tous ceux qui ont combattu depuis le premier serment." },
-        { s: "Maélis", t: "Le temps ne nous appartient pas. Mais nos choix, eux, peuvent rester." },
-        { fight: { name: "Garde astral", type: "Sentinelle", hp: 101000, atk: 3450, reward: 90 } },
-        { s: "Astrée", t: "Je sens les braises répondre. Ce pouvoir n’est pas fait pour durer éternellement : il doit passer à quelqu’un d’autre." },
-        { boss: { name: "Le Premier Témoin", type: "Prédateur", hp: 128000, atk: 3850, reward: 118 } },
-        { t: "Le dernier engrenage se fige. Les royaumes ne sont plus séparés : ils partagent désormais une même histoire." }
-      ]},
-      { act: "Epilogue II — Un monde relié", title: "Une bannière pour demain", scene: { sky: "dawn", ground: "village", sunX: 130, actors: [{ cls: "Chevalier", color: "#e3b23c", x: 120 }, { cls: "Mage", color: "#6b4f9e", x: 165, flip: true }] }, events: [
-        { t: "Des années ont passé. Les routes sont ouvertes, les écoles de combat accueillent de nouveaux visages et les reliques ne sont plus réservées aux rois." },
-        { s: "Dame Elise", t: "Nous avons commencé à trois. Regardez-les : ils sont des centaines à porter le serment." },
-        { fight: { name: "Épreuve des volontaires", type: "Fantassin", hp: 112000, atk: 3600, reward: 98 } },
-        { s: "Astrée", t: "Une bannière n’est pas un morceau de tissu. C’est la promesse de ne pas laisser quelqu’un seul face aux ténèbres." },
-        { boss: { name: "L’Écho de demain", type: "Sorcier", hp: 140000, atk: 4050, reward: 130 } },
-        { t: "FIN — Les braises ne s’éteignent pas tant que quelqu’un choisit de les transmettre. Une nouvelle aventure commence." }
-      ]}
-    );
-
-    // Chaque chapitre devient un véritable niveau : une escarmouche jouable
-    // est insérée dans le parcours, avant le boss lorsqu'il y en a un.
-    OS.asteriaData.STORY = STORY;
-    const STORY_SKIRMISH_TYPES = ["Brute", "Assassin", "Sorcier", "Capitaine", "Fantassin", "Nécromant", "Banshee", "Golem", "Oracle", "Duelliste", "Artilleur", "Alchimiste"];
-    STORY.forEach((chapter, index) => {
-      if (chapter.events.some((event) => event.fight)) return;
-      const bossIndex = chapter.events.findIndex((event) => event.boss);
-      const insertAt = bossIndex >= 0 ? Math.max(1, bossIndex - 1) : Math.max(1, Math.min(2, chapter.events.length - 1));
-      const type = STORY_SKIRMISH_TYPES[index % STORY_SKIRMISH_TYPES.length];
-      chapter.events.splice(insertAt, 0, {
-        fight: {
-          name: ["Éclaireur des ombres", "Garde renégat", "Traqueur des runes", "Sentinelle corrompue"][index % 4] + " · " + (index + 1),
-          type,
-          hp: 3000 + index * 650,
-          atk: 420 + index * 35,
-          reward: 5 + index * 2,
-          intro: "La route est barrée. Une escarmouche vous attend avant de poursuivre."
-        }
-      });
-    });
-
-    let storyScene = null;
-    let typeTimer = null;
-
-    function clearTyping() {
-      if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
-    }
-
-    function storyBackBtn() {
-      const b = document.createElement("button");
-      b.className = "story-back";
-      b.textContent = "↩ Tous les chapitres";
-      b.addEventListener("click", () => { OS.sfx.play("page"); renderStory(); });
-      return b;
-    }
-
-    function storyMusicToggle() {
-      const b = document.createElement("button");
-      b.className = "music-toggle";
-      b.textContent = "♪ Musique : " + (storyState.music ? "ON" : "OFF");
-      b.addEventListener("click", () => {
-        storyState.music = !storyState.music;
-        persistStory();
-        OS.sfx.setMusic(storyState.music);
-        renderStory();
-      });
-      return b;
-    }
-
-    function storyChapterList() {
-      const acts = [];
-      STORY.forEach((ch, i) => {
-        if (!acts.length || acts[acts.length - 1].name !== ch.act) acts.push({ name: ch.act, heads: [], first: i });
-      });
-      const wrap = document.createElement("div");
-      acts.forEach((act) => {
-        const head = document.createElement("div");
-        head.className = "story-act";
-        head.textContent = act.name;
-        wrap.appendChild(head);
-        const list = document.createElement("div");
-        list.className = "story-list";
-        STORY.forEach((ch, i) => {
-          if (ch.act !== act.name) return;
-          const c = document.createElement("button");
-          const locked = i > storyState.done;
-          const done = i < storyState.done;
-          c.className = "story-chapter" + (locked ? " locked" : "") + (done ? " done" : "");
-          const regionArt = ["foret", "volcan", "ruines"][i % 3];
-          c.innerHTML = '<span class="story-chapter-art"><img loading="lazy" alt="" src="assets/asteria/scenes/' + regionArt + '.svg"></span><span class="story-chapter-copy"><b>' + (i + 1) + ". " + ch.title + '</b><small>' + (done ? "✓ terminé" : locked ? "verrouillé" : "▶ jouer") + "</small></span>";
-          if (!locked) c.addEventListener("click", () => { OS.sfx.play("page"); openScene(i); });
-          list.appendChild(c);
-        });
-        wrap.appendChild(list);
-      });
-      return wrap;
-    }
-
-    function renderStory() {
-      OS.sfx.setTheme("story");
-      clearTyping();
-      // Une victoire/défaite d'histoire est terminée : sortir du combat avant
-      // de revenir à la carte évite de conserver une équipe de combat obsolète.
-      if (battle && battle.mode === "histoire" && battle.over) battle = null;
-      setActiveTab(tabStory);
-      content.innerHTML = "";
-      content.appendChild(quartzBar());
-      if (storyState.music) OS.sfx.setMusic(true);
-
-      const hint = document.createElement("div");
-      hint.className = "team-hint";
-      hint.textContent = "Mode Histoire — " + STORY.length + " chapitres jouables : dialogues, escarmouches, boss et progression."
-      content.appendChild(hint);
-
-      const shelf = document.createElement("div");
-      shelf.className = "story-banners";
-      BANNERS.forEach((bn, t) => {
-        const slot = document.createElement("div");
-        const unlocked = bannersUnlockedCount() > t;
-        slot.className = "banner-slot" + (unlocked ? " unlocked" : " locked");
-        slot.innerHTML = bannerSvg(bn.color, !unlocked) + "<span>" + (unlocked ? bn.name : "Bannière scellée") + "</span>";
-        shelf.appendChild(slot);
-      });
-      content.appendChild(shelf);
-
-      const diffTitle = document.createElement("div");
-      diffTitle.className = "team-hint";
-      diffTitle.textContent = "Difficulté des boss d'histoire :";
-      content.appendChild(diffTitle);
-      const diffRow = document.createElement("div");
-      diffRow.className = "pull-row diff-row";
-      Object.keys(STORY_DIFFS).forEach((key) => {
-        const d = STORY_DIFFS[key];
-        const b = document.createElement("button");
-        const locked = !diffUnlockedSt(storyState, key);
-        b.className = "pull-btn tier-" + key + (storyState.diff === key ? " active-diff" : "") + (locked ? " locked" : "");
-        b.innerHTML = locked
-          ? d.label + "<br><small>🔒 toute l'histoire d'abord en " + STORY_DIFFS[key === "enferPlus" ? "enfer" : key].label.toLowerCase() + "</small>"
-          : d.label + "<br><small>boss ×" + String(d.hp).replace(".", ",") + " · ◆ ×" + String(d.rw).replace(".", ",") + "</small>";
-        if (!locked) b.addEventListener("click", () => {
-          storyState.diff = key;
-          persistStory();
-          document.dispatchEvent(new Event("asteria-diff"));
-          OS.sfx.play("ui");
-          renderStory();
-        });
-        diffRow.appendChild(b);
-      });
-      content.appendChild(diffRow);
-
-      if (storyState.blessing) {
-        const bl = document.createElement("div");
-        bl.className = "story-blessing";
-        bl.textContent = "✧ Bénédiction : " + BLESSINGS[storyState.blessing];
-        content.appendChild(bl);
-      }
-
-      content.appendChild(storyMusicToggle());
-      content.appendChild(storyChapterList());
-    }
-
-    function openScene(i, step) {
-      storyScene = { idx: i, step: step || 0 };
-      renderScene();
-    }
-
-    function typeCurrentLine(el, text) {
-      const storyRaw = OS.store.get("story-speed", null);
-      const raw = storyRaw === null || storyRaw === "instant" ? OS.store.get("game-speed", 1) : storyRaw;
-      if (storyRaw === "instant") {
-        el.textContent = text;
-        return;
-      }
-      const speed = Math.max(0.5, Number(raw) || 1);
-      let pos = Math.min(2, text.length);
-      el.textContent = text.slice(0, pos);
-      typeTimer = setInterval(() => {
-        pos += 2;
-        el.textContent = text.slice(0, pos);
-        if (pos % 8 === 0) OS.sfx.play("type");
-        if (pos >= text.length) {
-          el.textContent = text;
-          clearTyping();
-        }
-      }, Math.max(8, Math.round(30 / speed)));
-    }
-
-    function renderScene() {
-      OS.sfx.setTheme("story");
-      clearTyping();
-      setActiveTab(tabStory);
-      if (!storyScene || !STORY[storyScene.idx] || !STORY[storyScene.idx].events[storyScene.step]) {
-        renderStory();
-        return;
-      }
-      const ch = STORY[storyScene.idx];
-      const ev = ch.events[storyScene.step];
-      content.innerHTML = "";
-      content.appendChild(quartzBar());
-      content.appendChild(storyBackBtn());
-
-      const art = document.createElement("div");
-      art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
-      content.appendChild(art);
-      const actorStrip = document.createElement("div");
-      actorStrip.className = "story-actor-strip";
-      const cast = [];
-      ch.events.forEach((event) => {
-        if (event.s && !cast.some((entry) => entry.name === event.s)) cast.push({ name: event.s, boss: false });
-        if (event.boss && !cast.some((entry) => entry.name === event.boss.name)) cast.push({ name: event.boss.name, boss: true, type: event.boss.type });
-        if (event.fight && !cast.some((entry) => entry.name === event.fight.name)) cast.push({ name: event.fight.name, boss: true, type: event.fight.type });
-      });
-      cast.forEach((actor) => {
-        const actorCard = document.createElement("div");
-        actorCard.className = "story-actor";
-        const known = UNITS.find((u) => u.name === actor.name);
-        const bossEvent = ch.events.find((event) => (event.boss || event.fight) && ((event.boss || event.fight).name === actor.name || actor.name.toLowerCase().includes((event.boss || event.fight).name.toLowerCase()) || (event.boss || event.fight).name.toLowerCase().startsWith(actor.name.toLowerCase())));
-        const isEnemy = actor.boss || !!bossEvent || actor.name === "Gortak";
-        const portrait = isEnemy
-          ? enemyPortraitMarkup(actor.type || (bossEvent && bossEvent.boss.type) || "Brute", actor.name)
-          : heroPortraitMarkup(known ? known.id : "story-" + artSlug(actor.name));
-        actorCard.innerHTML = portrait + '<span>' + portraitEscape(actor.name) + '</span>';
-        actorStrip.appendChild(actorCard);
-      });
-      if (actorStrip.childElementCount) content.appendChild(actorStrip);
-
-      const title = document.createElement("div");
-      title.className = "story-title";
-      title.textContent = (storyScene.idx + 1) + ". " + ch.title;
-      content.appendChild(title);
-
-      if (ev.q) {
-        const text = document.createElement("div");
-        text.className = "story-text";
-        const line = document.createElement("div");
-        line.className = "story-line current";
-        text.appendChild(line);
-        content.appendChild(text);
-        typeCurrentLine(line, ev.q);
-
-        const box = document.createElement("div");
-        box.className = "story-choices";
-        ev.opts.forEach((o) => {
-          const opt = document.createElement("button");
-          opt.className = "story-choice";
-          opt.innerHTML = "<b>" + o.label + "</b><small>" + BLESSINGS[o.blessing] + "</small>";
-          opt.addEventListener("click", () => {
-            storyState.blessing = o.blessing;
-            persistStory();
-            OS.sfx.play("unlock");
-            advanceScene();
-          });
-          box.appendChild(opt);
-        });
-        content.appendChild(box);
-      } else if (ev.boss || ev.fight) {
-        const encounter = ev.boss || ev.fight;
-        const isBoss = !!ev.boss;
-        const text = document.createElement("div");
-        text.className = "story-text";
-        const line = document.createElement("div");
-        line.className = "story-line current";
-        text.appendChild(line);
-        content.appendChild(text);
-        const bossPortrait = document.createElement("div");
-        bossPortrait.className = "story-boss-portrait";
-        bossPortrait.innerHTML = enemyPortraitMarkup(encounter.type, encounter.name) + '<span>' + encounter.name + " · " + encounter.type + '</span>';
-        content.appendChild(bossPortrait);
-        typeCurrentLine(line, encounter.intro);
-
-        const boss = document.createElement("button");
-        boss.className = "pull-btn tier-infini story-boss";
-        boss.textContent = isBoss ? "⚔ Affronter le boss : " + encounter.name : "⚔ Combattre : " + encounter.name;
-        boss.addEventListener("click", () => startStoryBattle(encounter, isBoss));
-        content.appendChild(boss);
-      } else {
-        const text = document.createElement("div");
-        text.className = "story-text";
-        if (ev.s) {
-          const speaker = document.createElement("div");
-          speaker.className = "story-speaker-card";
-          const known = UNITS.find((u) => u.name === ev.s);
-          const bossEvent = ch.events.find((event) => event.boss && (event.boss.name === ev.s || ev.s.toLowerCase().includes(event.boss.name.toLowerCase()) || event.boss.name.toLowerCase().startsWith(ev.s.toLowerCase())));
-          const speakerPortrait = bossEvent || ev.s === "Gortak"
-            ? enemyPortraitMarkup((bossEvent && bossEvent.boss.type) || "Brute", ev.s)
-            : heroPortraitMarkup(known ? known.id : "story-" + artSlug(ev.s));
-          speaker.innerHTML = speakerPortrait + '<span>' + portraitEscape(ev.s) + '</span>';
-          text.appendChild(speaker);
-        }
-        const line = document.createElement("div");
-        line.className = "story-line current" + (ev.s ? "" : " narration");
-        text.appendChild(line);
-        content.appendChild(text);
-        typeCurrentLine(line, ev.t);
-
-        const next = document.createElement("button");
-        next.className = "pull-btn story-next";
-        next.textContent = "Suivant ▸";
-        next.addEventListener("click", advanceScene);
-        content.appendChild(next);
-      }
-    }
-
-    function advanceScene() {
-      const ch = STORY[storyScene.idx];
-      if (storyScene.step < ch.events.length - 1) {
-        storyScene.step++;
-        OS.sfx.play("page");
-        renderScene();
-      } else {
-        const gained = completeChapter(storyScene.idx);
-        renderDoneChapter(storyScene.idx, gained > 0 ? "+8 ◆ gagnés" : "déjà lu");
-      }
-    }
-
-    function completeChapter(i) {
-      if (storyState.done <= i) {
-        storyState.done = i + 1;
-        persistStory();
-        save.quartz += 8;
-        persist();
-        OS.sfx.play("unlock");
-        return 8;
-      }
-      return 0;
-    }
-
-    function renderDoneChapter(i, subtitle) {
-      OS.sfx.setTheme("story");
-      clearTyping();
-      setActiveTab(tabStory);
-      const ch = STORY[i];
-      if (!ch) { renderStory(); return; }
-      content.innerHTML = "";
-      content.appendChild(quartzBar());
-
-      const art = document.createElement("div");
-      art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(sceneWithTeam(ch.scene));
-      content.appendChild(art);
-
-      const done = document.createElement("div");
-      done.className = "battle-result win";
-      done.textContent = i === STORY.length - 1 ? "✓ FIN DE L'HISTOIRE — " + subtitle : "✓ CHAPITRE TERMINÉ — " + subtitle;
-      content.appendChild(done);
-
-      if (i + 1 < STORY.length) {
-        const nx = document.createElement("button");
-        nx.className = "pull-btn story-next";
-        nx.textContent = "Chapitre suivant ▸";
-        nx.addEventListener("click", () => { OS.sfx.play("page"); openScene(i + 1); });
-        content.appendChild(nx);
-      }
-      content.appendChild(storyBackBtn());
-    }
-
     function teamSceneActors() {
       const src = battle && battle.mode ? battle.units : teamUnits();
       return src.map((u, i) => ({ cls: u.cls, color: RARITY[u.r] ? RARITY[u.r].color : "#e3b23c", x: 30 + i * 46, flip: false, evo: (save.evo && save.evo[u.id]) || 0 }));
     }
-    function sceneWithTeam(cfg) {
-      return { ...cfg, actors: (cfg.actors || []).concat(teamSceneActors()) };
-    }
-
     function battleSceneArt() {
-      const idx = battle.storyChapter !== undefined ? battle.storyChapter : (storyScene ? storyScene.idx : 0);
-      const cfg = STORY[idx] ? STORY[idx].scene : STORY[0].scene;
-      const full = battle.mode === "histoire" ? sceneWithTeam(cfg) : { ...cfg, actors: teamSceneActors() };
+      const cfg = { sky: "dawn", ground: "village", sunX: 210, actors: teamSceneActors() };
       const art = document.createElement("div");
       art.className = "story-art-box";
-      art.innerHTML = OS.art.scene(full);
+      art.innerHTML = OS.art.scene(cfg);
       return art;
     }
-
-    function startStoryBattle(cfg, isBoss) {
-      const team = teamUnits();
-      if (!team.length) { renderStory(); return; }
-      const fx = BLESSING_FX[storyState.blessing] || {};
-      const d = STORY_DIFFS[storyState.diff] || STORY_DIFFS.facile;
-      if (!cfg || !Number.isFinite(cfg.hp) || !Number.isFinite(cfg.atk)) { renderStory(); return; }
-      const hp = Math.round(cfg.hp * (fx.hpMult || 1) * d.hp);
-      storyScene = { idx: storyScene ? storyScene.idx : 0, step: storyScene ? storyScene.step : 0 };
-      battle = {
-        mode: "histoire",
-        tier: "histoire",
-        storyChapter: storyScene.idx,
-        storyStep: storyScene.step,
-        bossCfg: cfg,
-        storyBoss: !!isBoss,
-        storyMult: fx.mult || 1,
-        floor: storyScene.idx + 1,
-        enemy: { name: cfg.name, type: cfg.type, ...enemyStats(cfg.type, hp, Math.round(cfg.atk * d.atk)), reward: Math.max(2, Math.round(cfg.reward * d.rw)) },
-        diffLabel: d.label,
-        units: team,
-        hp: team.map((u) => u.hp),
-        gauge: initialGauge(team, 100, fx.gauge || 0),
-        picks: 0,
-        curse: 0,
-        burn: 0,
-        valenFury: 0,
-        log: [],
-      };
-      if (d.elite && cfg.elite) battle.elite = cfg.elite;
-      newHand();
-      battle.heroStacks = team.map((u) => (u.cls === "Héros" ? 0 : -1));
-      battle.log.unshift("----- " + cfg.name + " [" + (isBoss ? "Boss" : "Escarmouche") + " d'histoire · " + d.label + "] · récompense : " + battle.enemy.reward + " ◆ -----");
-      if (battle.elite) battle.log.unshift("[Enfer+] " + battle.elite.name + " : " + battle.elite.desc);
-      if (battle.elite) OS.sfx.play("arcane");
-      OS.sfx.play("ult");
-      renderQuests();
-    }
-
-    function onStoryContinue() {
-      if (!battle || battle.mode !== "histoire" || !battle.over || !battle.enemy || battle.enemy.hp > 0) return;
-      const idx = battle.storyChapter;
-      const step = battle.storyStep + 1;
-      const fresh = !!battle.freshWin;
-      storyScene = { idx, step };
-      if (step >= STORY[idx].events.length) renderDoneChapter(idx, fresh ? "boss vaincu !" : "niveau terminé");
-      else renderScene();
-    }
-
-    function onStoryRetry() {
-      if (!battle || battle.mode !== "histoire" || !battle.over || battle.enemy.hp <= 0) return;
-      storyScene = { idx: battle.storyChapter, step: battle.storyStep };
-      openScene(battle.storyChapter, battle.storyStep);
-    }
-    /* ---------- API de données exposée dès le chargement ---------- */
-    
-    OS.asteriaData.storyDiffs = function () {
-      const st = OS.store.get(SAVE_PREFIX + "-story", {});
-      const beaten = st.bossBeaten || {};
-      let bn = 0;
-      for (let t = 0; t < 5; t++) {
-        if (BOSS_IDX.every((i) => (beaten[i] || 0) >= Math.min(t + 1, Object.keys(STORY_DIFFS).length))) bn = t + 1;
-      }
-      return Object.keys(STORY_DIFFS).map((key) => ({
-        key,
-        label: STORY_DIFFS[key].label,
-        locked: !diffUnlockedSt(st, key),
-        active: (st.diff || "facile") === key,
-      }));
-    };
-    OS.asteriaData.setStoryDiff = function (key) {
-      const st = OS.store.get(SAVE_PREFIX + "-story", {});
-      const infos = OS.asteriaData.storyDiffs();
-      const info = infos.find((d) => d.key === key);
-      if (!info || info.locked) return false;
-      st.diff = key;
-      if (st.done === undefined) st.done = 0;
-      OS.store.set(SAVE_PREFIX + "-story", st);
-      document.dispatchEvent(new Event("asteria-diff"));
-      return true;
-    };
 
     /* ---------- Démarrage ---------- */
     persist();
