@@ -704,8 +704,6 @@ OS.registerApp({
   color: "#6b4f9e",
   render(body) {
     body.classList.add("padend");
-    const app = this;
-    app.onClose = () => clearTyping();
 
     /* ---------- Données ---------- */
 
