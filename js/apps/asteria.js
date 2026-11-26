@@ -822,7 +822,7 @@ OS.registerApp({
     function persistDaily() { OS.store.set(SAVE_PREFIX + "-daily", daily); }
     function ensureDaily() {
       const tk = todayKey();
-      if (!daily || daily.date !== tk) {
+      if (!daily || daily.date !== tk || !Array.isArray(daily.missions) || daily.missions.some((m) => m.t === "story")) {
         const picks = DAILY_TYPES.slice().sort(() => Math.random() - 0.5).slice(0, 3);
         daily = { date: tk, missions: picks.map((d) => ({ t: d.t, label: d.label, goal: d.goal, reward: d.reward, p: 0, claimed: false })) };
         persistDaily();
@@ -873,7 +873,7 @@ OS.registerApp({
       wrap.appendChild(chips);
       const info = document.createElement("div");
       info.className = "team-hint";
-      info.textContent = "Élixirs de raid : " + (raid.elixirs || 0) + " — farmés en Difficile, Infini (tous les 5 étages) et Histoire (Enfer/Enfer+). Équipe restaurée entre les phases.";
+      info.textContent = "Élixirs de raid : " + (raid.elixirs || 0) + " — farmés en Difficile, Infini (tous les 5 étages) et les récompenses d’événement. Équipe restaurée entre les phases.";
       wrap.appendChild(info);
       const enter = document.createElement("button");
       enter.className = "pull-btn";
@@ -2098,7 +2098,7 @@ OS.registerApp({
       const si = aliveIdx().sort((a, b) => battle.units[b].atk - battle.units[a].atk)[0];
       const strongest = battle.units[si];
       const heroMult = battle.heroStacks && battle.heroStacks[si] > 1 ? (1 + (strongest.id === "rin" || strongest.id === "graal" ? 0.08 : 0.05) * (battle.heroStacks[si] - 1)) : 1;
-      const dmg = Math.round(strongest.atk * 2.4 * heroMult * (1 + (unitFx(strongest).dmg || 0) / 100) * teamAtkMult() * (battle.storyMult || 1) * (0.95 + Math.random() * 0.1));
+      const dmg = Math.round(strongest.atk * 2.4 * heroMult * (1 + (unitFx(strongest).dmg || 0) / 100) * teamAtkMult() * (0.95 + Math.random() * 0.1));
       // Les ultimes passent par le même pipeline que les cartes : résistances,
       // malédiction et jauge de rupture restent cohérentes quel que soit le type d’attaque.
       hitEnemy(dmg, strongest.name, "Ultime", null);
