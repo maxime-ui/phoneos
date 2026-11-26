@@ -135,7 +135,7 @@ OS.registerApp({
       } else if (id === "graal") {
         const g = document.createElement("div");
         g.className = "sheet-line";
-        g.innerHTML = "<small>SS exclusive : vainquez le <b>Dragon des cendres en Enfer+</b> (Mode Histoire, chapitre 12)</small>";
+        g.innerHTML = "<small>SS exclusive : complétez les 144 autres héros dans la Collection, puis réclamez la récompense finale.</small>";
         panel.appendChild(g);
       }
 
