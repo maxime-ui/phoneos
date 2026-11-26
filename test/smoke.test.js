@@ -146,9 +146,7 @@ setTimeout(() => {
   check("ancienne sauvegarde Astéria supprimée au démarrage v2", window.localStorage.getItem("phoneos:asteria") === null);
   check("bouton plein écran présent", !!document.getElementById("btn-fullscreen"));
   check("horloge de la barre affichée", document.getElementById("top-clock").textContent !== "--:--");
-  const topDiffBoot = document.getElementById("top-diff");
-  const epOptBoot = topDiffBoot ? [...topDiffBoot.querySelectorAll("option")].find((o) => o.value === "enferPlus") : null;
-  check("sélecteur de difficulté dans la barre (Enfer+ verrouillé au départ)", !!epOptBoot && epOptBoot.disabled === true);
+  check("sélecteur de difficulté narrative retiré", !document.getElementById("top-diff"));
 
   // Ouvrir chaque app (la page ne quitte jamais le flux web)
   const apps = Object.keys(window.eval("OS").APPS);
@@ -174,8 +172,7 @@ setTimeout(() => {
   check("un passif est défini pour chaque héros", artApi.UNITS.every(u => !!artApi.PASSIVE_INFO[u.id]));
   check("six nouveaux archétypes ennemis et leur équilibrage", ["Duelliste","Artilleur","Alchimiste","Sentinelle","Prédateur","Chronomancien"].every(type => !!artApi.ENEMY_TYPES[type] && artApi.ENEMY_BALANCE[type] && artApi.ENEMY_BALANCE[type].every(v => v > 0)));
   check("ultimes de classe définis pour les douze classes", ["Chevalier","Berserker","Mage","Archer","Rôdeur","Héros","Soigneur","Défenseur","Tueur","Artificier","Druide","Occultiste"].every(cls => artApi.CLASS_ULTIMATE[cls] && artApi.CLASS_ULTIMATE[cls].turns >= 3));
-  check("trois bannières vedettes avec pity", artApi.FEATURED_BANNERS.length === 3 && artApi.FEATURED_BANNERS.every(b => artApi.UNITS.some(u => u.id === b.hero)));
-  check("25 chapitres narratifs", artApi.STORY.length === 25);
+  check("données de bannières et de Mode Histoire retirées", !artApi.FEATURED_BANNERS && !artApi.STORY && !artApi.storyDiffs && !artApi.setStoryDiff);
   check("huit reliques disponibles", Object.keys(artApi.RELICS).length === 8);
   const allHeroArt = artApi.UNITS.map((unit) => artApi.heroPortraitMarkup(unit.id));
   const enemyTypes = Object.keys(artApi.ENEMY_TYPES);
@@ -335,11 +332,21 @@ setTimeout(() => {
   resetFilters[0].value = "all"; resetFilters[0].dispatchEvent(new window.Event("change"));
   resetFilters = document.querySelectorAll(".collection-filters select");
   resetFilters[1].value = "all"; resetFilters[1].dispatchEvent(new window.Event("change"));
-  check("progression 144 / " + (unitIds.length) + " affichée", document.body.textContent.includes("144 / " + unitIds.length));
+  check("progression de collection hors SS : 144 / 144 affichée", document.body.textContent.includes("144 / 144"));
   const claim = document.querySelector(".collect-line .claim-btn");
   check("récompense 25 % réclamable", !!claim);
   if (claim) claim.click();
   check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).collected.includes(25));
+
+  // Le SS est une récompense de complétion, sans auto-inclusion dans le seuil des 100 %.
+  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.owned=s.owned||{};'+JSON.stringify(unitIds)+'.forEach(function(id){if(id!=="graal")s.owned[id]=1;});s.collected=[25,50,75];s.quartz=0;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
+  window.eval("OS").openApp("asteria");
+  [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection").click();
+  check("100 % atteignable sans posséder Astrée SS", document.body.textContent.includes("144 / 144 (100 %)") && !![...document.querySelectorAll(".collect-line .claim-btn")].find((b) => b.textContent.includes("Astrée")));
+  const graalReward = [...document.querySelectorAll(".collect-line .claim-btn")].find((b) => b.textContent.includes("Astrée"));
+  if (graalReward) graalReward.click();
+  const completedCollection = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
+  check("récompense finale : Astrée SS et 500 ◆ crédités une seule fois", completedCollection.owned.graal === 1 && completedCollection.quartz === 500 && completedCollection.collected.includes(100));
 
   // App Personnages : navigation Collection -> fiche détaillée -> retour
   const colCard = [...document.querySelectorAll(".col-grid .unit-card")].find((c) => !c.classList.contains("locked") && c.textContent.includes("Morgane"));
@@ -352,7 +359,7 @@ setTimeout(() => {
   if (backBtn) backBtn.click();
   check("retour -> liste complète de " + unitIds.length + " héros", document.querySelectorAll(".col-grid .unit-card").length === unitIds.length);
   window.eval("OS").heroes.open("graal");
-  check("fiche Graal non invoqué : indice Enfer+", $("#app-body").querySelectorAll(".sheet-panel").length === 1 && $("#app-body").textContent.includes("Dragon des cendres") && $("#app-body").textContent.includes("Enfer+") && !$("#app-body").textContent.includes("Doublons"));
+  check("fiche Graal non invoqué : indice Enfer+", $("#app-body").querySelectorAll(".sheet-panel").length === 1 && $("#app-body").textContent.includes("144 autres héros") && !$("#app-body").textContent.includes("Doublons"));
 
   // Réglages bonus : mode daltonien + vitesse des dialogues
   window.eval("OS").openApp("settings");
@@ -409,18 +416,18 @@ setTimeout(() => {
   check("réclamation mission +25 ◆", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 370);
   check("mission réclamée marquée ✓", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-daily")).missions[1].claimed === true);
 
-  // Pity de la bannière de héros : SSR garanti à la 50ᵉ invocation, remise à zéro
+  // Invocation générale : SSR garanti à la 50ᵉ invocation, remise à zéro
   window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.pity={banniere:49};s.quartz=100;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   const summonTabP = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
   summonTabP.click();
-  check("bannière : pity 49/50 affichée", document.querySelector(".banner-sub").textContent.includes("pity 49/50"));
+  check("invocation générale : compteur 49/50 affiché", document.querySelector(".banner-sub").textContent.includes("compteur 49/50"));
   const singleP = [...document.querySelectorAll(".pull-row .pull-btn")].find((b) => b.textContent.includes("Invoquer ×1"));
   check("invocation ×1 disponible", !!singleP);
   if (singleP) singleP.click();
   const pityCard = document.querySelector(".pull-results .unit-card");
-  check("pity 50 : SSR garanti à la 50ᵉ invocation", !!pityCard && pityCard.className.includes("r3") && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).pity.banniere === 0);
-  check("sous-titre bannière remis à pity 0/50", document.querySelector(".banner-sub").textContent.includes("pity 0/50"));
+  check("pity 50 : SSR garanti à la 50ᵉ invocation", !!pityCard && pityCard.className.includes("r3") && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).pity.general === 0);
+  check("compteur invocation générale remis à 0/50", document.querySelector(".banner-sub").textContent.includes("compteur 0/50"));
 
   // Quête facile : le Soigneur soigne au lieu d'attaquer
   const questTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Quêtes");
@@ -504,238 +511,15 @@ setTimeout(() => {
   const bronCardE4 = [...document.querySelectorAll(".roster .unit-card")].find((c) => c.querySelector(".unit-name").textContent.includes("Bron"));
   check("éveil IV visible : ★★★★ et talents annoncés", !!bronCardE4 && bronCardE4.querySelector(".unit-name").textContent.includes("★★★★") && bronCardE4.textContent.includes("Éveil IV ✦ Dégâts +6 % et jauge de départ +5 %"));
 
-  const storyTab = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  check("onglet Histoire présent", !!storyTab);
-  storyTab.click();
-  check("liste des 25 chapitres", document.querySelectorAll(".story-chapter").length === 25);
-  check("chapitres 2-25 verrouillés au départ", document.querySelectorAll(".story-chapter.locked").length === 24);
-  check("sept actes et deux épilogues affichés", document.querySelectorAll(".story-act").length === 9);
-  check("toggle musique présent", !!document.querySelector(".music-toggle"));
-
-  check("6 difficultés affichées (Enfer+ inclus)", document.querySelectorAll(".diff-row .pull-btn").length === 6);
-  check("étagère de 8 bannières", document.querySelectorAll(".banner-slot").length === 8);
-  check("aucune bannière au départ", document.querySelectorAll(".banner-slot.locked").length === 8);
-  const moyenBtn0 = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Moyen"));
-  check("Moyen verrouillé tant que l'histoire n'est pas bouclée en Facile", moyenBtn0 && moyenBtn0.classList.contains("locked"));
-  if (moyenBtn0) moyenBtn0.click();
-  check("clic sur Moyen verrouillé sans effet", ((JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) || "facile") === "facile");
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.cleared=["facile","moyen","difficile","impossible"];s.done=0;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("asteria");
-  const storyTabD = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTabD.click();
-  const enferBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer") && !b.textContent.includes("Enfer+"));
-  check("bouton Enfer débloqué après la chaîne de difficultés", enferBtn && !enferBtn.classList.contains("locked"));
-  if (enferBtn) enferBtn.click();
-  check("difficulté Enfer persistée", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enfer");
-  const epBtn0 = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
-  check("Enfer+ verrouillé sans histoire bouclée en Enfer", epBtn0 && epBtn0.classList.contains("locked"));
-  if (epBtn0) epBtn0.click();
-  check("clic sur Enfer+ verrouillé sans effet", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enfer");
-
-  document.querySelector(".story-chapter").click();
-  check("onglet Histoire reste actif dans une scène", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
-  check("scène SVG visible", !!document.querySelector(".story-art"));
-  check("Mode Histoire : portraits uniques des personnages du chapitre", document.querySelectorAll(".story-actor-strip svg").length > 0 && [...document.querySelectorAll(".story-actor-strip svg")].every((portrait) => !!portrait.getAttribute("data-portrait-id")));
-  const sceneHtml = document.querySelector(".story-art").innerHTML;
-  check("scène d'histoire : l'équipe réelle apparaît avec ses évolutions", sceneHtml.includes("scale(1.08)") && sceneHtml.includes("#ffd970"));
-  check("titre du chapitre affiché", !!document.querySelector(".story-title") && document.querySelector(".story-title").textContent.includes("L'appel du village"));
-  const firstLine = document.querySelector(".story-line.current");
-  check("ligne narrée présente", !!firstLine && firstLine.textContent.length > 0);
-
-  for (let i = 0; i < 2; i++) {
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
-  }
-  const firstSkirmish = document.querySelector(".story-boss");
-  check("chapitre 1 : première escarmouche jouable", !!firstSkirmish && firstSkirmish.textContent.includes("Combattre"));
-  if (firstSkirmish) firstSkirmish.click();
-  check("chapitre 1 : escarmouche lancée dans le moteur de combat", !!document.querySelector(".battle") && document.body.textContent.includes("Escarmouche"));
-  check("chapitre 1 : escarmouche remportée", finishStorySkirmish());
-  for (let i = 0; i < 2; i++) {
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
-  }
-  const storySaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
-  check("progression chapitre 1 sauvegardée", storySaved.done >= 1);
-  check("récompense chapitre affichée", document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
-  check("onglet Histoire reste actif à la fin du chapitre", [...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire" && b.classList.contains("active")));
-
-  [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire").click();
-  check("chapitres 3-25 encore verrouillés", document.querySelectorAll(".story-chapter.locked").length === 23);
-
-  const music = document.querySelector(".music-toggle");
-  music.click();
-  const musicSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
-  check("musique ON persistée", document.querySelector(".music-toggle").textContent.includes("ON") && musicSaved.music === true);
-  document.querySelector(".music-toggle").click();
-
-  // Les escarmouches de l'histoire sont de vrais combats ; on les termine
-  // avec les cartes normales avant de poursuivre le scénario.
-  function finishStorySkirmish() {
-    let guard = 0;
-    while (document.querySelector(".battle") && !document.querySelector(".battle-result") && guard++ < 90) {
-      for (let action = 0; action < 3; action++) {
-        const card = document.querySelector(".hand-card:not([disabled])");
-        if (card) card.click();
-        if (document.querySelector(".battle-result")) break;
-      }
-    }
-    if (document.querySelector(".battle-result.win")) {
-      const cont = [...document.querySelectorAll(".story-next")].pop();
-      if (cont) cont.click();
-      return true;
-    }
-    return false;
-  }
-
-  // Choix narratif du chapitre 3 (bénédiction persistée)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.done=2;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("asteria");
-  const storyTabC = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTabC.click();
-  const chapter3 = [...document.querySelectorAll(".story-chapter")][2];
-  check("chapitre 3 déverrouillé", chapter3 && !chapter3.classList.contains("locked"));
-  chapter3.click();
-  for (let i = 0; i < 2; i++) {
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
-  }
-  const chapter3Skirmish = document.querySelector(".story-boss");
-  check("chapitre 3 : escarmouche jouable avant le choix", !!chapter3Skirmish && chapter3Skirmish.textContent.includes("Combattre"));
-  if (chapter3Skirmish) chapter3Skirmish.click();
-  check("chapitre 3 : combat d'escarmouche lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Escarmouche"));
-  const skirmishWon = finishStorySkirmish();
-  check("chapitre 3 : escarmouche remportable avec les cartes de combat", skirmishWon);
-  check("choix narratif affiché après l'escarmouche", document.querySelectorAll(".story-choice").length === 2);
-  const choice = document.querySelector(".story-choice");
-  if (choice) choice.click();
-  const blessingSaved = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}");
-  check("bénédiction sauvegardée", !!blessingSaved.blessing && document.querySelector("#app-body").textContent.includes("CHAPITRE TERMINÉ"));
-
-  // Boss du chapitre 4 : Gortak
-  window.eval("OS").openApp("asteria");
-  const storyTab2 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTab2.click();
-  const chapter4 = [...document.querySelectorAll(".story-chapter")][3];
-  check("chapitre 4 (Gortak) déverrouillé", chapter4 && !chapter4.classList.contains("locked"));
-  chapter4.click();
-  let chapter4Guard = 0;
-  while (chapter4Guard++ < 12) {
-    const encounterBtn = document.querySelector(".story-boss");
-    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
-    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
-      encounterBtn.click();
-      if (!finishStorySkirmish()) break;
-      continue;
-    }
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (!next) break;
-    next.click();
-  }
-  const bossBtn = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
-  check("bouton boss Gortak présent après l'escarmouche", !!bossBtn);
-  if (bossBtn) bossBtn.click();
-  check("combat boss lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Gortak") && document.body.textContent.includes("Boss d'histoire"));
-  for (let draws = 0; draws < 3; draws++) {
-    const card = document.querySelector(".hand-card");
-    if (card) card.click();
-  }
-  check("combat boss : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 3);
-
-  // Boss final : le dragon des cendres
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.done=11;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("asteria");
-  const storyTab3 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTab3.click();
-  const chapter12 = [...document.querySelectorAll(".story-chapter")][11];
-  check("chapitre 12 déverrouillé", chapter12 && !chapter12.classList.contains("locked"));
-  chapter12.click();
-  let dragonGuard = 0;
-  while (dragonGuard++ < 12) {
-    const encounterBtn = document.querySelector(".story-boss");
-    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
-    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
-      encounterBtn.click();
-      if (!finishStorySkirmish()) break;
-      continue;
-    }
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (!next) break;
-    next.click();
-  }
-  const dragonBtn = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
-  check("bouton boss dragon présent", !!dragonBtn);
-  if (dragonBtn) dragonBtn.click();
-  check("boss final lancé", !!document.querySelector(".battle") && document.body.textContent.includes("Dragon des cendres") && document.body.textContent.includes("Boss d'histoire"));
-  const dragonHp = document.querySelector(".hp-row.enemy .hp-num");
-  check("dragon scalé ×3,2 en Enfer (> 120 000 PV)", !!dragonHp && Number(dragonHp.textContent.split("/")[0]) > 120000);
-  check("difficulté affichée dans le combat", document.body.textContent.includes("Boss d'histoire · Enfer"));
-  check("intention ennemie annoncée", !!document.querySelector(".battle-intent"));
-  check("portrait ennemi personnalisé affiché en combat", !!document.querySelector(".battle-enemy-art svg.enemy-art[data-portrait-id]"));
-  check("affinité élémentaire de l’ennemi affichée", !!document.querySelector(".battle-affinity"));
-  check("jauge de rupture visible", !!document.querySelector(".break-gauge"));
-  check("suivi des ultimes automatiques visible", !!document.querySelector(".ultimate-status"));
-  check("action de garde disponible", [...document.querySelectorAll(".battle-actions button")].some((b) => b.textContent.includes("Garde d'équipe")));
-
-  // Épilogue : le 18ᵉ chapitre explique les origines (l'écho du premier dragon)
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.done=17;localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("asteria");
-  const storyTabEp = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTabEp.click();
-  check("25 chapitres listés en bout de récit", document.querySelectorAll(".story-chapter").length === 25);
-  const chapter18 = [...document.querySelectorAll(".story-chapter")][17];
-  check("épilogue (chapitre 18) déverrouillé", chapter18 && !chapter18.classList.contains("locked"));
-  if (chapter18) chapter18.click();
-  for (let i = 0; i < 8 && !document.querySelector(".story-boss"); i++) {
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (next) next.click();
-  }
-  check("épilogue : boss « Écho du premier dragon » présent", !!document.querySelector(".story-boss") && document.body.textContent.includes("Écho du premier dragon") && document.body.textContent.includes("trois")); // explication des origines
-
-  // Bannières + déblocage d'Enfer+
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story")||"{}");s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6,"18":6,"20":6,"22":6};s.cleared=["facile","moyen","difficile","impossible","enfer"];localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("asteria");
-  const storyTab4 = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Histoire");
-  storyTab4.click();
-  check("8 bannières débloquées", document.querySelectorAll(".banner-slot.unlocked").length === 8);
-  const epBtn = [...document.querySelectorAll(".diff-row .pull-btn")].find((b) => b.textContent.includes("Enfer+"));
-  check("Enfer+ débloqué", epBtn && !epBtn.classList.contains("locked"));
-  if (epBtn) epBtn.click();
-  check("Enfer+ sélectionné et persisté", (JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff) === "enferPlus");
-
-  // Boss Gortak en Enfer+ : stats scalées + compétence élite
-  const chapter4p = [...document.querySelectorAll(".story-chapter")][3];
-  chapter4p.click();
-  let epGuard = 0;
-  while (epGuard++ < 12) {
-    const encounterBtn = document.querySelector(".story-boss");
-    if (encounterBtn && encounterBtn.textContent.includes("Affronter le boss")) break;
-    if (encounterBtn && encounterBtn.textContent.includes("Combattre")) {
-      encounterBtn.click();
-      if (!finishStorySkirmish()) break;
-      continue;
-    }
-    const next = [...document.querySelectorAll(".story-next")].pop();
-    if (!next) break;
-    next.click();
-  }
-  const bossBtnP = [...document.querySelectorAll(".story-boss")].find((b) => b.textContent.includes("Affronter le boss"));
-  check("bouton boss Gortak (Enfer+) présent après escarmouche", !!bossBtnP);
-  if (bossBtnP) bossBtnP.click();
-  const bossHp = document.querySelector(".hp-row.enemy .hp-num");
-  check("boss Enfer+ scalé ×4,2 (> 50 000 PV)", !!bossHp && Number(bossHp.textContent.split("/")[0]) > 50000);
-  check("compétence élite affichée", document.body.textContent.includes("Massue écrasante"));
-
-  // Salle des trophées
+  // Le Mode Histoire et les bannières événementielles/de gloire ne sont plus présents.
+  check("aucun onglet Mode Histoire", ![...document.querySelectorAll(".gacha-tabs button")].some((b) => b.textContent === "Histoire"));
+  const summonTabClean = [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Invoquer");
+  summonTabClean.click();
+  check("aucune bannière événementielle", !document.querySelector(".featured-banner-grid") && !document.querySelector(".banner-slot") && !document.body.textContent.includes("Bannières thématiques"));
+  check("invocation générale et portails de classe conservés", document.body.textContent.includes("Invocation générale") && document.querySelectorAll(".portal-grid .portal-btn").length === 12);
   window.eval("OS").openApp("trophies");
-  check("trophées : 8 bannières affichées", document.querySelectorAll(".trophies .banner-slot").length === 8);
-  check("trophées : 8 bannières débloquées via seed", document.querySelectorAll(".trophies .banner-slot.unlocked").length === 8);
-  check("trophées : records des 8 boss + Mode Infini", document.querySelectorAll(".trophies-record").length === 9);
-  check("trophées : Graal verrouillé affiché", !!document.querySelector(".trophy-graal.locked") && document.body.textContent.includes("Astrée, Héritière des braises"));
-  check("trophées : record Mode Infini affiché", document.body.textContent.includes("Mode Infini"));
-  window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2-story"));s.bossBeaten={"1":6,"3":6,"6":6,"9":6,"11":6,"18":6,"20":6,"22":6};localStorage.setItem("phoneos:asteria-v2-story",JSON.stringify(s));})()');
-  window.eval("OS").openApp("trophies");
-  check("trophées : records Enfer+ distincts d'Enfer", [...document.querySelectorAll(".trophies-record.top")].filter((l) => l.textContent.includes("Enfer+")).length === 8);
+  check("trophées sans bannières ni records narratifs", !document.querySelector(".banner-slot") && !document.body.textContent.includes("boss d'histoire") && !!document.querySelector(".trophy-graal"));
+  check("trophées : objectif de collection SS affiché", document.body.textContent.includes("Astrée, Héritière des braises") && document.body.textContent.includes("collection"));
 
   // ---- Raid hebdomadaire : 3 phases, coffre, Élixirs ----
   window.eval('(function(){var d=new Date(),t=new Date(d.getFullYear(),0,1),w=Math.ceil(((d-t)/86400000+t.getDay()+1)/7);localStorage.setItem("phoneos:asteria-v2-raid",JSON.stringify({week:d.getFullYear()+"-S"+w,elixirs:5,cleared:3,claimed:false}));})()');
@@ -841,17 +625,8 @@ setTimeout(() => {
   window.eval("OS").sfx.setMuted(true);
   window.eval("OS").sfx.setMuted(false);
 
-  // Barre supérieure avancée : sélecteur de difficulté direct + raccourci F
-  window.eval('document.dispatchEvent(new Event("asteria-diff"))');
-  const topDiff = document.getElementById("top-diff");
-  check("sélecteur de difficulté direct (6 options)", !!topDiff && topDiff.querySelectorAll("option").length === 6);
-  const epOpt = [...topDiff.querySelectorAll("option")].find((o) => o.value === "enferPlus");
-  check("Enfer+ déverrouillé dans le sélecteur (chaîne de difficultés bouclée)", !!epOpt && epOpt.disabled === false);
-  const nDiff = document.querySelectorAll(".notif").length;
-  topDiff.value = "moyen";
-  topDiff.dispatchEvent(new window.Event("change", { bubbles: true }));
-  check("difficulté changée depuis la barre (persistée)", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2-story") || "{}").diff === "moyen");
-  check("notification de difficulté affichée", document.querySelectorAll(".notif").length === nDiff + 1);
+  // Le sélecteur global de difficulté a disparu avec le Mode Histoire.
+  check("aucun sélecteur global de difficulté", !document.getElementById("top-diff"));
   const nF = document.querySelectorAll(".notif").length;
   document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "f" }));
   check("raccourci F : réaction plein écran (repli jsdom)", document.querySelectorAll(".notif").length === nF + 1);
