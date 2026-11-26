@@ -147,45 +147,6 @@ const OS = (() => {
     });
   }
 
-  /* ---------- Sélecteur de difficulté (Mode Histoire) ---------- */
-  let diffSel = null;
-  let diffRefresh = null;
-
-  function buildDiffSelect(data) {
-    const bar = $("#top-bar");
-    if (!bar || !data || !data.storyDiffs || !data.setStoryDiff || diffSel) return;
-    diffSel = document.createElement("select");
-    diffSel.className = "top-diff";
-    diffSel.id = "top-diff";
-    diffSel.title = "Difficulté du Mode Histoire";
-    diffRefresh = () => {
-      diffSel.innerHTML = "";
-      data.storyDiffs().forEach((d) => {
-        const opt = document.createElement("option");
-        opt.value = d.key;
-        opt.textContent = (d.active ? "⚔ " : "") + d.label + (d.locked ? " 🔒" : "");
-        opt.disabled = d.locked;
-        diffSel.appendChild(opt);
-      });
-    };
-    diffRefresh();
-    diffSel.addEventListener("change", () => {
-      const key = diffSel.value;
-      if (data.setStoryDiff(key)) {
-        notify("⚔", "#6b4f9e", "Mode Histoire", "Difficulté : " + keyLabel(data, key), 2600);
-        if (state.currentApp === "asteria") openApp("asteria");
-      }
-      diffRefresh();
-    });
-    document.addEventListener("asteria-diff", diffRefresh);
-    bar.insertBefore(diffSel, $("#btn-fullscreen"));
-  }
-
-  function keyLabel(data, key) {
-    const d = data.storyDiffs().find((x) => x.key === key);
-    return d ? d.label : key;
-  }
-
   /* ---------- Événements globaux ---------- */
   function bindGlobal() {
     $("#btn-fullscreen").addEventListener("click", toggleFullscreen);
@@ -227,7 +188,6 @@ const OS = (() => {
     openApp, closeApp, goBack,
     notify,
     toggleFullscreen,
-    buildDiffSelect,
     setVolume,
     fmtTime, fmtDate,
     buildTabs,
