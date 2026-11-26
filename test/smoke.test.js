@@ -361,18 +361,18 @@ setTimeout(() => {
   window.eval("OS").heroes.open("graal");
   check("fiche Graal non invoqué : indice Enfer+", $("#app-body").querySelectorAll(".sheet-panel").length === 1 && $("#app-body").textContent.includes("144 autres héros") && !$("#app-body").textContent.includes("Doublons"));
 
-  // Réglages bonus : mode daltonien + vitesse des dialogues
+  // Réglages : mode daltonien et vitesse globale du jeu
   window.eval("OS").openApp("settings");
   const cbInput = [...document.querySelectorAll(".switch input")].find((inp) => inp.closest(".row, .set-row, div") && inp.closest(".row, .set-row, div").textContent.includes("Mode daltonien"));
   check("toggle Mode daltonien présent", !!cbInput);
   if (cbInput) cbInput.click();
   check("mode daltonien : body.cb appliqué", document.body.classList.contains("cb"));
   check("mode daltonien persisté", window.localStorage.getItem("phoneos:colorblind") === "true");
-  const speedBtns = [...document.querySelectorAll(".seg-row button, button")].filter((b) => b.textContent === "Instantané" || b.textContent === "Rapide");
-  const instantBtn = speedBtns.find((b) => b.textContent === "Instantané");
-  check("rangée vitesse des dialogues présente", speedBtns.length >= 2);
-  if (instantBtn) instantBtn.click();
-  check("vitesse des dialogues persistée (instant)", window.localStorage.getItem("phoneos:story-speed") === JSON.stringify("instant"));
+  const speedBtns = [...document.querySelectorAll(".seg-row button")].filter((b) => ["Lent", "Normal", "Rapide"].includes(b.textContent));
+  const rapidBtn = speedBtns.find((b) => b.textContent === "Rapide");
+  check("vitesse globale du jeu : trois réglages présents", speedBtns.length === 3);
+  if (rapidBtn) rapidBtn.click();
+  check("vitesse globale persistée", window.localStorage.getItem("phoneos:game-speed") === "2");
   const volumeSlider = document.querySelector(".settings-group input[type=range]");
   check("curseur de volume présent", !!volumeSlider);
   if (volumeSlider) { volumeSlider.value = "42"; volumeSlider.dispatchEvent(new window.Event("input", { bubbles: true })); }
@@ -489,7 +489,7 @@ setTimeout(() => {
   check("infini : tour joué sans erreur", document.querySelectorAll(".battle-log > div").length > 2);
   check("infini : progression et récompenses évolutives annoncées", document.querySelector(".infinite-scaling-hint") && document.querySelector(".infinite-scaling-hint").textContent.includes("+18 % PV"));
 
-  // ---- Mode Histoire ----
+  // Évolutions avancées et vérification de la suppression des modes narratifs
   // Évolution poussée : l'équipe est réinitialisée avec Bron ★★★ (talents II/III empilables)
   window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.team=["bron","tilia","nerys"];s.evo={bron:3};localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
