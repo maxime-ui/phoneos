@@ -339,6 +339,7 @@ setTimeout(() => {
   check("réclamation +50 ◆ persistée", JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).quartz === 350 && JSON.parse(window.localStorage.getItem("phoneos:asteria-v2")).collected.includes(25));
 
   // Le SS est une récompense de complétion, sans auto-inclusion dans le seuil des 100 %.
+  const collectionBeforeFinal = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   window.eval('(function(){var s=JSON.parse(localStorage.getItem("phoneos:asteria-v2"));s.owned=s.owned||{};'+JSON.stringify(unitIds)+'.forEach(function(id){if(id!=="graal")s.owned[id]=1;});s.collected=[25,50,75];s.quartz=0;localStorage.setItem("phoneos:asteria-v2",JSON.stringify(s));})()');
   window.eval("OS").openApp("asteria");
   [...document.querySelectorAll(".gacha-tabs button")].find((b) => b.textContent === "Collection").click();
@@ -347,6 +348,7 @@ setTimeout(() => {
   if (graalReward) graalReward.click();
   const completedCollection = JSON.parse(window.localStorage.getItem("phoneos:asteria-v2"));
   check("récompense finale : Astrée SS et 500 ◆ crédités une seule fois", completedCollection.owned.graal === 1 && completedCollection.quartz === 500 && completedCollection.collected.includes(100));
+  window.localStorage.setItem("phoneos:asteria-v2", JSON.stringify(collectionBeforeFinal));
 
   // App Personnages : navigation Collection -> fiche détaillée -> retour
   const colCard = [...document.querySelectorAll(".col-grid .unit-card")].find((c) => !c.classList.contains("locked") && c.textContent.includes("Morgane"));
