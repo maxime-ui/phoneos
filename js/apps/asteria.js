@@ -791,7 +791,7 @@ OS.registerApp({
     }
     let save = loadSave();
     if (!save.pity) save.pity = {};
-    if (save.pity.general === undefined) save.pity.general = 0;
+    if (save.pity.general === undefined) save.pity.general = save.pity.banniere || 0;
     delete save.pity.banniere;
     if (!save.collected) save.collected = [];
     if (!save.loot) save.loot = {};
