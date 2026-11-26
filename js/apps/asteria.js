@@ -758,6 +758,18 @@ OS.registerApp({
      * Les anciennes données restent intactes dans leurs clés historiques.
      */
     const SAVE_PREFIX = "asteria-v2";
+    // Effacer une seule fois les données du mode narratif désormais retiré.
+    (function clearRetiredStoryDataOnce() {
+      const cleanupKey = "phoneos:asteria-v2-story-removal";
+      try {
+        if (localStorage.getItem(cleanupKey) === "done") return;
+        localStorage.removeItem("phoneos:asteria-v2-story");
+        localStorage.removeItem("phoneos:story-speed");
+        localStorage.setItem(cleanupKey, "done");
+      } catch (_) {
+        // La sauvegarde principale reste disponible si le stockage est verrouillé.
+      }
+    })();
     // Nettoyage unique des anciennes sauvegardes Astéria/Épopée.
     // Les préférences globales du téléphone ne sont pas concernées.
     (function clearLegacyGameSavesOnce() {
@@ -871,7 +883,7 @@ OS.registerApp({
       wrap.appendChild(chips);
       const info = document.createElement("div");
       info.className = "team-hint";
-      info.textContent = "Élixirs de raid : " + (raid.elixirs || 0) + " — farmés en Difficile, Infini (tous les 5 étages) et les récompenses d’événement. Équipe restaurée entre les phases.";
+      info.textContent = "Élixirs de raid : " + (raid.elixirs || 0) + " — obtenus en quête Difficile et en Mode Infini (tous les 5 étages). Équipe restaurée entre les phases.";
       wrap.appendChild(info);
       const enter = document.createElement("button");
       enter.className = "pull-btn";
